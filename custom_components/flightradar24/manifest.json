@@ -1,0 +1,10 @@
+{
+    "domain": "flightradar24",
+    "name": "Flightradar24",
+    "documentation": "https://github.com/AlexandrErohin/home-assistant-flightradar24",
+    "requirements": ["FlightRadarAPI>=1.3.10"],
+    "version": "0.0.1",
+    "config_flow": true,
+    "codeowners": ["@AlexandrErohin"]
+}
+
