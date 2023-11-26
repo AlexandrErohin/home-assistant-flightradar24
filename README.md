@@ -100,6 +100,8 @@ cards:
           <ha-icon icon="mdi:airplane"></ha-icon>{{ flight.flight_number }} - {{ flight.airline_short }} - {{ flight.aircraft_model }}
           {{ flight.airport_origin_city }}{%if flight.airport_origin_city %}<img src="https://flagsapi.com/{{ flight.airport_origin_country_code }}/shiny/16.png" title='{{ flight.airport_origin_country_name }}'/>{% endif %} -> {{ flight.airport_destination_city }}{%
           if flight.airport_destination_country_code %}<img src="https://flagsapi.com/{{ flight.airport_destination_country_code }}/shiny/16.png" title='{{ flight.airport_destination_country_name }}'/>{% endif %}
+          {%if flight.time_scheduled_departure %}Departure - {{ flight.time_scheduled_departure | timestamp_custom('%H:%M') }}; {% endif %}{%if flight.time_scheduled_arrival%}Arrival - {{ flight.time_scheduled_arrival | timestamp_custom('%H:%M') }}{% endif %}
+          Altitude - {{ flight.altitude }} ft{%if flight.altitude > 0 %} ({{(flight.altitude * 0.3048)| round(0)}} m){% endif%}; Gr. speed - {{ flight.ground_speed }} kts{%if flight.ground_speed > 0 %} ({{(flight.ground_speed * 1.852)| round(0)}} km/h){% endif%}
           {% endfor %}
 ```
 
@@ -109,6 +111,11 @@ All available fields for flight you can check [here](#flight)
 | Field | Description |
 | --- |---|
 | flight_number | Flight Number |
+| latitude | Current latitude of the aircraft |
+| longitude | Current longitude of the aircraft |
+| altitude | Altitude (measurement: foot) |
+| ground_speed | Ground speed (measurement: knots) |
+| heading | The compass direction in which the craft's bow or nose is pointed (measurement: degrees) |
 | callsign | Callsign of the flight |
 | aircraft_registration | Aircraft registration number |
 | aircraft_photo_small | Aircraft small size photo url |

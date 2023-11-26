@@ -118,6 +118,11 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
                     flight = self._get_flight_data(data)
                 if flight is not None:
                     current[flight['id']] = flight
+                    flight['latitude'] = obj.latitude
+                    flight['longitude'] = obj.longitude
+                    flight['altitude'] = obj.altitude
+                    flight['heading'] = obj.heading
+                    flight['ground_speed'] = obj.ground_speed
 
             if self.tracked is not None:
                 entries = current.keys() - self.tracked.keys()
