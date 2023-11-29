@@ -1,6 +1,8 @@
 # Flightradar24 integration for Home Assistant
 Flightradar24 integration allows one to track overhead flights in a given region. It will also fire Home Assistant events when flights enter and exit the defined region.
 
+<b>IMPORTANT: No need FlightRadar24 subscription!</b>
+
 It allows you:
 1) Know how many flights in your area right now, or just have entered or exited it. And get list of flights with [full information](#flight) by every relevant flight for the sensor
 2) Create automations (example - [Get a notification when a flight enters or exits your area](#notification))
@@ -49,7 +51,7 @@ The default data is preset already
 
 1. Go to the <b>Settings</b>-><b>Devices & services</b>.
 2. Click on `+ ADD INTEGRATION`, search for `Flightradar24`.
-3. Fill IP address and Password.
+3. You may change the default values for Radius, Latitude and Longitude
 4. Click `SUBMIT`
 
 ## Uses
