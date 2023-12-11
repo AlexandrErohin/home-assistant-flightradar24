@@ -109,6 +109,15 @@ cards:
 
 All available fields for flight you can check [here](#flight)
 
+## Database decrease
+To decrease data stored by [Recorder](https://www.home-assistant.io/integrations/recorder/) in database add following lines to your `configuration.yaml` file:
+```yaml
+recorder:
+  exclude:
+    entity_globs:
+      - sensor.flightradar24*
+```
+
 ## <a id="flight">Flight fields</a>
 | Field | Description |
 | --- |---|
