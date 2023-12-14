@@ -126,12 +126,11 @@ recorder:
 | longitude | Current longitude of the aircraft |
 | altitude | Altitude (measurement: foot) |
 | ground_speed | Ground speed (measurement: knots) |
+| squawk | Squawk code are what air traffic control (ATC) use to identify aircraft when they are flying |
 | heading | The compass direction in which the craft's bow or nose is pointed (measurement: degrees) |
 | callsign | Callsign of the flight |
 | aircraft_registration | Aircraft registration number |
 | aircraft_photo_small | Aircraft small size photo url |
-| aircraft_photo_medium | Aircraft medium size photo url |
-| aircraft_photo_large | Aircraft large size photo url |
 | aircraft_model | Aircraft model |
 | aircraft_code | Aircraft code |
 | airline | Airline full name |

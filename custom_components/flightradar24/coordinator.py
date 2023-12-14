@@ -5,6 +5,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from homeassistant.helpers.device_registry import DeviceInfo
 import math
+import pycountry
 from .models import BoundingBox
 from .const import (
     DOMAIN,
@@ -123,6 +124,7 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
                     flight['altitude'] = obj.altitude
                     flight['heading'] = obj.heading
                     flight['ground_speed'] = obj.ground_speed
+                    flight['squawk'] = obj.squawk
 
             if self.tracked is not None:
                 entries = current.keys() - self.tracked.keys()
@@ -156,6 +158,14 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
         return flight['flight_number'] is not None
 
     @staticmethod
+    def _get_country_code(code: None | str) -> None | str:
+        if code is None or len(code) == 2:
+            return code
+        country = pycountry.countries.get(alpha_3=code)
+
+        return country.alpha_2 if country is not None else code
+
+    @staticmethod
     def _get_flight_data(flight: dict) -> dict[str, Any] | None:
         flight_id = FlightRadar24Coordinator._get_value(flight, ['identification', 'id'])
         if flight_id is None:
@@ -168,10 +178,6 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
             'aircraft_registration': FlightRadar24Coordinator._get_value(flight, ['aircraft', 'registration']),
             'aircraft_photo_small': FlightRadar24Coordinator._get_value(flight,
                                                                         ['aircraft', 'images', 'thumbnails', 0, 'src']),
-            'aircraft_photo_medium': FlightRadar24Coordinator._get_value(flight,
-                                                                         ['aircraft', 'images', 'medium', 0, 'src']),
-            'aircraft_photo_large': FlightRadar24Coordinator._get_value(flight,
-                                                                        ['aircraft', 'images', 'large', 0, 'src']),
             'aircraft_model': FlightRadar24Coordinator._get_value(flight, ['aircraft', 'model', 'text']),
             'aircraft_code': FlightRadar24Coordinator._get_value(flight, ['aircraft', 'model', 'code']),
             'airline': FlightRadar24Coordinator._get_value(flight, ['airline', 'name']),
@@ -186,9 +192,8 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
             'airport_origin_country_name': FlightRadar24Coordinator._get_value(flight,
                                                                                ['airport', 'origin', 'position',
                                                                                 'country', 'name']),
-            'airport_origin_country_code': FlightRadar24Coordinator._get_value(flight,
-                                                                               ['airport', 'origin', 'position',
-                                                                                'country', 'code']),
+            'airport_origin_country_code': FlightRadar24Coordinator._get_country_code(
+                FlightRadar24Coordinator._get_value(flight,['airport', 'origin', 'position', 'country', 'code'])),
             'airport_origin_city': FlightRadar24Coordinator._get_value(flight,
                                                                        ['airport', 'origin', 'position', 'region',
                                                                         'city']),
@@ -203,10 +208,9 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
                                                                                     ['airport', 'destination',
                                                                                      'position', 'country',
                                                                                      'name']),
-            'airport_destination_country_code': FlightRadar24Coordinator._get_value(flight,
-                                                                                    ['airport', 'destination',
-                                                                                     'position', 'country',
-                                                                                     'code']),
+            'airport_destination_country_code': FlightRadar24Coordinator._get_country_code(
+                FlightRadar24Coordinator._get_value(flight,
+                                                    ['airport', 'destination', 'position', 'country', 'code'])),
             'airport_destination_city': FlightRadar24Coordinator._get_value(flight,
                                                                             ['airport', 'destination', 'position',
                                                                              'region', 'city']),
