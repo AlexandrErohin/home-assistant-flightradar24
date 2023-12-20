@@ -11,5 +11,17 @@
         }
       }
     }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "data": {
+          "radius": "[%key:common::config_flow::data::radius%]",
+          "latitude": "[%key:common::config_flow::data::latitude%]",
+          "longitude": "[%key:common::config_flow::data::longitude%]",
+          "scan_interval": "[%key:common::config_flow::data::scan_interval%]"
+        }
+      }
+    }
   }
 }

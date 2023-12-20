@@ -11,5 +11,18 @@
         }
       }
     }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "description": "Bearbeiten Sie die Parameter für den zu verfolgenden Standort.",
+        "data": {
+          "radius": "Radius in Meter",
+          "latitude": "Breitengrad",
+          "longitude": "Längengrad",
+          "scan_interval": "Aktualisierungsintervall in Sekunden"
+        }
+      }
+    }
   }
 }

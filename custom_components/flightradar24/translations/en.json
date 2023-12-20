@@ -11,5 +11,18 @@
         }
       }
     }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "description": "Edit parameters for the location to track.",
+        "data": {
+          "radius": "Radius in meters",
+          "latitude": "Latitude",
+          "longitude": "Longitude",
+          "scan_interval": "Scan interval for updates in seconds"
+        }
+      }
+    }
   }
 }

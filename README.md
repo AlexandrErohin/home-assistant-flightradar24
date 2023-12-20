@@ -54,6 +54,14 @@ The default data is preset already
 3. You may change the default values for Radius, Latitude and Longitude
 4. Click `SUBMIT`
 
+### Edit Configuration
+You may edit configuration data like radius or coordinates. To do that
+
+1. Go to the <b>Settings</b>-><b>Devices & services</b>.
+2. Search for `Flightradar24`, and click on it.
+3. Click on `CONFIGURE`
+4. Edit the options you need and click `SUBMIT`
+
 ## Uses
 ### <a id="notification">Notification</a>
 To receive notifications of the entering flights add following lines to your `configuration.yaml` file:
