@@ -4,7 +4,7 @@ from typing import Any
 from homeassistant import config_entries
 from .const import (
     DOMAIN,
-    DEFAULT_NAME,
+    DEFAULT_NAME, CONF_CREATE_MAP_ENTITIES,
 )
 import homeassistant.helpers.config_validation as cv
 from homeassistant.data_entry_flow import FlowResult
@@ -30,14 +30,14 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     vol.Required(CONF_LATITUDE): cv.latitude,
                     vol.Required(CONF_LONGITUDE): cv.longitude,
                     vol.Required(CONF_SCAN_INTERVAL, default=10): int,
+                    vol.Required(CONF_CREATE_MAP_ENTITIES, default=False): cv.boolean,
                 }
             ),
             {
                 CONF_LATITUDE: self.hass.config.latitude,
                 CONF_LONGITUDE: self.hass.config.longitude,
             },
-        )
-        )
+        ))
 
     @staticmethod
     @callback
@@ -58,10 +58,11 @@ class OptionsFlow(config_entries.OptionsFlow):
         data = self.config_entry.data
 
         data_schema = vol.Schema({
-                vol.Required(CONF_RADIUS, default=data.get(CONF_RADIUS)): vol.Coerce(float),
-                vol.Required(CONF_LATITUDE, default=data.get(CONF_LATITUDE)): cv.latitude,
-                vol.Required(CONF_LONGITUDE, default=data.get(CONF_LONGITUDE)): cv.longitude,
-                vol.Required(CONF_SCAN_INTERVAL, default=data.get(CONF_SCAN_INTERVAL)): int,
-            })
+            vol.Required(CONF_RADIUS, default=data.get(CONF_RADIUS)): vol.Coerce(float),
+            vol.Required(CONF_LATITUDE, default=data.get(CONF_LATITUDE)): cv.latitude,
+            vol.Required(CONF_LONGITUDE, default=data.get(CONF_LONGITUDE)): cv.longitude,
+            vol.Required(CONF_SCAN_INTERVAL, default=data.get(CONF_SCAN_INTERVAL)): int,
+            vol.Required(CONF_CREATE_MAP_ENTITIES, default=data.get(CONF_CREATE_MAP_ENTITIES)): bool,
+        })
 
         return self.async_show_form(step_id="init", data_schema=data_schema)

@@ -7,7 +7,8 @@
           "radius": "Radius in meters",
           "latitude": "Latitude",
           "longitude": "Longitude",
-          "scan_interval": "Scan interval for updates in seconds"
+          "scan_interval": "Scan interval for updates in seconds",
+          "create_map_entities": "Create entities that can be used to track aircraft on a map"
         }
       }
     }
@@ -20,7 +21,8 @@
           "radius": "Radius in meters",
           "latitude": "Latitude",
           "longitude": "Longitude",
-          "scan_interval": "Scan interval for updates in seconds"
+          "scan_interval": "Scan interval for updates in seconds",
+          "create_map_entities": "Create entities that can be used to track aircraft on a map"
         }
       }
     }
