@@ -1,3 +1,5 @@
+import logging
+from collections import deque
 from dataclasses import dataclass
 from collections.abc import Callable
 from typing import Any
@@ -13,6 +15,8 @@ from .const import DOMAIN, CONF_CREATE_MAP_ENTITIES
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from .coordinator import FlightRadar24Coordinator
+
+_LOGGER = logging.getLogger(__name__)
 
 
 @dataclass
@@ -67,6 +71,10 @@ async def async_setup_entry(
     # Only show flights on map that have a flight number
     def filter_flight_codes(target: dict[str, Any]):
         return target.get('flight_number') is not None
+
+    # Use a queue to ensure that sensors get properly rotated (as little shared route trace as possible on map)
+    slot_queue = deque()
+    hass.data[DOMAIN]["slot_queue"] = slot_queue
 
     if entry.data.get(CONF_CREATE_MAP_ENTITIES) is True:
         flights = list(filter(filter_flight_codes, list(coordinator.tracked.values())))
@@ -125,39 +133,85 @@ class FlightRadar24MapSensor(
         self._attr_extra_state_attributes = {}
         self.set_state_attributes(flight)
 
+        if not flight:
+            _LOGGER.debug(f"Sensor {index} init # Got no flight data -> add sensor to queue")
+            self.coordinator.hass.data[DOMAIN].get("slot_queue").append(index)
+        else:
+            _LOGGER.debug(f"Sensor {index} init # Got data for flight {flight['id']}")
+
     @callback
     def _handle_coordinator_update(self) -> None:
-        flight_found = self._attr_extra_state_attributes['id'] is not None
+        attached_to_a_flight = self._attr_extra_state_attributes['id'] is not None
 
-        if flight_found:
-            flight = self.coordinator.tracked.get(self._attr_extra_state_attributes['id'])
+        if attached_to_a_flight:
+            flight_id = self._attr_extra_state_attributes['id']
+            _LOGGER.debug(f"Sensor {self.index} update # Sensor previously attached to flight {flight_id}")
+
+            flight = self.coordinator.tracked.get(flight_id)
             if flight is not None:
+                _LOGGER.debug(f"Sensor {self.index} update # Attached flight {flight_id} is still tracked -> updating data")
                 self.set_state_attributes(flight)
             else:
-                flight_found = False
-
-        if not flight_found:
-            already_reserved_flights = []
-            for i in range(10):
-                flight = self.coordinator.hass.data[DOMAIN].get(f"fr24_map_entity_{i}")
-                if flight is not None:
-                    already_reserved_flights.append(flight['id'])
-
-            for flight_id in self.coordinator.tracked:
-                if flight_id not in already_reserved_flights:
-                    self.set_state_attributes(self.coordinator.tracked[flight_id])
-                    flight_found = True
-                    break
-
-            if not flight_found:
+                _LOGGER.debug(f"Sensor {self.index} update # Attached flight {flight_id} is no longer tracked -> clearing data")
+                attached_to_a_flight = False
                 self.set_state_attributes(None)
+        else:
+            _LOGGER.debug(f"Sensor {self.index} update # Sensor previously not attached to any flight")
+
+        if not attached_to_a_flight:
+            slot_queue: deque = self.coordinator.hass.data[DOMAIN].get("slot_queue")
+
+            if self.index not in slot_queue:
+                _LOGGER.debug(f"Sensor {self.index} update # Currently not attached to any flight and sensor not yet in queue")
+                if len(slot_queue) > 0:
+                    _LOGGER.debug(f"Sensor {self.index} update # Queue not empty -> adding sensor to end of queue")
+                    slot_queue.append(self.index)
+                else:
+                    _LOGGER.debug(f"Sensor {self.index} update # Queue is empty -> try to attach a flight directly")
+                    attached_to_a_flight = self.update_flight_data()
+                    if not attached_to_a_flight:
+                        _LOGGER.debug(f"Sensor {self.index} update # No unattached flights found -> adding sensor to queue")
+                        slot_queue.append(self.index)
+
+            else:
+                _LOGGER.debug(f"Sensor {self.index} update # Currently not attached to any flight and sensor already in queue")
+                if slot_queue[0] is self.index:
+                    _LOGGER.debug(f"Sensor {self.index} update # Sensor is first in queue ({slot_queue}) -> try to attach a flight")
+                    attached_to_a_flight = self.update_flight_data()
+                    if attached_to_a_flight:
+                        _LOGGER.debug(f"Sensor {self.index} update # Sensor attached to flight {self._attr_extra_state_attributes['id']} -> leave queue")
+                        slot_queue.popleft()
+                    else:
+                        _LOGGER.debug(f"Sensor {self.index} update # No unattached flights found -> stay in queue")
+                else:
+                    _LOGGER.debug(f"Sensor {self.index} update # Sensor is not first in queue ({slot_queue}) -> stay in queue and do nothing")
 
         self.async_write_ha_state()
 
+    def update_flight_data(self):
+        attached_to_a_flight = False
+        flights_attached_to_sensors = []
+
+        for i in range(10):
+            flight_id = self.coordinator.hass.data[DOMAIN].get(f"fr24_map_entity_{i}")
+            if flight_id is not None:
+                flights_attached_to_sensors.append(flight_id)
+
+        _LOGGER.debug(f"Sensor {self.index} update # Currently attached flights: {flights_attached_to_sensors}")
+
+        for flight_id in self.coordinator.tracked:
+            if flight_id not in flights_attached_to_sensors:
+                _LOGGER.debug(f"Sensor {self.index} update # Flight {flight_id} is unattached -> attach to this sensor")
+                self.set_state_attributes(self.coordinator.tracked[flight_id])
+                attached_to_a_flight = True
+                break
+
+        return attached_to_a_flight
+
     def set_state_attributes(self, flight: dict[str, Any] | None):
         self._attr_extra_state_attributes['id'] = flight['id'] if flight else None
-        self._attr_extra_state_attributes['latitude'] = flight['latitude'] if flight else None
-        self._attr_extra_state_attributes['longitude'] = flight['longitude'] if flight else None
+        self._attr_extra_state_attributes['latitude'] = str(flight['latitude']) if flight else None
+        self._attr_extra_state_attributes['longitude'] = str(flight['longitude']) if flight else None
         self._attr_extra_state_attributes['altitude'] = flight['altitude'] if flight else None
         self._attr_extra_state_attributes['heading'] = flight['heading'] if flight else None
         self._attr_extra_state_attributes['ground_speed'] = flight['ground_speed'] if flight else None
