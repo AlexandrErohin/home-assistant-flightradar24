@@ -11,7 +11,7 @@ from homeassistant.components.sensor import (
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.device_registry import DeviceInfo
-from .const import DOMAIN, CONF_CREATE_MAP_ENTITIES
+from .const import DOMAIN, CONF_MAP_ENTITIES
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from .coordinator import FlightRadar24Coordinator
@@ -76,11 +76,12 @@ async def async_setup_entry(
     slot_queue = deque()
     hass.data[DOMAIN]["slot_queue"] = slot_queue
 
-    if entry.data.get(CONF_CREATE_MAP_ENTITIES) is True:
+    map_entities = entry.data.get(CONF_MAP_ENTITIES)
+    if map_entities and map_entities > 0:
         flights = list(filter(filter_flight_codes, list(coordinator.tracked.values())))
-        for index in range(10):
+        for index in range(map_entities):
             flight = flights[index] if len(flights) > index else None
-            sensors.append(FlightRadar24MapSensor(coordinator, flight, index))
+            sensors.append(FlightRadar24MapSensor(coordinator, flight, index, map_entities))
 
     async_add_entities(sensors, False)
 
@@ -120,12 +121,14 @@ class FlightRadar24MapSensor(
             self,
             coordinator: FlightRadar24Coordinator,
             flight: dict[str, Any] | None,
-            index: int
+            index: int,
+            total_sensors: int
     ) -> None:
         """Initialize."""
         super().__init__(coordinator)
         self.index = index
         self.coordinator = coordinator
+        self.total_sensors = total_sensors
         self._attr_device_info = coordinator.device_info
         self._attr_unique_id = f"fr24_map_entity_{index}"
         self._attr_icon = "mdi:airplane"
@@ -192,7 +195,7 @@ class FlightRadar24MapSensor(
         attached_to_a_flight = False
         flights_attached_to_sensors = []
 
-        for i in range(10):
+        for i in range(self.total_sensors):
             flight_id = self.coordinator.hass.data[DOMAIN].get(f"fr24_map_entity_{i}")
             if flight_id is not None:
                 flights_attached_to_sensors.append(flight_id)
