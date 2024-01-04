@@ -19,8 +19,10 @@ It allows you:
  - Current in area
  - Entered area
  - Exited area
+ - Flight 1
+ - Flight 2...
 
-Sensors shows how many flights in the given area, just have entered or exited it. All sensors have attribute `flights` with list of [flight object](#flight) contained a full information by every relevant flight for the sensor
+Sensors shows how many flights in the given area, just have entered or exited it. All sensors have attribute `flights` with list of [flight object](#flight) contained a full information by every relevant flight for the sensor. The amount of Flight X sensors depends on your configuration. That is, how many map sensors you've decided to create.
 
 ## Installation
 
@@ -116,6 +118,59 @@ cards:
 ```
 
 All available fields for flight you can check [here](#flight)
+
+## Showing flights on a map card
+
+If you've configured the integration to create sensors for map usage, you can have them show on a map card. Below is an example
+of a map card configuration. This configuration uses [card_mod](https://github.com/thomasloven/lovelace-card-mod) to improve
+the visuals. With card_mod, we can decrease font size, remove unneeded backgrounds and rotate the markers to match the heading
+of airplanes. Note that when a new flight comes to range, it will pick up the next free sensor to show the location on a map.
+This means that if you live in an area with heavy air traffic, it is recommended that you do one (or all) of the following to 
+avoid any weirdness in showing the flights on map:
+- Create more sensors. 10 sensors is more than enough for an area with lowish air traffic.
+- Reduce the tracking radius
+- Shorten the 'hours_to_show' value on map card to, for example 0.5 hours so that the trace if removed quicker
+
+```
+type: map
+default_zoom: 7
+dark_mode: true
+hours_to_show: 1
+entities:
+  - entity: sensor.flightradar24_flight_1
+    label_mode: state
+    focus: false
+  - entity: sensor.flightradar24_flight_2
+    label_mode: state
+    focus: false
+  - entity: sensor.flightradar24_flight_3
+    label_mode: state
+    focus: false
+card_mod:
+  style:
+    ha-map $ .leaflet-marker-icon:nth-child(1) ha-entity-marker $: |
+      .marker {
+        transform: rotate({{(states.sensor['flightradar24_flight_1'].attributes.heading or 90) - 90}}deg);
+        border: none !important;
+        background-color: transparent !important;
+      }
+    ha-map $ .leaflet-marker-icon:nth-child(2) ha-entity-marker $: |
+      .marker {
+        transform: rotate({{(states.sensor['flightradar24_flight_2'].attributes.heading or 90) - 90}}deg);
+        border: none !important;
+        background-color: transparent !important;
+      }
+    ha-map $ .leaflet-marker-icon:nth-child(3) ha-entity-marker $: |
+      .marker {
+        transform: rotate({{(states.sensor['flightradar24_flight_3'].attributes.heading or 90) - 90}}deg);
+        border: none !important;
+        background-color: transparent !important;
+      }
+    ha-map$: |
+      .leaflet-marker-icon {
+        font-size: 6px;
+      }
+```
 
 ## Database decrease
 To decrease data stored by [Recorder](https://www.home-assistant.io/integrations/recorder/) in database add following lines to your `configuration.yaml` file:

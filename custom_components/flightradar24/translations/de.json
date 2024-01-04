@@ -7,7 +7,8 @@
           "radius": "Radius in Meter",
           "latitude": "Breitengrad",
           "longitude": "Längengrad",
-          "scan_interval": "Aktualisierungsintervall in Sekunden"
+          "scan_interval": "Aktualisierungsintervall in Sekunden",
+          "map_entities": "Amount of sensors created for map card use"
         }
       }
     }
@@ -20,7 +21,8 @@
           "radius": "Radius in Meter",
           "latitude": "Breitengrad",
           "longitude": "Längengrad",
-          "scan_interval": "Aktualisierungsintervall in Sekunden"
+          "scan_interval": "Aktualisierungsintervall in Sekunden",
+          "map_entities": "Amount of sensors created for map card use"
         }
       }
     }
