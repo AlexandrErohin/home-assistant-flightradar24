@@ -4,9 +4,7 @@ from datetime import timedelta
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from homeassistant.helpers.device_registry import DeviceInfo
-import math
 import pycountry
-from .models import BoundingBox
 from .const import (
     DOMAIN,
     URL,
@@ -23,13 +21,13 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
     def __init__(
             self,
             hass: HomeAssistant,
-            bound: BoundingBox,
+            bounds: str,
             client: FlightRadar24API,
             update_interval: int,
             logger: Logger,
     ) -> None:
 
-        self._bound = bound
+        self._bounds = bounds
         self._client = client
         self._logger = logger
         self.tracked: dict[int, dict[str, Any]] | None = None
@@ -49,64 +47,12 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
             update_interval=timedelta(seconds=update_interval),
         )
 
-    @staticmethod
-    def get_bounding_box(
-            latitude: float,
-            longitude: float,
-            radius: float,
-    ) -> BoundingBox:
-        """Get bounding box from radius and a point."""
-        half_side_in_km = abs(radius) / 1000
-
-        lat = math.radians(latitude)
-        lon = math.radians(longitude)
-
-        approx_earth_radius = 6371
-        hypotenuse_distance = math.sqrt(2 * (math.pow(half_side_in_km, 2)))
-
-        lat_min = math.asin(
-            math.sin(lat) * math.cos(hypotenuse_distance / approx_earth_radius)
-            + math.cos(lat)
-            * math.sin(hypotenuse_distance / approx_earth_radius)
-            * math.cos(225 * (math.pi / 180)),
-        )
-        lon_min = lon + math.atan2(
-            math.sin(225 * (math.pi / 180))
-            * math.sin(hypotenuse_distance / approx_earth_radius)
-            * math.cos(lat),
-            math.cos(hypotenuse_distance / approx_earth_radius)
-            - math.sin(lat) * math.sin(lat_min),
-        )
-
-        lat_max = math.asin(
-            math.sin(lat) * math.cos(hypotenuse_distance / approx_earth_radius)
-            + math.cos(lat)
-            * math.sin(hypotenuse_distance / approx_earth_radius)
-            * math.cos(45 * (math.pi / 180)),
-        )
-        lon_max = lon + math.atan2(
-            math.sin(45 * (math.pi / 180))
-            * math.sin(hypotenuse_distance / approx_earth_radius)
-            * math.cos(lat),
-            math.cos(hypotenuse_distance / approx_earth_radius)
-            - math.sin(lat) * math.sin(lat_max),
-        )
-
-        rad2deg = math.degrees
-
-        return BoundingBox(
-            min_latitude=rad2deg(lat_min),
-            max_latitude=rad2deg(lat_max),
-            min_longitude=rad2deg(lon_min),
-            max_longitude=rad2deg(lon_max),
-        )
-
     async def _async_update_data(self):
         self.entered = {}
         self.exited = {}
         try:
             flights = await self.hass.async_add_executor_job(
-                self._client.get_flights, None, self._bound.get_string()
+                self._client.get_flights, None, self._bounds
             )
             current: dict[int, dict[str, Any]] = {}
             for obj in flights:

@@ -20,7 +20,9 @@
           "radius": "Radius in meters",
           "latitude": "Latitude",
           "longitude": "Longitude",
-          "scan_interval": "Scan interval for updates in seconds"
+          "scan_interval": "Scan interval for updates in seconds",
+          "username": "OPTIONAL! Flightradar24 username",
+          "password": "OPTIONAL! Flightradar24 password"
         }
       }
     }

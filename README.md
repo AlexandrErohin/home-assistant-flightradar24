@@ -55,7 +55,11 @@ The default data is preset already
 4. Click `SUBMIT`
 
 ### Edit Configuration
-You may edit configuration data like radius or coordinates. To do that
+You may edit configuration data like radius or coordinates.
+
+If you have FlightRadar24 subscription, you may authenticate also
+
+To do that
 
 1. Go to the <b>Settings</b>-><b>Devices & services</b>.
 2. Search for `Flightradar24`, and click on it.

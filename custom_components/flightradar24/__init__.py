@@ -10,6 +10,8 @@ from homeassistant.const import (
     CONF_LONGITUDE,
     CONF_RADIUS,
     CONF_SCAN_INTERVAL,
+    CONF_PASSWORD,
+    CONF_USERNAME,
 )
 from FlightRadar24 import FlightRadar24API
 
@@ -22,18 +24,26 @@ _LOGGER = logging.getLogger(__name__)
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.data.setdefault(DOMAIN, {})
-    bound = FlightRadar24Coordinator.get_bounding_box(
+
+    username = entry.data.get(CONF_USERNAME)
+    password = entry.data.get(CONF_PASSWORD)
+
+    client = FlightRadar24API(username, password) if username and password else FlightRadar24API()
+
+    bounds = client.get_bounds_by_point(
         entry.data[CONF_LATITUDE],
         entry.data[CONF_LONGITUDE],
         entry.data[CONF_RADIUS],
     )
+
     coordinator = FlightRadar24Coordinator(
         hass,
-        bound,
-        FlightRadar24API(),
+        bounds,
+        client,
         entry.data[CONF_SCAN_INTERVAL],
         _LOGGER,
     )
+
     await coordinator.async_config_entry_first_refresh()
     # Store coordinator in global data
     hass.data[DOMAIN][entry.entry_id] = coordinator
