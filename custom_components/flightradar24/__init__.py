@@ -28,7 +28,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     username = entry.data.get(CONF_USERNAME)
     password = entry.data.get(CONF_PASSWORD)
 
-    client = FlightRadar24API(username, password) if username and password else FlightRadar24API()
+    client = FlightRadar24API()
+    if username and password:
+        await hass.async_add_executor_job(client.login, username, password)
 
     bounds = client.get_bounds_by_point(
         entry.data[CONF_LATITUDE],
@@ -55,11 +57,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Unload opensky config entry."""
-
     return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
 
 
 async def update_listener(hass: HomeAssistant, entry: ConfigEntry) -> None:
-    """Handle options update."""
     await hass.config_entries.async_reload(entry.entry_id)
