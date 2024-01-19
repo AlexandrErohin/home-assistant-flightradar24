@@ -25,11 +25,12 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
             client: FlightRadar24API,
             update_interval: int,
             logger: Logger,
+            unique_id: str
     ) -> None:
 
         self._bounds = bounds
         self._client = client
-        self._logger = logger
+        self.unique_id = unique_id
         self.tracked: dict[int, dict[str, Any]] | None = None
         self.entered = {}
         self.exited = {}
@@ -82,7 +83,7 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
             self.tracked = current
 
         except Exception as e:
-            self._logger.error(e)
+            self.logger.error(e)
 
     def _handle_boundary(self, event: str, flights: list[dict[str, Any]]) -> None:
         for flight in flights:
