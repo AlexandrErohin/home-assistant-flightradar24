@@ -72,6 +72,7 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
                     flight['heading'] = obj.heading
                     flight['ground_speed'] = obj.ground_speed
                     flight['squawk'] = obj.squawk
+                    flight['vertical_speed'] = obj.vertical_speed
 
             if self.tracked is not None:
                 entries = current.keys() - self.tracked.keys()
@@ -125,6 +126,10 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
             'aircraft_registration': FlightRadar24Coordinator._get_value(flight, ['aircraft', 'registration']),
             'aircraft_photo_small': FlightRadar24Coordinator._get_value(flight,
                                                                         ['aircraft', 'images', 'thumbnails', 0, 'src']),
+            'aircraft_photo_medium': FlightRadar24Coordinator._get_value(flight,
+                                                                         ['aircraft', 'images', 'medium', 0, 'src']),
+            'aircraft_photo_large': FlightRadar24Coordinator._get_value(flight,
+                                                                        ['aircraft', 'images', 'large', 0, 'src']),
             'aircraft_model': FlightRadar24Coordinator._get_value(flight, ['aircraft', 'model', 'text']),
             'aircraft_code': FlightRadar24Coordinator._get_value(flight, ['aircraft', 'model', 'code']),
             'airline': FlightRadar24Coordinator._get_value(flight, ['airline', 'name']),
@@ -165,4 +170,6 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
             'time_scheduled_arrival': FlightRadar24Coordinator._get_value(flight, ['time', 'scheduled', 'arrival']),
             'time_real_departure': FlightRadar24Coordinator._get_value(flight, ['time', 'real', 'departure']),
             'time_real_arrival': FlightRadar24Coordinator._get_value(flight, ['time', 'real', 'arrival']),
+            'time_estimated_departure': FlightRadar24Coordinator._get_value(flight, ['time', 'estimated', 'departure']),
+            'time_estimated_arrival': FlightRadar24Coordinator._get_value(flight, ['time', 'estimated', 'arrival']),
         }

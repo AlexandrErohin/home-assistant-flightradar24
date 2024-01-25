@@ -138,11 +138,14 @@ recorder:
 | longitude | Current longitude of the aircraft |
 | altitude | Altitude (measurement: foot) |
 | ground_speed | Ground speed (measurement: knots) |
-| squawk | Squawk code are what air traffic control (ATC) use to identify aircraft when they are flying (for subscription only) |
+| squawk | Squawk code are what air traffic control (ATC) use to identify aircraft when they are flying **(for subscription only)** |
+| vertical_speed | Vertical speed **(for subscription only)** |
 | heading | The compass direction in which the craft's bow or nose is pointed (measurement: degrees) |
 | callsign | Callsign of the flight |
 | aircraft_registration | Aircraft registration number |
 | aircraft_photo_small | Aircraft small size photo url |
+| aircraft_photo_medium | Aircraft medium size photo url |
+| aircraft_photo_large | Aircraft large size photo url |
 | aircraft_model | Aircraft model |
 | aircraft_code | Aircraft code |
 | airline | Airline full name |
@@ -165,6 +168,8 @@ recorder:
 | time_scheduled_arrival | Scheduled arrival time |
 | time_real_departure | Real departure time |
 | time_real_arrival | Real arrival time |
+| time_estimated_departure | Estimated departure time |
+| time_estimated_arrival | Estimated arrival time |
 
 ## Thanks To
  - [FlightRadarAPI](https://github.com/JeanExtreme002/FlightRadarAPI) by [@JeanExtreme002](https://github.com/JeanExtreme002)
