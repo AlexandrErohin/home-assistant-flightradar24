@@ -7,7 +7,8 @@
           "radius": "Radius in meters",
           "latitude": "Latitude",
           "longitude": "Longitude",
-          "scan_interval": "Scan interval for updates in seconds"
+          "scan_interval": "Scan interval for updates in seconds",
+          "map_entities": "Amount of sensors created for map card use"
         }
       }
     }
@@ -22,7 +23,8 @@
           "longitude": "Longitude",
           "scan_interval": "Scan interval for updates in seconds",
           "username": "OPTIONAL! Flightradar24 username",
-          "password": "OPTIONAL! Flightradar24 password"
+          "password": "OPTIONAL! Flightradar24 password",
+          "map_entities": "Amount of sensors created for map card use"
         }
       }
     }

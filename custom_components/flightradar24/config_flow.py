@@ -9,7 +9,7 @@ from homeassistant.config_entries import (
 )
 from .const import (
     DOMAIN,
-    DEFAULT_NAME,
+    DEFAULT_NAME, CONF_MAP_ENTITIES,
 )
 from FlightRadar24 import FlightRadar24API
 import homeassistant.helpers.config_validation as cv
@@ -40,6 +40,7 @@ class FlightRadarConfigFlow(ConfigFlow, domain=DOMAIN):
                     vol.Required(CONF_LATITUDE): cv.latitude,
                     vol.Required(CONF_LONGITUDE): cv.longitude,
                     vol.Required(CONF_SCAN_INTERVAL, default=10): int,
+                    vol.Required(CONF_MAP_ENTITIES, default=0): int,
                 }
             ),
             {
@@ -86,6 +87,7 @@ class OptionsFlow(OptionsFlowWithConfigEntry):
                 vol.Required(CONF_SCAN_INTERVAL, default=data.get(CONF_SCAN_INTERVAL)): int,
                 vol.Optional(CONF_USERNAME, description={"suggested_value": data.get(CONF_USERNAME, '')}): cv.string,
                 vol.Optional(CONF_PASSWORD, description={"suggested_value": data.get(CONF_PASSWORD, '')}): cv.string,
+                vol.Required(CONF_MAP_ENTITIES, default=data.get(CONF_MAP_ENTITIES)): int,
             })
 
         return self.async_show_form(step_id="init", data_schema=data_schema, errors=errors)

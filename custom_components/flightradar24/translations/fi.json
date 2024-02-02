@@ -1,0 +1,30 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "description": "Anna seurattavan alueen tiedot",
+        "data": {
+          "radius": "Halkaisija metreissä",
+          "latitude": "Latitudi",
+          "longitude": "Longitudi",
+          "scan_interval": "Skannausväli sekunneissa",
+          "map_entities": "Karttakäyttöön luotavien anturien määrä"
+        }
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "description": "Anna seurattavan alueen tiedot",
+        "data": {
+          "radius": "Halkaisija metreissä",
+          "latitude": "Latitudi",
+          "longitude": "Longitudi",
+          "scan_interval": "Skannausväli sekunneissa",
+          "map_entities": "Karttakäyttöön luotavien anturien määrä"
+        }
+      }
+    }
+  }
+}

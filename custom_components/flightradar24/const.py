@@ -4,3 +4,5 @@ URL = 'https://www.flightradar24.com/'
 
 EVENT_FLIGHTRADAR24_ENTRY = f"{DOMAIN}_entry"
 EVENT_FLIGHTRADAR24_EXIT = f"{DOMAIN}_exit"
+
+CONF_MAP_ENTITIES = "map_entities"
