@@ -57,7 +57,11 @@ The default data is preset already
 4. Click `SUBMIT`
 
 ### Edit Configuration
-You may edit configuration data like radius or coordinates. To do that
+You may edit configuration data like radius or coordinates.
+
+If you have FlightRadar24 subscription, you may authenticate also
+
+To do that
 
 1. Go to the <b>Settings</b>-><b>Devices & services</b>.
 2. Search for `Flightradar24`, and click on it.
@@ -189,7 +193,7 @@ recorder:
 | longitude | Current longitude of the aircraft |
 | altitude | Altitude (measurement: foot) |
 | ground_speed | Ground speed (measurement: knots) |
-| squawk | Squawk code are what air traffic control (ATC) use to identify aircraft when they are flying |
+| squawk | Squawk code are what air traffic control (ATC) use to identify aircraft when they are flying (for subscription only) |
 | heading | The compass direction in which the craft's bow or nose is pointed (measurement: degrees) |
 | callsign | Callsign of the flight |
 | aircraft_registration | Aircraft registration number |

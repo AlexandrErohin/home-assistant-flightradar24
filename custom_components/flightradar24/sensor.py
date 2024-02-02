@@ -10,7 +10,6 @@ from homeassistant.components.sensor import (
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
-from homeassistant.helpers.device_registry import DeviceInfo
 from .const import DOMAIN, CONF_MAP_ENTITIES
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -66,7 +65,7 @@ async def async_setup_entry(
     sensors = []
 
     for description in SENSOR_TYPES:
-        sensors.append(FlightRadar24Sensor(coordinator, description, coordinator.device_info))
+        sensors.append(FlightRadar24Sensor(coordinator, description))
 
     # Only show flights on map that have a flight number
     def filter_flight_codes(target: dict[str, Any]):
@@ -96,12 +95,11 @@ class FlightRadar24Sensor(
             self,
             coordinator: FlightRadar24Coordinator,
             description: TFlightRadar24SensorEntityDescription,
-            device_info: DeviceInfo,
     ) -> None:
         """Initialize."""
         super().__init__(coordinator)
-        self._attr_device_info = device_info
-        self._attr_unique_id = description.key
+        self._attr_device_info = coordinator.device_info
+        self._attr_unique_id = f"{coordinator.unique_id}_{DOMAIN}_{description.key}"
         self.entity_description = description
 
     @callback

@@ -1,11 +1,17 @@
 from __future__ import annotations
+import logging
 import voluptuous as vol
 from typing import Any
-from homeassistant import config_entries
+from homeassistant.config_entries import (
+    ConfigEntry,
+    ConfigFlow,
+    OptionsFlowWithConfigEntry,
+)
 from .const import (
     DOMAIN,
     DEFAULT_NAME, CONF_MAP_ENTITIES,
 )
+from FlightRadar24 import FlightRadar24API
 import homeassistant.helpers.config_validation as cv
 from homeassistant.data_entry_flow import FlowResult
 from homeassistant.core import callback
@@ -14,10 +20,14 @@ from homeassistant.const import (
     CONF_LONGITUDE,
     CONF_RADIUS,
     CONF_SCAN_INTERVAL,
+    CONF_PASSWORD,
+    CONF_USERNAME,
 )
 
+_LOGGER = logging.getLogger(__name__)
 
-class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
+
+class FlightRadarConfigFlow(ConfigFlow, domain=DOMAIN):
 
     async def async_step_user(self, user_input: dict[str, Any] | None = None) -> FlowResult:
         if user_input is not None:
@@ -37,32 +47,47 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 CONF_LATITUDE: self.hass.config.latitude,
                 CONF_LONGITUDE: self.hass.config.longitude,
             },
-        ))
+        )
+        )
 
     @staticmethod
     @callback
-    def async_get_options_flow(config_entry: config_entries.ConfigEntry) -> config_entries.OptionsFlow:
-        """Return the options flow."""
+    def async_get_options_flow(config_entry: ConfigEntry) -> config_entries.OptionsFlow:
         return OptionsFlow(config_entry)
 
 
-class OptionsFlow(config_entries.OptionsFlow):
-    def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
-        self.config_entry = config_entry
+class OptionsFlow(OptionsFlowWithConfigEntry):
 
-    async def async_step_init(self, user_input=None) -> FlowResult:
+    async def async_step_init(self, user_input: dict[str, Any] | None = None) -> FlowResult:
+        errors = {}
+        data = user_input or self.config_entry.data
+
         if user_input is not None:
-            self.config_entry.data = user_input
-            return self.async_create_entry(title=DEFAULT_NAME, data=user_input)
+            username = data.get(CONF_USERNAME)
+            password = data.get(CONF_PASSWORD)
 
-        data = self.config_entry.data
+            try:
+                if username and password:
+                    client = FlightRadar24API()
+                    await self.hass.async_add_executor_job(client.login, username, password)
+                elif password and not username or username and not password:
+                    errors['base'] = 'You need to pass username and password'
+            except Exception as error:
+                _LOGGER.error('FlightRadar24 Integration Exception - {}'.format(error))
+                errors['base'] = str(error)
+
+            if not errors:
+                self.config_entry.data = user_input
+                return self.async_create_entry(title=DEFAULT_NAME, data=user_input)
 
         data_schema = vol.Schema({
-            vol.Required(CONF_RADIUS, default=data.get(CONF_RADIUS)): vol.Coerce(float),
-            vol.Required(CONF_LATITUDE, default=data.get(CONF_LATITUDE)): cv.latitude,
-            vol.Required(CONF_LONGITUDE, default=data.get(CONF_LONGITUDE)): cv.longitude,
-            vol.Required(CONF_SCAN_INTERVAL, default=data.get(CONF_SCAN_INTERVAL)): int,
-            vol.Required(CONF_MAP_ENTITIES, default=data.get(CONF_MAP_ENTITIES)): int,
-        })
+                vol.Required(CONF_RADIUS, default=data.get(CONF_RADIUS)): vol.Coerce(float),
+                vol.Required(CONF_LATITUDE, default=data.get(CONF_LATITUDE)): cv.latitude,
+                vol.Required(CONF_LONGITUDE, default=data.get(CONF_LONGITUDE)): cv.longitude,
+                vol.Required(CONF_SCAN_INTERVAL, default=data.get(CONF_SCAN_INTERVAL)): int,
+                vol.Optional(CONF_USERNAME, description={"suggested_value": data.get(CONF_USERNAME, '')}): cv.string,
+                vol.Optional(CONF_PASSWORD, description={"suggested_value": data.get(CONF_PASSWORD, '')}): cv.string,
+                vol.Required(CONF_MAP_ENTITIES, default=data.get(CONF_MAP_ENTITIES)): int,
+            })
 
-        return self.async_show_form(step_id="init", data_schema=data_schema)
+        return self.async_show_form(step_id="init", data_schema=data_schema, errors=errors)

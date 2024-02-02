@@ -22,6 +22,8 @@
           "latitude": "Breitengrad",
           "longitude": "Längengrad",
           "scan_interval": "Aktualisierungsintervall in Sekunden",
+          "username": "OPTIONAL! Flightradar24 username",
+          "password": "OPTIONAL! Flightradar24 password",
           "map_entities": "Amount of sensors created for map card use"
         }
       }
