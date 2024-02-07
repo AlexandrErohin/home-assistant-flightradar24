@@ -9,6 +9,7 @@ It allows you:
 3) Add flights table to your [Home Assistant dashboard](https://www.home-assistant.io/dashboards/) by [Lovelace Card](#lovelace))
 
 <img src="https://raw.githubusercontent.com/AlexandrErohin/home-assistant-flightradar24/master/docs/media/lovelace.png" width="48%"> <img src="https://raw.githubusercontent.com/AlexandrErohin/home-assistant-flightradar24/master/docs/media/sensors.png" width="48%">
+<p align="center"><img src="https://raw.githubusercontent.com/AlexandrErohin/home-assistant-flightradar24/master/docs/media/map.png" width="50%"></p>
 
 ## Components
 ### Events
@@ -47,7 +48,7 @@ Flightradar24 is configured via the GUI. See [the HA docs](https://www.home-assi
 
 The default data is preset already
 
-<img src="https://raw.githubusercontent.com/AlexandrErohin/home-assistant-flightradar24/master/docs/media/config_flow.png" width="48%">
+<p align="center"><img src="https://raw.githubusercontent.com/AlexandrErohin/home-assistant-flightradar24/master/docs/media/config_flow.png" width="48%"></p>
 
 1. Go to the <b>Settings</b>-><b>Devices & services</b>.
 2. Click on `+ ADD INTEGRATION`, search for `Flightradar24`.
@@ -86,7 +87,7 @@ All available fields in `trigger.event.data` you can check [here](#flight)
 ### <a id="lovelace">Lovelace Card</a>
 You can add flight table to your [Home Assistant dashboard](https://www.home-assistant.io/dashboards/)
 
-<img src="https://raw.githubusercontent.com/AlexandrErohin/home-assistant-flightradar24/master/docs/media/lovelace.png" width="48%">
+<p align="center"><img src="https://raw.githubusercontent.com/AlexandrErohin/home-assistant-flightradar24/master/docs/media/lovelace.png" width="48%"></p>
 
 1. Go to your [Home Assistant dashboard](https://www.home-assistant.io/dashboards/)
 2. In the top right corner, select the three-dot menu, then select Edit dashboard
@@ -120,6 +121,48 @@ cards:
 ```
 
 All available fields for flight you can check [here](#flight)
+
+### Lovelace Card with Map
+<p align="center"><img src="https://raw.githubusercontent.com/AlexandrErohin/home-assistant-flightradar24/master/docs/media/map.png" width="55%"></p>
+
+1. Open in a browser https://www.flightradar24.com
+2. Move the map so that your area is in the middle of the screen. And scroll to select comfortable map zoom
+3. Now you have URL of the map like https://www.flightradar24.com/50.03,8.49/12 Remember this URL
+4. Go to your [Home Assistant dashboard](https://www.home-assistant.io/dashboards/)
+5. In the top right corner, select the three-dot menu, then select Edit dashboard 
+6. Click on `+ ADD CARD`, search for `Manual`, click on `Manual`. 
+7. Add following code to the input window. Replace LATITUDE, LONGITUDE and ZOOM from URL from step 4. (Example - https://www.flightradar24.com/50.03,8.49/12 - LATITUDE is 50.03, LONGITUDE is 8.49, ZOOM is 12)
+8. Click `SAVE`
+
+```markdown
+type: vertical-stack
+title: Flightradar24
+cards:
+  - type: entities
+    entities:
+      - entity: sensor.flightradar24_current_in_area
+        name: In area
+  - type: conditional
+    conditions:
+      - condition: numeric_state
+        entity: sensor.flightradar24_current_in_area
+        above: 0
+    card:
+      type: markdown
+      content: >-
+        {% set data = state_attr('sensor.flightradar24_current_in_area',
+        'flights') %} {% for flight in data %}
+          <ha-icon icon="mdi:airplane"></ha-icon>{{ flight.flight_number }}({{ flight.aircraft_registration }}) - {{ flight.airline_short }} - {{ flight.aircraft_model }}
+          {{ flight.airport_origin_city }}{%if flight.airport_origin_city %}<img src="https://flagsapi.com/{{ flight.airport_origin_country_code }}/shiny/16.png" title='{{ flight.airport_origin_country_name }}'/>{% endif %} -> {{ flight.airport_destination_city }}{%
+          if flight.airport_destination_country_code %}<img src="https://flagsapi.com/{{ flight.airport_destination_country_code }}/shiny/16.png" title='{{ flight.airport_destination_country_name }}'/>{% endif %}
+          {%if flight.time_scheduled_departure %}Departure - {{ flight.time_scheduled_departure | timestamp_custom('%H:%M') }}; {% endif %}{%if flight.time_scheduled_arrival%}Arrival - {{ flight.time_scheduled_arrival | timestamp_custom('%H:%M') }}{% endif %}
+          Altitude - {{ flight.altitude }} ft{%if flight.altitude > 0 %} ({{(flight.altitude * 0.3048)| round(0)}} m){% endif%}; Gr. speed - {{ flight.ground_speed }} kts{%if flight.ground_speed > 0 %} ({{(flight.ground_speed * 1.852)| round(0)}} km/h){% endif%}
+          {% endfor %}
+  - type: iframe
+    url: >-
+      https://www.flightradar24.com/simple?lat=LATITUDE&lon=LONGITUDE&z=ZOOM&label1=reg&size=small
+    aspect_ratio: 100%
+```
 
 ## Database decrease
 To decrease data stored by [Recorder](https://www.home-assistant.io/integrations/recorder/) in database add following lines to your `configuration.yaml` file:
