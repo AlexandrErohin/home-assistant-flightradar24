@@ -29,6 +29,8 @@ Sensors shows how many flights in the given area, just have entered or exited it
 
 Have [HACS](https://hacs.xyz/) installed, this will allow you to update easily.
 
+[![Install quickly via a HACS link](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=AlexandrErohin&repository=home-assistant-flightradar24&category=integration)
+
 1. Go to the <b>Hacs</b>-><b>Integrations</b>.
 2. Add this repository (https://github.com/AlexandrErohin/home-assistant-flightradar24) as a [custom repository](https://hacs.xyz/docs/faq/custom_repositories/)
 3. Click on `+ Explore & Download Repositories`, search for `Flightradar24`. 
