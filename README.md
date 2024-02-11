@@ -131,7 +131,7 @@ All available fields for flight you can check [here](#flight)
 4. Go to your [Home Assistant dashboard](https://www.home-assistant.io/dashboards/)
 5. In the top right corner, select the three-dot menu, then select Edit dashboard 
 6. Click on `+ ADD CARD`, search for `Manual`, click on `Manual`. 
-7. Add following code to the input window. Replace LATITUDE, LONGITUDE and ZOOM from URL from step 4. (Example - https://www.flightradar24.com/50.03,8.49/12 - LATITUDE is 50.03, LONGITUDE is 8.49, ZOOM is 12)
+7. Add following code to the input window. Replace LATITUDE, LONGITUDE and ZOOM from URL from step 3. (Example - https://www.flightradar24.com/50.03,8.49/12 - LATITUDE is 50.03, LONGITUDE is 8.49, ZOOM is 12)
 8. Click `SAVE`
 
 ```markdown
