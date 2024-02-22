@@ -25,7 +25,9 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
             client: FlightRadar24API,
             update_interval: int,
             logger: Logger,
-            unique_id: str
+            unique_id: str,
+            min_altitude: int,
+            max_altitude: int,
     ) -> None:
 
         self._bounds = bounds
@@ -34,6 +36,8 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
         self.tracked: dict[int, dict[str, Any]] | None = None
         self.entered = {}
         self.exited = {}
+        self.min_altitude = min_altitude
+        self.max_altitude = max_altitude
         self.device_info = DeviceInfo(
             configuration_url=URL,
             identifiers={(DOMAIN, DEFAULT_NAME)},
@@ -57,6 +61,8 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
             )
             current: dict[int, dict[str, Any]] = {}
             for obj in flights:
+                if not self.min_altitude <= obj.altitude <= self.max_altitude:
+                    continue
                 if self.tracked is not None and obj.id in self.tracked and self._is_valid(self.tracked[obj.id]):
                     flight = self.tracked[obj.id]
                 else:
@@ -88,6 +94,7 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
 
     def _handle_boundary(self, event: str, flights: list[dict[str, Any]]) -> None:
         for flight in flights:
+            flight['tracked_by_device'] = self.config_entry.title
             self.hass.bus.fire(event, flight)
 
     @staticmethod
@@ -145,7 +152,7 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
                                                                                ['airport', 'origin', 'position',
                                                                                 'country', 'name']),
             'airport_origin_country_code': FlightRadar24Coordinator._get_country_code(
-                FlightRadar24Coordinator._get_value(flight,['airport', 'origin', 'position', 'country', 'code'])),
+                FlightRadar24Coordinator._get_value(flight, ['airport', 'origin', 'position', 'country', 'code'])),
             'airport_origin_city': FlightRadar24Coordinator._get_value(flight,
                                                                        ['airport', 'origin', 'position', 'region',
                                                                         'city']),

@@ -21,6 +21,8 @@
           "latitude": "Breitengrad",
           "longitude": "Längengrad",
           "scan_interval": "Aktualisierungsintervall in Sekunden",
+          "min_altitude": "Die Mindesthöhe in Fuß, unter der das Flugzeug verfolgt wird.",
+          "max_altitude": "Die maximale Höhe in Fuß, über der das Flugzeug verfolgt wird.",
           "username": "OPTIONAL! Flightradar24 username",
           "password": "OPTIONAL! Flightradar24 password"
         }

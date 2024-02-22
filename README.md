@@ -58,11 +58,14 @@ The default data is preset already
 4. Click `SUBMIT`
 
 ### Edit Configuration
-You may edit configuration data like radius or coordinates.
+You may edit configuration data like:
+1. Latitude and longitude of your point
+2. Radius of your zone
+3. Scan interval for updates in seconds
+4. The minimum and maximum altitudes in foots between which the aircraft will be tracked
+4. Username and password if you have FlightRadar24 subscription
 
-If you have FlightRadar24 subscription, you may authenticate also
-
-To do that
+To do that:
 
 1. Go to the <b>Settings</b>-><b>Devices & services</b>.
 2. Search for `Flightradar24`, and click on it.
@@ -85,6 +88,17 @@ automation:
 ```
 
 All available fields in `trigger.event.data` you can check [here](#flight)
+
+If you have defined more than one device of FlightRadar24 for more places to observe - you may be interested to know what device has fired the event
+It is stored in 
+#### <a id="tracked_by_device">`trigger.event.data.tracked_by_device`</a>
+
+To change name in tracked_by_device
+1. Go to the <b>Settings</b>-><b>Devices & services</b>.
+2. Search for `Flightradar24`, and click on it.
+3. Click on three-dot near of device you wanted
+4. Click on `Rename` in the opened sub-menu
+5. Enter new name and click `OK`
 
 ### <a id="lovelace">Lovelace Card</a>
 You can add flight table to your [Home Assistant dashboard](https://www.home-assistant.io/dashboards/)
@@ -178,6 +192,7 @@ recorder:
 ## <a id="flight">Flight fields</a>
 | Field | Description |
 | --- |---|
+| tracked_by_device | If you have defined more than one device of FlightRadar24 for more places to observe - you may be interested to know what device has fired the event. To renema the device check [this](#tracked_by_device) |
 | flight_number | Flight Number |
 | latitude | Current latitude of the aircraft |
 | longitude | Current longitude of the aircraft |

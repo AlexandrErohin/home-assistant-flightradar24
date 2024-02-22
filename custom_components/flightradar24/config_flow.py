@@ -10,6 +10,10 @@ from homeassistant.config_entries import (
 from .const import (
     DOMAIN,
     DEFAULT_NAME,
+    CONF_MIN_ALTITUDE,
+    CONF_MAX_ALTITUDE,
+    MIN_ALTITUDE,
+    MAX_ALTITUDE,
 )
 from FlightRadar24 import FlightRadar24API
 import homeassistant.helpers.config_validation as cv
@@ -47,7 +51,7 @@ class FlightRadarConfigFlow(ConfigFlow, domain=DOMAIN):
                 CONF_LONGITUDE: self.hass.config.longitude,
             },
         )
-        )
+                                    )
 
     @staticmethod
     @callback
@@ -80,12 +84,16 @@ class OptionsFlow(OptionsFlowWithConfigEntry):
                 return self.async_create_entry(title=DEFAULT_NAME, data=user_input)
 
         data_schema = vol.Schema({
-                vol.Required(CONF_RADIUS, default=data.get(CONF_RADIUS)): vol.Coerce(float),
-                vol.Required(CONF_LATITUDE, default=data.get(CONF_LATITUDE)): cv.latitude,
-                vol.Required(CONF_LONGITUDE, default=data.get(CONF_LONGITUDE)): cv.longitude,
-                vol.Required(CONF_SCAN_INTERVAL, default=data.get(CONF_SCAN_INTERVAL)): int,
-                vol.Optional(CONF_USERNAME, description={"suggested_value": data.get(CONF_USERNAME, '')}): cv.string,
-                vol.Optional(CONF_PASSWORD, description={"suggested_value": data.get(CONF_PASSWORD, '')}): cv.string,
-            })
+            vol.Required(CONF_RADIUS, default=data.get(CONF_RADIUS)): vol.Coerce(float),
+            vol.Required(CONF_LATITUDE, default=data.get(CONF_LATITUDE)): cv.latitude,
+            vol.Required(CONF_LONGITUDE, default=data.get(CONF_LONGITUDE)): cv.longitude,
+            vol.Required(CONF_SCAN_INTERVAL, default=data.get(CONF_SCAN_INTERVAL)): int,
+            vol.Optional(CONF_MIN_ALTITUDE,
+                         description={"suggested_value": data.get(CONF_MIN_ALTITUDE, MIN_ALTITUDE)}): int,
+            vol.Optional(CONF_MAX_ALTITUDE,
+                         description={"suggested_value": data.get(CONF_MAX_ALTITUDE, MAX_ALTITUDE)}): int,
+            vol.Optional(CONF_USERNAME, description={"suggested_value": data.get(CONF_USERNAME, '')}): cv.string,
+            vol.Optional(CONF_PASSWORD, description={"suggested_value": data.get(CONF_PASSWORD, '')}): cv.string,
+        })
 
         return self.async_show_form(step_id="init", data_schema=data_schema, errors=errors)

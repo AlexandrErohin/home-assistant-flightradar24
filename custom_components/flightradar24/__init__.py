@@ -14,6 +14,12 @@ from homeassistant.const import (
     CONF_PASSWORD,
     CONF_USERNAME,
 )
+from .const import (
+    CONF_MIN_ALTITUDE,
+    CONF_MAX_ALTITUDE,
+    MIN_ALTITUDE,
+    MAX_ALTITUDE,
+)
 from FlightRadar24 import FlightRadar24API
 from .sensor import SENSOR_TYPES
 
@@ -50,7 +56,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         client,
         entry.data[CONF_SCAN_INTERVAL],
         _LOGGER,
-        entry.entry_id
+        entry.entry_id,
+        entry.data.get(CONF_MIN_ALTITUDE, MIN_ALTITUDE),
+        entry.data.get(CONF_MAX_ALTITUDE, MAX_ALTITUDE),
     )
 
     await coordinator.async_config_entry_first_refresh()
