@@ -40,7 +40,7 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
         self.max_altitude = max_altitude
         self.device_info = DeviceInfo(
             configuration_url=URL,
-            identifiers={(DOMAIN, DEFAULT_NAME)},
+            identifiers={(DOMAIN, self.unique_id)},
             manufacturer=DEFAULT_NAME,
             name=DEFAULT_NAME,
         )
