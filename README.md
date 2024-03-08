@@ -5,7 +5,7 @@ Flightradar24 integration allows one to track overhead flights in a given region
 
 It allows you:
 1. Know how many flights in your area right now, or just have entered or exited it. And get list of flights with [full information](#flight) by every relevant flight for the sensor 
-2. Track a particular plane or planes by aircraft registration number outside your area
+2. Track a particular plane or planes by aircraft registration number no matter where it currently is
 3. Create notifications (example - [Get a notification when a flight enters or exits your area](#notification))
 4. Create automations (example - [Automatically track a flight by your needs](#automation))
 5. Add flights table to your [Home Assistant dashboard](https://www.home-assistant.io/dashboards/) by [Lovelace Card](#lovelace))
