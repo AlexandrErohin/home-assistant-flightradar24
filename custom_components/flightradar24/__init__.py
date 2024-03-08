@@ -24,6 +24,7 @@ from .sensor import SENSOR_TYPES
 
 PLATFORMS: list[Platform] = [
     Platform.SENSOR,
+    Platform.TEXT,
 ]
 
 _LOGGER = logging.getLogger(__name__)

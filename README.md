@@ -1,15 +1,17 @@
 # Flightradar24 integration for Home Assistant
-Flightradar24 integration allows one to track overhead flights in a given region. It will also fire Home Assistant events when flights enter and exit the defined region.
+Flightradar24 integration allows one to track overhead flights in a given region, or particular planes by aircraft registration number. It will also fire Home Assistant events when flights enter and exit the defined region.
 
 <b>IMPORTANT: No need FlightRadar24 subscription!</b>
 
 It allows you:
-1) Know how many flights in your area right now, or just have entered or exited it. And get list of flights with [full information](#flight) by every relevant flight for the sensor
-2) Create automations (example - [Get a notification when a flight enters or exits your area](#notification))
-3) Add flights table to your [Home Assistant dashboard](https://www.home-assistant.io/dashboards/) by [Lovelace Card](#lovelace))
+1. Know how many flights in your area right now, or just have entered or exited it. And get list of flights with [full information](#flight) by every relevant flight for the sensor 
+2. Track a particular plane or planes by aircraft registration number outside your area
+3. Create notifications (example - [Get a notification when a flight enters or exits your area](#notification))
+4. Create automations (example - [Automatically track a flight by your needs](#automation))
+5. Add flights table to your [Home Assistant dashboard](https://www.home-assistant.io/dashboards/) by [Lovelace Card](#lovelace))
 
-<img src="https://raw.githubusercontent.com/AlexandrErohin/home-assistant-flightradar24/master/docs/media/lovelace.png" width="48%"> <img src="https://raw.githubusercontent.com/AlexandrErohin/home-assistant-flightradar24/master/docs/media/sensors.png" width="48%">
-<p align="center"><img src="https://raw.githubusercontent.com/AlexandrErohin/home-assistant-flightradar24/master/docs/media/map.png" width="50%"></p>
+<img src="https://raw.githubusercontent.com/AlexandrErohin/home-assistant-flightradar24/master/docs/media/map.png" width="48%"> <img src="https://raw.githubusercontent.com/AlexandrErohin/home-assistant-flightradar24/master/docs/media/sensors.png" width="48%">
+<p align="center"><img src="https://raw.githubusercontent.com/AlexandrErohin/home-assistant-flightradar24/master/docs/media/lovelace.png" width="50%"></p>
 
 ## Components
 ### Events
@@ -20,8 +22,15 @@ It allows you:
  - Current in area
  - Entered area
  - Exited area
+ - Additional tracked
 
-Sensors shows how many flights in the given area, just have entered or exited it. All sensors have attribute `flights` with list of [flight object](#flight) contained a full information by every relevant flight for the sensor
+### Configuration
+ - Add track aircraft reg number
+ - Remove track aircraft reg number
+
+Sensors shows how many flights in the given area, additional tracked, just have entered or exited it. All sensors have attribute `flights` with list of [flight object](#flight) contained a full information by every relevant flight for the sensor
+
+Configuration inputs fields allows to add or remove a flight to/from sensor - Additional tracked
 
 ## Installation
 
@@ -100,6 +109,27 @@ To change name in tracked_by_device
 4. Click on `Rename` in the opened sub-menu
 5. Enter new name and click `OK`
 
+### <a id="automation">Automation</a>
+To automatically add a flight to additional tracking add following lines to your `configuration.yaml` file:
+```yaml
+automation:
+  - alias: "Track flights"
+    trigger:
+      platform: event
+      event_type: flightradar24_exit
+    condition:
+      - condition: template
+        value_template: "{{ 'Frankfurt' == trigger.event.data.airport_origin_city }}"
+    action:
+      - service: text.set_value
+        data:
+          value: "{{ trigger.event.data.aircraft_registration }}"
+        target:
+          entity_id: text.flightradar24_add_aircraft_registration_number
+```
+
+This is an example to filter flights to track, change the conditions for your needs
+
 ### <a id="lovelace">Lovelace Card</a>
 You can add flight table to your [Home Assistant dashboard](https://www.home-assistant.io/dashboards/)
 
@@ -135,6 +165,8 @@ cards:
           Altitude - {{ flight.altitude }} ft{%if flight.altitude > 0 %} ({{(flight.altitude * 0.3048)| round(0)}} m){% endif%}; Gr. speed - {{ flight.ground_speed }} kts{%if flight.ground_speed > 0 %} ({{(flight.ground_speed * 1.852)| round(0)}} km/h){% endif%}
           {% endfor %}
 ```
+
+This example for `sensor.flightradar24_current_in_area` which shows flights in your area, to show additional tracked flights replace sensor name to `sensor.flightradar24_tracked`
 
 All available fields for flight you can check [here](#flight)
 

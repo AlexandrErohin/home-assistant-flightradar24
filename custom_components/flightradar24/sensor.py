@@ -21,20 +21,20 @@ class FlightRadar24SensorRequiredKeysMixin:
 
 
 @dataclass
-class TFlightRadar24SensorEntityDescription(SensorEntityDescription, FlightRadar24SensorRequiredKeysMixin):
+class FlightRadar24SensorEntityDescription(SensorEntityDescription, FlightRadar24SensorRequiredKeysMixin):
     """A class that describes sensor entities."""
 
 
-SENSOR_TYPES: tuple[TFlightRadar24SensorEntityDescription, ...] = (
-    TFlightRadar24SensorEntityDescription(
+SENSOR_TYPES: tuple[FlightRadar24SensorEntityDescription, ...] = (
+    FlightRadar24SensorEntityDescription(
         key="in_area",
         name="Current in area",
         icon="mdi:airplane",
         state_class=SensorStateClass.TOTAL,
-        value=lambda coord: len(coord.tracked) if coord.tracked is not None else 0,
-        attributes=lambda coord: {'flights': [coord.tracked[x] for x in coord.tracked]},
+        value=lambda coord: len(coord.in_area) if coord.in_area is not None else 0,
+        attributes=lambda coord: {'flights': [coord.in_area[x] for x in coord.in_area]},
     ),
-    TFlightRadar24SensorEntityDescription(
+    FlightRadar24SensorEntityDescription(
         key="entered",
         name="Entered area",
         icon="mdi:airplane",
@@ -42,13 +42,21 @@ SENSOR_TYPES: tuple[TFlightRadar24SensorEntityDescription, ...] = (
         value=lambda coord: len(coord.entered),
         attributes=lambda coord: {'flights': coord.entered},
     ),
-    TFlightRadar24SensorEntityDescription(
+    FlightRadar24SensorEntityDescription(
         key="exited",
         name="Exited area",
         icon="mdi:airplane",
         state_class=SensorStateClass.TOTAL,
         value=lambda coord: len(coord.exited),
         attributes=lambda coord: {'flights': coord.exited},
+    ),
+    FlightRadar24SensorEntityDescription(
+        key="tracked",
+        name="Additional tracked",
+        icon="mdi:airplane",
+        state_class=SensorStateClass.TOTAL,
+        value=lambda coord: len(coord.tracked) if coord.tracked is not None else 0,
+        attributes=lambda coord: {'flights': [coord.tracked[x] for x in coord.tracked] if coord.tracked else {}},
     ),
 )
 
@@ -69,12 +77,12 @@ class FlightRadar24Sensor(
     CoordinatorEntity[FlightRadar24Coordinator], SensorEntity
 ):
     _attr_has_entity_name = True
-    entity_description: TFlightRadar24SensorEntityDescription
+    entity_description: FlightRadar24SensorEntityDescription
 
     def __init__(
             self,
             coordinator: FlightRadar24Coordinator,
-            description: TFlightRadar24SensorEntityDescription,
+            description: FlightRadar24SensorEntityDescription,
     ) -> None:
         """Initialize."""
         super().__init__(coordinator)
