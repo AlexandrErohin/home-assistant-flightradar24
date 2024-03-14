@@ -1,11 +1,11 @@
 # Flightradar24 integration for Home Assistant
-Flightradar24 integration allows one to track overhead flights in a given region, or particular planes by aircraft registration number. It will also fire Home Assistant events when flights enter and exit the defined region.
+Flightradar24 integration allows one to track overhead flights in a given region or particular planes. It will also fire Home Assistant events when flights enter and exit the defined region.
 
 <b>IMPORTANT: No need FlightRadar24 subscription!</b>
 
 It allows you:
 1. Know how many flights in your area right now, or just have entered or exited it. And get list of flights with [full information](#flight) by every relevant flight for the sensor 
-2. Track a particular plane or planes by aircraft registration number no matter where it currently is
+2. Track a particular plane or planes no matter where it currently is
 3. Create notifications (example - [Get a notification when a flight enters or exits your area](#notification))
 4. Create automations (example - [Automatically track a flight by your needs](#automation))
 5. Add flights table to your [Home Assistant dashboard](https://www.home-assistant.io/dashboards/) by [Lovelace Card](#lovelace))
@@ -25,12 +25,12 @@ It allows you:
  - Additional tracked
 
 ### Configuration
- - Add track aircraft reg number
- - Remove track aircraft reg number
+ - Add to track
+ - Remove from track
 
 Sensors shows how many flights in the given area, additional tracked, just have entered or exited it. All sensors have attribute `flights` with list of [flight object](#flight) contained a full information by every relevant flight for the sensor
 
-Configuration inputs fields allows to add or remove a flight to/from sensor - Additional tracked
+Configuration inputs fields allows to add or remove a flight to/from sensor - Additional tracked. Adding/Removing supports flight number, call sign, aircraft registration number
 
 ## Installation
 
@@ -125,7 +125,7 @@ automation:
         data:
           value: "{{ trigger.event.data.aircraft_registration }}"
         target:
-          entity_id: text.flightradar24_add_aircraft_registration_number
+          entity_id: text.flightradar24_add_to_track
 ```
 
 This is an example to filter flights to track, change the conditions for your needs
@@ -231,7 +231,7 @@ recorder:
 | altitude | Altitude (measurement: foot) |
 | ground_speed | Ground speed (measurement: knots) |
 | squawk | Squawk code are what air traffic control (ATC) use to identify aircraft when they are flying **(for subscription only)** |
-| vertical_speed | Vertical speed **(for subscription only)** |
+| vertical_speed | Vertical speed |
 | heading | The compass direction in which the craft's bow or nose is pointed (measurement: degrees) |
 | callsign | Callsign of the flight |
 | aircraft_registration | Aircraft registration number |

@@ -27,14 +27,14 @@ class FlightRadar24TextEntityDescription(TextEntityDescription, FlightRadar24Tex
 SENSOR_TYPES: tuple[FlightRadar24TextEntityDescription, ...] = (
     FlightRadar24TextEntityDescription(
         key="add_track",
-        name="Add track aircraft reg number",
+        name="Add to track",
         icon="mdi:airplane",
         entity_category=EntityCategory.CONFIG,
         method=lambda coordinator, value: coordinator.add_track(value),
     ),
     FlightRadar24TextEntityDescription(
         key="remove_track",
-        name="Remove track aircraft reg number",
+        name="Remove from track",
         icon="mdi:airplane",
         entity_category=EntityCategory.CONFIG,
         method=lambda coordinator, value: coordinator.remove_track(value),

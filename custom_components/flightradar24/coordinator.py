@@ -55,13 +55,21 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
 
     async def add_track(self, number: str) -> None:
         try:
-            flights = await self.hass.async_add_executor_job(self._client.get_flights, None, None, number)
+            flights = await self.hass.async_add_executor_job(self._client.search, number)
+            flights = flights.get('live')
             if not flights:
-                self.logger.error('FlightRadar24: No flight found by number - {}'.format(number))
+                self.logger.error('FlightRadar24: No flight found by - {}'.format(number))
                 return
             current: dict[int, dict[str, Any]] = {}
-            for flight in flights:
-                await self._update_flights_data(flight, current, self.tracked)
+            data = [None] * 20
+            data[1] = self._get_value(flights, [0, 'detail', 'lat'])
+            data[2] = self._get_value(flights, [0, 'detail', 'lon'])
+            data[13] = []
+            flight = Flight(self._get_value(flights, [0, 'id']), data)
+            flight.registration = self._get_value(flights, [0, 'detail', 'reg'])
+            flight.callsign = self._get_value(flights, [0, 'detail', 'callsign'])
+
+            await self._update_flights_data(flight, current, self.tracked)
             self.tracked = self.tracked | current if self.tracked else current
         except Exception as e:
             self.logger.error(e)
@@ -69,7 +77,8 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
     async def remove_track(self, number: str) -> None:
         flight_id = None
         for flight_id in self.tracked:
-            if number == self.tracked[flight_id]['aircraft_registration']:
+            flight = self.tracked[flight_id]
+            if number in [flight['aircraft_registration'], flight['flight_number'], flight['callsign']]:
                 break
         if flight_id is not None:
             del self.tracked[flight_id]
@@ -147,16 +156,17 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
         return flight.get('flight_number') is not None
 
     @staticmethod
-    def _get_flight_data(flight: dict) -> dict[str, Any] | None:
-        def _get_value(dictionary: dict, keys: list) -> Any | None:
-            nested_dict = dictionary
+    def _get_value(dictionary: dict, keys: list) -> Any | None:
+        nested_dict = dictionary
 
-            for key in keys:
-                try:
-                    nested_dict = nested_dict[key]
-                except Exception:
-                    return None
-            return nested_dict
+        for key in keys:
+            try:
+                nested_dict = nested_dict[key]
+            except Exception:
+                return None
+        return nested_dict
+
+    def _get_flight_data(self, flight: dict) -> dict[str, Any] | None:
 
         def _get_country_code(code: None | str) -> None | str:
             if code is None or len(code) == 2:
@@ -165,61 +175,45 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
 
             return country.alpha_2 if country is not None else code
 
-        flight_id = _get_value(flight, ['identification', 'id'])
+        flight_id = self._get_value(flight, ['identification', 'id'])
         if flight_id is None:
             return None
 
         return {
             'id': flight_id,
-            'flight_number': _get_value(flight, ['identification', 'number', 'default']),
-            'callsign': _get_value(flight, ['identification', 'callsign']),
-            'aircraft_registration': _get_value(flight, ['aircraft', 'registration']),
-            'aircraft_photo_small': _get_value(flight,
-                                               ['aircraft', 'images', 'thumbnails', 0, 'src']),
-            'aircraft_photo_medium': _get_value(flight,
-                                                ['aircraft', 'images', 'medium', 0, 'src']),
-            'aircraft_photo_large': _get_value(flight,
-                                               ['aircraft', 'images', 'large', 0, 'src']),
-            'aircraft_model': _get_value(flight, ['aircraft', 'model', 'text']),
-            'aircraft_code': _get_value(flight, ['aircraft', 'model', 'code']),
-            'airline': _get_value(flight, ['airline', 'name']),
-            'airline_short': _get_value(flight, ['airline', 'short']),
-            'airline_iata': _get_value(flight, ['airline', 'code', 'iata']),
-            'airline_icao': _get_value(flight, ['airline', 'code', 'icao']),
-            'airport_origin_name': _get_value(flight, ['airport', 'origin', 'name']),
-            'airport_origin_code_iata': _get_value(flight,
-                                                   ['airport', 'origin', 'code', 'iata']),
-            'airport_origin_code_icao': _get_value(flight,
-                                                   ['airport', 'origin', 'code', 'icao']),
-            'airport_origin_country_name': _get_value(flight,
-                                                      ['airport', 'origin', 'position',
-                                                       'country', 'name']),
+            'flight_number': self._get_value(flight, ['identification', 'number', 'default']),
+            'callsign': self._get_value(flight, ['identification', 'callsign']),
+            'aircraft_registration': self._get_value(flight, ['aircraft', 'registration']),
+            'aircraft_photo_small': self._get_value(flight, ['aircraft', 'images', 'thumbnails', 0, 'src']),
+            'aircraft_photo_medium': self._get_value(flight, ['aircraft', 'images', 'medium', 0, 'src']),
+            'aircraft_photo_large': self._get_value(flight, ['aircraft', 'images', 'large', 0, 'src']),
+            'aircraft_model': self._get_value(flight, ['aircraft', 'model', 'text']),
+            'aircraft_code': self._get_value(flight, ['aircraft', 'model', 'code']),
+            'airline': self._get_value(flight, ['airline', 'name']),
+            'airline_short': self._get_value(flight, ['airline', 'short']),
+            'airline_iata': self._get_value(flight, ['airline', 'code', 'iata']),
+            'airline_icao': self._get_value(flight, ['airline', 'code', 'icao']),
+            'airport_origin_name': self._get_value(flight, ['airport', 'origin', 'name']),
+            'airport_origin_code_iata': self._get_value(flight, ['airport', 'origin', 'code', 'iata']),
+            'airport_origin_code_icao': self._get_value(flight, ['airport', 'origin', 'code', 'icao']),
+            'airport_origin_country_name': self._get_value(flight, ['airport', 'origin', 'position',
+                                                                    'country', 'name']),
             'airport_origin_country_code': _get_country_code(
-                _get_value(flight, ['airport', 'origin', 'position', 'country', 'code'])),
-            'airport_origin_city': _get_value(flight,
-                                              ['airport', 'origin', 'position', 'region',
-                                               'city']),
-            'airport_destination_name': _get_value(flight, ['airport', 'destination', 'name']),
-            'airport_destination_code_iata': _get_value(flight,
-                                                        ['airport', 'destination', 'code',
-                                                         'iata']),
-            'airport_destination_code_icao': _get_value(flight,
-                                                        ['airport', 'destination', 'code',
-                                                         'icao']),
-            'airport_destination_country_name': _get_value(flight,
-                                                           ['airport', 'destination',
-                                                            'position', 'country',
-                                                            'name']),
+                self._get_value(flight, ['airport', 'origin', 'position', 'country', 'code'])),
+            'airport_origin_city': self._get_value(flight, ['airport', 'origin', 'position', 'region', 'city']),
+            'airport_destination_name': self._get_value(flight, ['airport', 'destination', 'name']),
+            'airport_destination_code_iata': self._get_value(flight, ['airport', 'destination', 'code', 'iata']),
+            'airport_destination_code_icao': self._get_value(flight, ['airport', 'destination', 'code', 'icao']),
+            'airport_destination_country_name': self._get_value(flight, ['airport', 'destination',
+                                                                         'position', 'country', 'name']),
             'airport_destination_country_code': _get_country_code(
-                _get_value(flight,
-                           ['airport', 'destination', 'position', 'country', 'code'])),
-            'airport_destination_city': _get_value(flight,
-                                                   ['airport', 'destination', 'position',
-                                                    'region', 'city']),
-            'time_scheduled_departure': _get_value(flight, ['time', 'scheduled', 'departure']),
-            'time_scheduled_arrival': _get_value(flight, ['time', 'scheduled', 'arrival']),
-            'time_real_departure': _get_value(flight, ['time', 'real', 'departure']),
-            'time_real_arrival': _get_value(flight, ['time', 'real', 'arrival']),
-            'time_estimated_departure': _get_value(flight, ['time', 'estimated', 'departure']),
-            'time_estimated_arrival': _get_value(flight, ['time', 'estimated', 'arrival']),
+                self._get_value(flight, ['airport', 'destination', 'position', 'country', 'code'])),
+            'airport_destination_city': self._get_value(flight, ['airport', 'destination', 'position',
+                                                                 'region', 'city']),
+            'time_scheduled_departure': self._get_value(flight, ['time', 'scheduled', 'departure']),
+            'time_scheduled_arrival': self._get_value(flight, ['time', 'scheduled', 'arrival']),
+            'time_real_departure': self._get_value(flight, ['time', 'real', 'departure']),
+            'time_real_arrival': self._get_value(flight, ['time', 'real', 'arrival']),
+            'time_estimated_departure': self._get_value(flight, ['time', 'estimated', 'departure']),
+            'time_estimated_arrival': self._get_value(flight, ['time', 'estimated', 'arrival']),
         }
