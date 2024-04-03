@@ -12,6 +12,8 @@ from .const import (
     DEFAULT_NAME,
     CONF_MIN_ALTITUDE,
     CONF_MAX_ALTITUDE,
+    CONF_MOST_TRACKED,
+    CONF_MOST_TRACKED_DEFAULT,
     MIN_ALTITUDE,
     MAX_ALTITUDE,
 )
@@ -92,6 +94,9 @@ class OptionsFlow(OptionsFlowWithConfigEntry):
                          description={"suggested_value": data.get(CONF_MIN_ALTITUDE, MIN_ALTITUDE)}): int,
             vol.Optional(CONF_MAX_ALTITUDE,
                          description={"suggested_value": data.get(CONF_MAX_ALTITUDE, MAX_ALTITUDE)}): int,
+            vol.Optional(CONF_MOST_TRACKED,
+                         description={
+                             "suggested_value": data.get(CONF_MOST_TRACKED, CONF_MOST_TRACKED_DEFAULT)}): cv.boolean,
             vol.Optional(CONF_USERNAME, description={"suggested_value": data.get(CONF_USERNAME, '')}): cv.string,
             vol.Optional(CONF_PASSWORD, description={"suggested_value": data.get(CONF_PASSWORD, '')}): cv.string,
         })

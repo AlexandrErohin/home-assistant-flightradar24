@@ -23,6 +23,7 @@
           "scan_interval": "Aktualisierungsintervall in Sekunden",
           "min_altitude": "Die Mindesthöhe in Fuß, unter der das Flugzeug verfolgt wird.",
           "max_altitude": "Die maximale Höhe in Fuß, über der das Flugzeug verfolgt wird.",
+          "most_tracked": "Aktivieren Sie die Liste der am häufigsten verfolgten Flüge",
           "username": "OPTIONAL! Flightradar24 username",
           "password": "OPTIONAL! Flightradar24 password"
         }

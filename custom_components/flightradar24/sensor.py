@@ -58,6 +58,15 @@ SENSOR_TYPES: tuple[FlightRadar24SensorEntityDescription, ...] = (
         value=lambda coord: len(coord.tracked) if coord.tracked is not None else 0,
         attributes=lambda coord: {'flights': [coord.tracked[x] for x in coord.tracked] if coord.tracked else {}},
     ),
+    FlightRadar24SensorEntityDescription(
+        key="most_tracked",
+        name="Most tracked",
+        icon="mdi:airplane",
+        state_class=SensorStateClass.TOTAL,
+        value=lambda coord: len(coord.most_tracked) if coord.most_tracked is not None else None,
+        attributes=lambda coord: {
+            'flights': [coord.most_tracked[x] for x in coord.most_tracked] if coord.most_tracked else {}},
+    ),
 )
 
 
@@ -96,3 +105,8 @@ class FlightRadar24Sensor(
         self._attr_native_value = self.entity_description.value(self.coordinator)
         self._attr_extra_state_attributes = self.entity_description.attributes(self.coordinator)
         self.async_write_ha_state()
+
+    @property
+    def available(self) -> bool:
+        """Return True if entity is available."""
+        return self.entity_description.value(self.coordinator) is not None

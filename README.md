@@ -6,23 +6,26 @@ Flightradar24 integration allows one to track overhead flights in a given region
 It allows you:
 1. Know how many flights in your area right now, or just have entered or exited it. And get list of flights with [full information](#flight) by every relevant flight for the sensor 
 2. Track a particular plane or planes no matter where it currently is
-3. Create notifications (example - [Get a notification when a flight enters or exits your area](#notification))
-4. Create automations (example - [Automatically track a flight by your needs](#automation))
-5. Add flights table to your [Home Assistant dashboard](https://www.home-assistant.io/dashboards/) by [Lovelace Card](#lovelace))
+3. Get [top 10 most tracked flights on FlightRadar24](#most-tracked) 
+4. Create notifications (example - [Get a notification when a flight enters or exits your area](#notification))
+5. Create automations (example - [Automatically track a flight by your needs](#automation))
+6. Add flights table to your [Home Assistant dashboard](https://www.home-assistant.io/dashboards/) by [Lovelace Card](#lovelace))
 
-<img src="https://raw.githubusercontent.com/AlexandrErohin/home-assistant-flightradar24/master/docs/media/map.png" width="48%"> <img src="https://raw.githubusercontent.com/AlexandrErohin/home-assistant-flightradar24/master/docs/media/sensors.png" width="48%">
+<img src="https://raw.githubusercontent.com/AlexandrErohin/home-assistant-flightradar24/master/docs/media/map.png" width="48%"><img src="https://raw.githubusercontent.com/AlexandrErohin/home-assistant-flightradar24/master/docs/media/sensors.png" width="48%">
 <p align="center"><img src="https://raw.githubusercontent.com/AlexandrErohin/home-assistant-flightradar24/master/docs/media/lovelace.png" width="50%"></p>
 
 ## Components
 ### Events
  - flightradar24_entry: Fired when a flight enters the region.
  - flightradar24_exit: Fired when a flight exits the region.
+ - flightradar24_most_tracked_new: Fired when a new flight appears in top 10 most tracked flights on FlightRadar24
 
 ### Sensors
  - Current in area
  - Entered area
  - Exited area
  - Additional tracked
+ - Most tracked flights
 
 ### Configuration
  - Add to track
@@ -72,7 +75,8 @@ You may edit configuration data like:
 2. Radius of your zone
 3. Scan interval for updates in seconds
 4. The minimum and maximum altitudes in foots between which the aircraft will be tracked
-4. Username and password if you have FlightRadar24 subscription
+5. Enable/Disable [top 10 most tracked flights on FlightRadar24](#most-tracked) 
+6. Username and password if you have FlightRadar24 subscription
 
 To do that:
 
@@ -93,7 +97,9 @@ automation:
     action:
       service: notify.mobile_app_<device_name>
       data:
-        message: "Flight entry of {{ trigger.event.data.callsign }} to {{ trigger.event.data.airport_destination_city }}"
+        content: >-
+          Flight entry of {{ trigger.event.data.callsign }} to {{ trigger.event.data.airport_destination_city }}
+          [Open FlightRadar](https://www.flightradar24.com/{{ trigger.event.data.callsign }})
 ```
 
 All available fields in `trigger.event.data` you can check [here](#flight)
@@ -262,6 +268,22 @@ recorder:
 | time_real_arrival | Real arrival time |
 | time_estimated_departure | Estimated departure time |
 | time_estimated_arrival | Estimated arrival time |
+
+## <a id="most-tracked">Most tracked</a>
+Sensor `Most tracked` shows top 10 most tracked flights on FlightRadar24 with next flight fields
+
+| Field | Description |
+|---|---|
+| flight_number | Flight Number |
+| callsign | Callsign of the flight |
+| squawk | Squawk code are what air traffic control (ATC) use to identify aircraft when they are flying |
+| aircraft_model | Aircraft model |
+| aircraft_code | Aircraft code |
+| clicks | How many people track this flight |
+| airport_origin_code_iata | Origin airport IATA code |
+| airport_origin_city | Origin airport city name |
+| airport_destination_code_iata | Destination airport IATA code |
+| airport_destination_city | Destination airport city name |
 
 ## Thanks To
  - [FlightRadarAPI](https://github.com/JeanExtreme002/FlightRadarAPI) by [@JeanExtreme002](https://github.com/JeanExtreme002)

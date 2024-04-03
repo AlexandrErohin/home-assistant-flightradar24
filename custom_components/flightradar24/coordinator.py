@@ -11,6 +11,7 @@ from .const import (
     DEFAULT_NAME,
     EVENT_FLIGHTRADAR24_ENTRY,
     EVENT_FLIGHTRADAR24_EXIT,
+    EVENT_FLIGHTRADAR24_MOST_TRACKED_NEW,
 )
 from logging import Logger
 from FlightRadar24 import FlightRadar24API, Flight
@@ -34,7 +35,8 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
         self._client = client
         self.unique_id = unique_id
         self.in_area: dict[str, dict[str, Any]] | None = None
-        self.tracked: dict[str, dict[str, Any]] | None = None
+        self.tracked: dict[str, dict[str, Any]] = {}
+        self.most_tracked: dict[str, dict[str, Any]] | None = None
         self.entered = {}
         self.exited = {}
         self.min_altitude = min_altitude
@@ -87,6 +89,7 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
         try:
             await self._update_flights_in_area()
             await self._update_flights_tracked()
+            await self._update_most_tracked()
         except Exception as e:
             self.logger.error(e)
 
@@ -123,6 +126,30 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
         for obj in flights:
             await self._update_flights_data(obj, current, self.tracked)
         self.tracked = current
+
+    async def _update_most_tracked(self) -> None:
+        if self.most_tracked is None:
+            return
+
+        flights = await self.hass.async_add_executor_job(self._client.get_most_tracked)
+        current: dict[int, dict[str, Any]] = {}
+        for obj in flights.get('data'):
+            current[obj['flight_id']] = {
+                'id': obj.get('flight_id'),
+                'flight_number': obj.get('flight'),
+                'callsign': obj.get('callsign'),
+                'squawk': obj.get('squawk'),
+                'clicks': obj.get('clicks'),
+                'airport_origin_code_iata': obj.get('from_iata'),
+                'airport_origin_city': obj.get('from_city'),
+                'airport_destination_code_iata': obj.get('to_iata'),
+                'airport_destination_city': obj.get('to_city'),
+                'aircraft_code': obj.get('model'),
+                'aircraft_model': obj.get('type'),
+            }
+        entries = self.entered = [current[x] for x in (current.keys() - self.most_tracked.keys())]
+        self.most_tracked = current
+        self._handle_boundary(EVENT_FLIGHTRADAR24_MOST_TRACKED_NEW, entries)
 
     async def _update_flights_data(self,
                                    obj: Flight,

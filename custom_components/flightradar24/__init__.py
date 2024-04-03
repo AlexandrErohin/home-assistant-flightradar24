@@ -16,6 +16,8 @@ from homeassistant.const import (
 from .const import (
     CONF_MIN_ALTITUDE,
     CONF_MAX_ALTITUDE,
+    CONF_MOST_TRACKED,
+    CONF_MOST_TRACKED_DEFAULT,
     MIN_ALTITUDE,
     MAX_ALTITUDE,
 )
@@ -54,6 +56,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         entry.data.get(CONF_MIN_ALTITUDE, MIN_ALTITUDE),
         entry.data.get(CONF_MAX_ALTITUDE, MAX_ALTITUDE),
     )
+
+    coordinator.most_tracked = {} if entry.data.get(CONF_MOST_TRACKED, CONF_MOST_TRACKED_DEFAULT) else None
 
     await coordinator.async_config_entry_first_refresh()
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = coordinator

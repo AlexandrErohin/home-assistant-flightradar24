@@ -4,9 +4,12 @@ URL = 'https://www.flightradar24.com/'
 
 CONF_MIN_ALTITUDE = "min_altitude"
 CONF_MAX_ALTITUDE = "max_altitude"
+CONF_MOST_TRACKED = "most_tracked"
+CONF_MOST_TRACKED_DEFAULT = True
 
 EVENT_FLIGHTRADAR24_ENTRY = f"{DOMAIN}_entry"
 EVENT_FLIGHTRADAR24_EXIT = f"{DOMAIN}_exit"
+EVENT_FLIGHTRADAR24_MOST_TRACKED_NEW = f"{DOMAIN}_most_tracked_new"
 
 MIN_ALTITUDE = -1
 MAX_ALTITUDE = 100000
