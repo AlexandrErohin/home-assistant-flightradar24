@@ -1,0 +1,33 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "description": "Rellene la ubicación a rastrear.",
+        "data": {
+          "radius": "Radio en metros",
+          "latitude": "Latitud",
+          "longitude": "Longitud",
+          "scan_interval": "Intervalo de búsqueda de actualizaciones en segundos"
+        }
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "description": "Editar parámetros para la ubicación a rastrear.",
+        "data": {
+          "radius": "Radio en metros",
+          "latitude": "Latitud",
+          "longitude": "Longitud",
+          "scan_interval": "Intervalo de búsqueda de actualizaciones en segundos",
+          "min_altitude": "La altitud mínima en pies por debajo de la cual se rastreará la aeronave.",
+          "max_altitude": "La altitud máxima en pies por encima de la cual se rastreará la aeronave.",
+          "most_tracked": "Activar la lista de vuelos más seguidos",
+          "username": "OPCIONAL! Nombre de usuario de Flightradar24",
+          "password": "OPCIONAL! Contraseña de Flightradar24"
+        }
+      }
+    }
+  }
+}
