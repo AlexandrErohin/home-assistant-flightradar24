@@ -25,7 +25,7 @@ It allows you:
  - Entered area
  - Exited area
  - Additional tracked
- - Most tracked flights
+ - Most tracked flights (You may disable it via configuration)
 
 ### Configuration
  - Add to track

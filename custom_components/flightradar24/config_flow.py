@@ -82,7 +82,7 @@ class OptionsFlow(OptionsFlowWithConfigEntry):
                 errors['base'] = str(error)
 
             if not errors:
-                self.config_entry.data = user_input
+                self.hass.config_entries.async_update_entry(self.config_entry, data=user_input)
                 return self.async_create_entry(title=DEFAULT_NAME, data=user_input)
 
         data_schema = vol.Schema({
