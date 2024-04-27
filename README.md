@@ -235,6 +235,7 @@ recorder:
 | latitude | Current latitude of the aircraft |
 | longitude | Current longitude of the aircraft |
 | altitude | Altitude (measurement: foot) |
+| distance | Distance between the aircraft and your point (measurement: kilometers) |
 | ground_speed | Ground speed (measurement: knots) |
 | squawk | Squawk code are what air traffic control (ATC) use to identify aircraft when they are flying **(for subscription only)** |
 | vertical_speed | Vertical speed |

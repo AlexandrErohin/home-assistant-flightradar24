@@ -14,7 +14,7 @@ from .const import (
     EVENT_FLIGHTRADAR24_MOST_TRACKED_NEW,
 )
 from logging import Logger
-from FlightRadar24 import FlightRadar24API, Flight
+from FlightRadar24 import FlightRadar24API, Flight, Entity
 
 
 class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
@@ -29,6 +29,7 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
             unique_id: str,
             min_altitude: int,
             max_altitude: int,
+            point: Entity,
     ) -> None:
 
         self._bounds = bounds
@@ -41,6 +42,7 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
         self.exited = {}
         self.min_altitude = min_altitude
         self.max_altitude = max_altitude
+        self.point = point
         self.device_info = DeviceInfo(
             configuration_url=URL,
             identifiers={(DOMAIN, self.unique_id)},
@@ -172,6 +174,7 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
             flight['ground_speed'] = obj.ground_speed
             flight['squawk'] = obj.squawk
             flight['vertical_speed'] = obj.vertical_speed
+            flight['distance'] = flight.get_distance_from(self.point)
 
     def _handle_boundary(self, event: str, flights: list[dict[str, Any]]) -> None:
         for flight in flights:

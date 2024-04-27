@@ -21,8 +21,8 @@
           "latitude": "Latitude",
           "longitude": "Longitude",
           "scan_interval": "Scan interval for updates in seconds",
-          "min_altitude": "The minimum altitude in foots under which the aircraft will be tracked.",
-          "max_altitude": "The maximum altitude in foots above which the aircraft will be tracked.",
+          "min_altitude": "The minimum altitude in feet above the aircraft will be tracked.",
+          "max_altitude": "The maximum altitude in feet below the aircraft will be tracked.",
           "most_tracked": "Enable most tracked flights list",
           "username": "OPTIONAL! Flightradar24 username",
           "password": "OPTIONAL! Flightradar24 password"

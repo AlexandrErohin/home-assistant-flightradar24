@@ -21,7 +21,7 @@ from .const import (
     MIN_ALTITUDE,
     MAX_ALTITUDE,
 )
-from FlightRadar24 import FlightRadar24API
+from FlightRadar24 import FlightRadar24API, Entity
 from .sensor import SENSOR_TYPES
 
 PLATFORMS: list[Platform] = [
@@ -40,11 +40,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     if username and password:
         await hass.async_add_executor_job(client.login, username, password)
 
-    bounds = client.get_bounds_by_point(
-        entry.data[CONF_LATITUDE],
-        entry.data[CONF_LONGITUDE],
-        entry.data[CONF_RADIUS],
-    )
+    latitude = entry.data[CONF_LATITUDE]
+    longitude = entry.data[CONF_LONGITUDE]
+
+    bounds = client.get_bounds_by_point(latitude, longitude, entry.data[CONF_RADIUS])
 
     coordinator = FlightRadar24Coordinator(
         hass,
@@ -55,6 +54,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         entry.entry_id,
         entry.data.get(CONF_MIN_ALTITUDE, MIN_ALTITUDE),
         entry.data.get(CONF_MAX_ALTITUDE, MAX_ALTITUDE),
+        Entity(latitude, longitude),
     )
 
     coordinator.most_tracked = {} if entry.data.get(CONF_MOST_TRACKED, CONF_MOST_TRACKED_DEFAULT) else None
