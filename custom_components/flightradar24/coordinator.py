@@ -174,7 +174,7 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
             flight['ground_speed'] = obj.ground_speed
             flight['squawk'] = obj.squawk
             flight['vertical_speed'] = obj.vertical_speed
-            flight['distance'] = flight.get_distance_from(self.point)
+            flight['distance'] = obj.get_distance_from(self.point)
 
     def _handle_boundary(self, event: str, flights: list[dict[str, Any]]) -> None:
         for flight in flights:
