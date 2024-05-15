@@ -1,0 +1,33 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "description": "Remplissez les coordonnées à suivre.",
+        "data": {
+          "radius": "Rayon en mètres",
+          "latitude": "Latitude",
+          "longitude": "Longitude",
+          "scan_interval": "Intervalle de mise à jour en secondes"
+        }
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "description": "Remplissez les coordonnées à suivre.",
+        "data": {
+          "radius": "Rayon en mètres",
+          "latitude": "Latitude",
+          "longitude": "Longitude",
+          "scan_interval": "Intervalle de mise à jour en secondes",
+          "min_altitude": "L'altitude minimale en pieds au-dessus de laquelle l'avion sera suivie.",
+          "max_altitude": "L'altitude maximale en pieds à l'avion sera suivi.",
+          "most_tracked": "Activer la liste des vols les plus suivis",
+          "username": "FACULTATIF! Nom d'utilisateur Flightradar24",
+          "password": "FACULTATIF! Mot de passe Flightradar24"
+        }
+      }
+    }
+  }
+}
