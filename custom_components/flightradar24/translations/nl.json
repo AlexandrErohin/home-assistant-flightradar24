@@ -7,7 +7,7 @@
           "radius": "Straal in meters",
           "latitude": "Breedtegraad",
           "longitude": "Lengtegraad",
-          "scan_interval": "Scan interval voor updates in seconden"
+          "scan_interval": "Update interval in seconden"
         }
       }
     }
@@ -20,7 +20,7 @@
           "radius": "Radius in meters",
           "latitude": "Latitude",
           "longitude": "Longitude",
-          "scan_interval": "Scan interval voor updates in seconden",
+          "scan_interval": "Update interval in seconden",
           "min_altitude": "Minimum hoogte in feet waarboven alle vliegverkeer gevolgd wordt.",
           "max_altitude": "Maximum hoogte in feet waaronder alle vliegverkeer gevolgd wordt.",
           "most_tracked": "Activeer meest gevolgde vluchtlijst",
