@@ -2,11 +2,11 @@
   "config": {
     "step": {
       "user": {
-        "description": "Podaj parametry śledzonej lokalizacji.",
+        "description": "Parametry śledzonej lokalizacji.",
         "data": {
           "radius": "Promień (w metrach)",
-          "latitude": "Szerokość",
-          "longitude": "Długość",
+          "latitude": "Szerokość geograficzna",
+          "longitude": "Długość geograficzna",
           "scan_interval": "Interwał odświeżania (w sekundach)"
         }
       }
@@ -15,14 +15,14 @@
   "options": {
     "step": {
       "init": {
-        "description": "Podaj parametry śledzonej lokalizacji.",
+        "description": "Parametry śledzonej lokalizacji.",
         "data": {
           "radius": "Promień (w metrach)",
-          "latitude": "Szerokość",
-          "longitude": "Długość",
+          "latitude": "Szerokość geograficzna",
+          "longitude": "Długość geograficzna",
           "scan_interval": "Interwał odświeżania (w sekundach)",
-          "min_altitude": "Minimalna wysokość, powyżej której samoloty będą śledzone (w stopach)",
-          "max_altitude": "Maksymalna wysokość, poniżej której samoloty będą śledzone (w stopach)",
+          "min_altitude": "Wysokość, powyżej której samoloty będą śledzone (w stopach)",
+          "max_altitude": "Wysokość, poniżej której samoloty będą śledzone (w stopach)",
           "most_tracked": "Włącz listę najczęściej śledzonych samolotów",
           "username": "OPCJONALNE! Login do Flightradar24",
           "password": "OPCJONALNE! Hasło do Flightradar24"
