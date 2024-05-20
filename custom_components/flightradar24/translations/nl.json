@@ -1,0 +1,33 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "description": "Vul de te volgenn locatie in.",
+        "data": {
+          "radius": "Straal in meters",
+          "latitude": "Breedtegraad",
+          "longitude": "Lengtegraad",
+          "scan_interval": "Scan interval voor updates in seconden"
+        }
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "description": "Bewerk parameters voor de te volgen locatie.",
+        "data": {
+          "radius": "Radius in meters",
+          "latitude": "Latitude",
+          "longitude": "Longitude",
+          "scan_interval": "Scan interval for updates in seconds",
+          "min_altitude": "Minimum hoogte in feet waarboven alle vliegverkeer gevolgd wordt.",
+          "max_altitude": "Maximum hoogte in feet waaronder alle vliegverkeer gevolgd wordt.",
+          "most_tracked": "Activeer meest gevolgde vluchtlijst",
+          "username": "OPTIONEEL! Flightradar24 gebruikersnaam",
+          "password": "OPTIONEEL! Flightradar24 wachtwoord"
+        }
+      }
+    }
+  }
+}
