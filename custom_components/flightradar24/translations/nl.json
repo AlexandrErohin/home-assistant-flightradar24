@@ -2,7 +2,7 @@
   "config": {
     "step": {
       "user": {
-        "description": "Vul de te volgenn locatie in.",
+        "description": "Vul de te volgen locatie in.",
         "data": {
           "radius": "Straal in meters",
           "latitude": "Breedtegraad",
