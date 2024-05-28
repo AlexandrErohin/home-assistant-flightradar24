@@ -1,5 +1,6 @@
 from __future__ import annotations
 from typing import Any
+from enum import Enum
 from datetime import timedelta
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
@@ -9,12 +10,21 @@ from .const import (
     DOMAIN,
     URL,
     DEFAULT_NAME,
-    EVENT_FLIGHTRADAR24_ENTRY,
-    EVENT_FLIGHTRADAR24_EXIT,
-    EVENT_FLIGHTRADAR24_MOST_TRACKED_NEW,
+    EVENT_ENTRY,
+    EVENT_EXIT,
+    EVENT_MOST_TRACKED_NEW,
+    EVENT_AREA_LANDED,
+    EVENT_AREA_TOOK_OFF,
+    EVENT_TRACKED_LANDED,
+    EVENT_TRACKED_TOOK_OFF,
 )
 from logging import Logger
 from FlightRadar24 import FlightRadar24API, Flight, Entity
+
+
+class SensorType(Enum):
+    TRACKED = 1
+    IN_AREA = 2
 
 
 class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
@@ -105,15 +115,15 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
         for obj in flights:
             if not self.min_altitude <= obj.altitude <= self.max_altitude:
                 continue
-            await self._update_flights_data(obj, current, self.in_area)
+            await self._update_flights_data(obj, current, self.in_area, SensorType.IN_AREA)
 
         if self.in_area is not None:
             entries = current.keys() - self.in_area.keys()
             self.entered = [current[x] for x in entries]
             exits = self.in_area.keys() - current.keys()
             self.exited = [self.in_area[x] for x in exits]
-            self._handle_boundary(EVENT_FLIGHTRADAR24_ENTRY, self.entered)
-            self._handle_boundary(EVENT_FLIGHTRADAR24_EXIT, self.exited)
+            self._handle_boundary(EVENT_ENTRY, self.entered)
+            self._handle_boundary(EVENT_EXIT, self.exited)
         self.in_area = current
 
     async def _update_flights_tracked(self) -> None:
@@ -126,7 +136,7 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
         )
         current: dict[int, dict[str, Any]] = {}
         for obj in flights:
-            await self._update_flights_data(obj, current, self.tracked)
+            await self._update_flights_data(obj, current, self.tracked, SensorType.TRACKED)
         self.tracked = current
 
     async def _update_most_tracked(self) -> None:
@@ -151,15 +161,18 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
             }
         entries = self.entered = [current[x] for x in (current.keys() - self.most_tracked.keys())]
         self.most_tracked = current
-        self._handle_boundary(EVENT_FLIGHTRADAR24_MOST_TRACKED_NEW, entries)
+        self._handle_boundary(EVENT_MOST_TRACKED_NEW, entries)
 
     async def _update_flights_data(self,
                                    obj: Flight,
                                    current: dict[int, dict[str, Any]],
-                                   area: dict[str, dict[str, Any]],
+                                   tracked: dict[str, dict[str, Any]],
+                                   sensor_type: SensorType | None = None,
                                    ) -> None:
-        if area is not None and obj.id in area and self._is_valid(area[obj.id]):
-            flight = area[obj.id]
+        altitude = None
+        if tracked is not None and obj.id in tracked and self._is_valid(tracked[obj.id]):
+            flight = tracked[obj.id]
+            altitude = flight.get('altitude')
         else:
             data = await self.hass.async_add_executor_job(
                 self._client.get_flight_details, obj
@@ -175,11 +188,27 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
             flight['squawk'] = obj.squawk
             flight['vertical_speed'] = obj.vertical_speed
             flight['distance'] = obj.get_distance_from(self.point)
+            self._takeoff_and_landing(flight, altitude, obj.altitude, sensor_type)
 
     def _handle_boundary(self, event: str, flights: list[dict[str, Any]]) -> None:
         for flight in flights:
-            flight['tracked_by_device'] = self.config_entry.title
-            self.hass.bus.fire(event, flight)
+            self._fire_event(event, flight)
+
+    def _fire_event(self, event: str, flight: dict[str, Any]) -> None:
+        flight['tracked_by_device'] = self.config_entry.title
+        self.hass.bus.fire(event, flight)
+
+    def _takeoff_and_landing(self,
+                             flight: dict[str, Any],
+                             altitude_old, altitude_new,
+                             sensor_type: SensorType | None) -> None:
+        if sensor_type is None or altitude_old is None:
+            return
+        if altitude_old < 10 and altitude_new >= 10:
+            self._fire_event(EVENT_AREA_TOOK_OFF if SensorType.IN_AREA == sensor_type else EVENT_TRACKED_TOOK_OFF,
+                             flight)
+        elif altitude_old > 0 and altitude_new <= 0:
+            self._fire_event(EVENT_AREA_LANDED if SensorType.IN_AREA == sensor_type else EVENT_TRACKED_LANDED, flight)
 
     @staticmethod
     def _is_valid(flight: dict) -> bool:

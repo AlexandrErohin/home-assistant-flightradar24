@@ -1,5 +1,5 @@
 # Flightradar24 integration for Home Assistant
-Flightradar24 integration allows one to track overhead flights in a given region or particular planes. It will also fire Home Assistant events when flights enter and exit the defined region.
+Flightradar24 integration allows one to track overhead flights in a given region or particular planes. It will also fire Home Assistant events when flights enter/exit/landed/took off.
 
 <b>IMPORTANT: No need FlightRadar24 subscription!</b>
 
@@ -19,6 +19,10 @@ It allows you:
  - flightradar24_entry: Fired when a flight enters the region.
  - flightradar24_exit: Fired when a flight exits the region.
  - flightradar24_most_tracked_new: Fired when a new flight appears in top 10 most tracked flights on FlightRadar24
+ - flightradar24_area_landed: Fired when a flight lands in your area.
+ - flightradar24_area_took_off: Fired when a flight takes off in your area.
+ - flightradar24_tracked_landed: Fired when a tracked flight lands.
+ - flightradar24_tracked_took_off: Fired when a tracked flight takes off.
 
 ### Sensors
  - Current in area
