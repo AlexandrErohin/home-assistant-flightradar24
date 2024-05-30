@@ -234,7 +234,7 @@ recorder:
 ## <a id="flight">Flight fields</a>
 | Field | Description |
 | --- |---|
-| tracked_by_device | If you have defined more than one device of FlightRadar24 for more places to observe - you may be interested to know what device has fired the event. To renema the device check [this](#tracked_by_device) |
+| tracked_by_device | If you have defined more than one device of FlightRadar24 for more places to observe - you may be interested to know what device has fired the event. To rename the device check [this](#tracked_by_device) |
 | flight_number | Flight Number |
 | latitude | Current latitude of the aircraft |
 | longitude | Current longitude of the aircraft |
