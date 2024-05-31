@@ -71,17 +71,24 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
         try:
             flights = await self.hass.async_add_executor_job(self._client.search, number)
             flights = flights.get('live')
-            if not flights:
-                self.logger.error('FlightRadar24: No flight found by - {}'.format(number))
+            found = None
+            if flights:
+                for element in flights:
+                    detail = element.get('detail')
+                    if detail and number in (detail.get('reg'), detail.get('callsign'), detail.get('flight')):
+                        found = element
+                        break
+            if not found:
+                self.logger.error('FlightRadar24: No live flight found by - {}'.format(number))
                 return
             current: dict[int, dict[str, Any]] = {}
             data = [None] * 20
-            data[1] = self._get_value(flights, [0, 'detail', 'lat'])
-            data[2] = self._get_value(flights, [0, 'detail', 'lon'])
+            data[1] = self._get_value(found, ['detail', 'lat'])
+            data[2] = self._get_value(found, ['detail', 'lon'])
             data[13] = []
-            flight = Flight(self._get_value(flights, [0, 'id']), data)
-            flight.registration = self._get_value(flights, [0, 'detail', 'reg'])
-            flight.callsign = self._get_value(flights, [0, 'detail', 'callsign'])
+            flight = Flight(found.get('id'), data)
+            flight.registration = self._get_value(found, ['detail', 'reg'])
+            flight.callsign = self._get_value(found, ['detail', 'callsign'])
 
             await self._update_flights_data(flight, current, self.tracked)
             self.tracked = self.tracked | current if self.tracked else current
