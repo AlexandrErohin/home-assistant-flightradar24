@@ -184,7 +184,7 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
             data = await self.hass.async_add_executor_job(
                 self._client.get_flight_details, obj
             )
-            flight = self._get_flight_data(data)
+            flight = await self._get_flight_data(data)
         if flight is not None:
             current[flight['id']] = flight
             flight['latitude'] = obj.latitude
@@ -232,12 +232,16 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
                 return None
         return nested_dict
 
-    def _get_flight_data(self, flight: dict) -> dict[str, Any] | None:
+    async def _get_flight_data(self, flight: dict) -> dict[str, Any] | None:
 
-        def _get_country_code(code: None | str) -> None | str:
+        async def _get_country_code(code: None | str) -> None | str:
             if code is None or len(code) == 2:
                 return code
-            country = pycountry.countries.get(alpha_3=code)
+
+            def _get_code(c: str):
+                return pycountry.countries.get(alpha_3=c)
+
+            country = await self.hass.async_add_executor_job(_get_code, code)
 
             return country.alpha_2 if country is not None else code
 
@@ -264,7 +268,7 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
             'airport_origin_code_icao': self._get_value(flight, ['airport', 'origin', 'code', 'icao']),
             'airport_origin_country_name': self._get_value(flight, ['airport', 'origin', 'position',
                                                                     'country', 'name']),
-            'airport_origin_country_code': _get_country_code(
+            'airport_origin_country_code': await _get_country_code(
                 self._get_value(flight, ['airport', 'origin', 'position', 'country', 'code'])),
             'airport_origin_city': self._get_value(flight, ['airport', 'origin', 'position', 'region', 'city']),
             'airport_destination_name': self._get_value(flight, ['airport', 'destination', 'name']),
@@ -272,7 +276,7 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
             'airport_destination_code_icao': self._get_value(flight, ['airport', 'destination', 'code', 'icao']),
             'airport_destination_country_name': self._get_value(flight, ['airport', 'destination',
                                                                          'position', 'country', 'name']),
-            'airport_destination_country_code': _get_country_code(
+            'airport_destination_country_code': await _get_country_code(
                 self._get_value(flight, ['airport', 'destination', 'position', 'country', 'code'])),
             'airport_destination_city': self._get_value(flight, ['airport', 'destination', 'position',
                                                                  'region', 'city']),
