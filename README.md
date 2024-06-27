@@ -310,3 +310,5 @@ Sensor `Most tracked` shows top 10 most tracked flights on FlightRadar24 with ne
 ## Thanks To
  - [FlightRadarAPI](https://github.com/JeanExtreme002/FlightRadarAPI) by [@JeanExtreme002](https://github.com/JeanExtreme002)
  - [The OpenSky integration](https://github.com/home-assistant/core/tree/dev/homeassistant/components/opensky)
+
+This integration should only be used for your own educational purposes. If you are interested in accessing Flightradar24 data commercially, please contact business@fr24.com. See more information at [Flightradar24's terms and conditions](https://www.flightradar24.com/terms-and-conditions).
