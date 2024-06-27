@@ -5,9 +5,9 @@ Flightradar24 integration allows one to track overhead flights in a given region
 
 It allows you:
 1. Know how many flights in your area right now, or just have entered or exited it. And get list of flights with [full information](#flight) by every relevant flight for the sensor 
-2. Track a particular plane or planes no matter where it currently is
+2. Track a particular plane or planes no matter where it currently is, even if it is a scheduled flight
 3. Get [top 10 most tracked flights on FlightRadar24](#most-tracked) 
-4. Create notifications (example - [Get a notification when a flight enters or exits your area](#notification))
+4. Create notifications (example - [Get a notification when a flight enters or exits your area](#notification-enters), [Get a notification when a tracked scheduled flight takes off](#notification-scheduled))
 5. Create automations (example - [Automatically track a flight by your needs](#automation))
 6. Add flights table to your [Home Assistant dashboard](https://www.home-assistant.io/dashboards/) by [Lovelace Card](#lovelace))
 
@@ -90,7 +90,7 @@ To do that:
 4. Edit the options you need and click `SUBMIT`
 
 ## Uses
-### <a id="notification">Notification</a>
+### <a id="notification-enters">Notification - When a flight enters or exits your area</a>
 To receive notifications of the entering flights add following lines to your `configuration.yaml` file:
 ```yaml
 automation:
@@ -118,6 +118,22 @@ To change name in tracked_by_device
 3. Click on three-dot near of device you wanted
 4. Click on `Rename` in the opened sub-menu
 5. Enter new name and click `OK`
+
+### <a id="notification-scheduled">Notification - When a tracked scheduled flight takes off</a>
+To receive notification of taking off tracked scheduled flight add following lines to your `configuration.yaml` file:
+```yaml
+automation:
+  - alias: "Scheduled flight takes off"
+    trigger:
+      platform: event
+      event_type: flightradar24_tracked_took_off
+    action:
+      service: notify.mobile_app_<device_name>
+      data:
+        content: >-
+          Flight takes off {{ trigger.event.data.callsign }} to {{ trigger.event.data.airport_destination_city }}
+          [Open FlightRadar](https://www.flightradar24.com/{{ trigger.event.data.callsign }})
+```
 
 ### <a id="automation">Automation</a>
 To automatically add a flight to additional tracking add following lines to your `configuration.yaml` file:
@@ -235,6 +251,7 @@ recorder:
 | Field | Description |
 | --- |---|
 | tracked_by_device | If you have defined more than one device of FlightRadar24 for more places to observe - you may be interested to know what device has fired the event. To rename the device check [this](#tracked_by_device) |
+| tracked_type | Only for tracked flights. It shows is flight live or scheduled |
 | flight_number | Flight Number |
 | latitude | Current latitude of the aircraft |
 | longitude | Current longitude of the aircraft |

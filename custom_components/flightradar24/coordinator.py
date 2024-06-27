@@ -68,30 +68,51 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
         )
 
     async def add_track(self, number: str) -> None:
+        current: dict[str, dict[str, Any]] = {}
+        await self._find_flight(current, number)
+        if not current:
+            self.logger.error('FlightRadar24: No flight found by - {}'.format(number))
+            return
+        self.tracked = self.tracked | current if self.tracked else current
+
+    async def _find_flight(self, current: dict[str, dict[str, Any]], number: str) -> None:
+        def process_search_flight(objects: dict, search: str) -> dict | None:
+            live = objects.get('live')
+            if live:
+                for element in live:
+                    detail = element.get('detail')
+                    if detail and search in (detail.get('reg'), detail.get('callsign'), detail.get('flight')):
+                        return element
+            schedule = objects.get('schedule')
+            if schedule:
+                for element in schedule:
+                    detail = element.get('detail')
+                    if detail and search in (detail.get('callsign'), detail.get('flight')):
+                        return element
+            return None
+
         try:
             flights = await self.hass.async_add_executor_job(self._client.search, number)
-            flights = flights.get('live')
-            found = None
-            if flights:
-                for element in flights:
-                    detail = element.get('detail')
-                    if detail and number in (detail.get('reg'), detail.get('callsign'), detail.get('flight')):
-                        found = element
-                        break
+            found = process_search_flight(flights, number)
             if not found:
-                self.logger.error('FlightRadar24: No live flight found by - {}'.format(number))
                 return
-            current: dict[int, dict[str, Any]] = {}
-            data = [None] * 20
-            data[1] = self._get_value(found, ['detail', 'lat'])
-            data[2] = self._get_value(found, ['detail', 'lon'])
-            data[13] = []
-            flight = Flight(found.get('id'), data)
-            flight.registration = self._get_value(found, ['detail', 'reg'])
-            flight.callsign = self._get_value(found, ['detail', 'callsign'])
+            if found.get('type') == 'live':
+                data = [None] * 20
+                data[1] = self._get_value(found, ['detail', 'lat'])
+                data[2] = self._get_value(found, ['detail', 'lon'])
+                data[13] = []
+                flight = Flight(found.get('id'), data)
+                flight.registration = found['detail']['reg']
+                flight.callsign = found['detail']['callsign']
 
-            await self._update_flights_data(flight, current, self.tracked)
-            self.tracked = self.tracked | current if self.tracked else current
+                await self._update_flights_data(flight, current, self.tracked)
+            else:
+                current[found.get('id')] = {
+                    'callsign': found['detail']['callsign'],
+                    'flight_number': found['detail']['flight'],
+                    'aircraft_registration': None,
+                }
+            current[found.get('id')]['tracked_type'] = found.get('type')
         except Exception as e:
             self.logger.error(e)
 
@@ -118,7 +139,7 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
         flights = await self.hass.async_add_executor_job(
             self._client.get_flights, None, self._bounds
         )
-        current: dict[int, dict[str, Any]] = {}
+        current: dict[str, dict[str, Any]] = {}
         for obj in flights:
             if not self.min_altitude <= obj.altitude <= self.max_altitude:
                 continue
@@ -137,13 +158,23 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
         if not self.tracked:
             return
 
-        flights = await self.hass.async_add_executor_job(
-            self._client.get_flights, None, None,
-            ','.join([self.tracked[x]['aircraft_registration'] for x in self.tracked])
-        )
-        current: dict[int, dict[str, Any]] = {}
-        for obj in flights:
-            await self._update_flights_data(obj, current, self.tracked, SensorType.TRACKED)
+        reg_numbers = []
+        current: dict[str, dict[str, Any]] = {}
+        for flight in self.tracked:
+            if self.tracked[flight].get('aircraft_registration'):
+                reg_numbers.append(self.tracked[flight].get('aircraft_registration'))
+
+        if reg_numbers:
+            flights = await self.hass.async_add_executor_job(self._client.get_flights, None, None,
+                                                             ','.join(reg_numbers))
+            for obj in flights:
+                await self._update_flights_data(obj, current, self.tracked, SensorType.TRACKED)
+                current[obj.id]['tracked_type'] = 'live'
+        remains = self.tracked.keys() - current.keys()
+        if remains:
+            for flight_id in remains:
+                await self._find_flight(current, self.tracked[flight_id]['flight_number'])
+
         self.tracked = current
 
     async def _update_most_tracked(self) -> None:
@@ -172,7 +203,7 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
 
     async def _update_flights_data(self,
                                    obj: Flight,
-                                   current: dict[int, dict[str, Any]],
+                                   current: dict[str, dict[str, Any]],
                                    tracked: dict[str, dict[str, Any]],
                                    sensor_type: SensorType | None = None,
                                    ) -> None:
@@ -209,7 +240,17 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
                              flight: dict[str, Any],
                              altitude_old, altitude_new,
                              sensor_type: SensorType | None) -> None:
-        if sensor_type is None or altitude_old is None:
+        def to_int(element: any) -> None | int:
+            if element is None:
+                return None
+            try:
+                return int(element)
+            except ValueError:
+                return None
+
+        altitude_old = to_int(altitude_old)
+        altitude_new = to_int(altitude_new)
+        if sensor_type is None or altitude_old is None or altitude_new is None:
             return
         if altitude_old < 10 and altitude_new >= 10:
             self._fire_event(EVENT_AREA_TOOK_OFF if SensorType.IN_AREA == sensor_type else EVENT_TRACKED_TOOK_OFF,
@@ -219,7 +260,7 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
 
     @staticmethod
     def _is_valid(flight: dict) -> bool:
-        return flight.get('flight_number') is not None
+        return flight.get('flight_number') is not None and flight.get('time_scheduled_departure') is not None
 
     @staticmethod
     def _get_value(dictionary: dict, keys: list) -> Any | None:
