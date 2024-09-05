@@ -101,9 +101,14 @@ automation:
     action:
       service: notify.mobile_app_<device_name>
       data:
-        content: >-
+        message: >-
           Flight entry of {{ trigger.event.data.callsign }} to {{ trigger.event.data.airport_destination_city }}
           [Open FlightRadar](https://www.flightradar24.com/{{ trigger.event.data.callsign }})
+        data:
+          url: >-
+            https://fr24.com/{{ trigger.event.data.callsign }}/{{
+            trigger.event.data.id }}
+          image: "{{ trigger.event.data.aircraft_photo_medium }}"
 ```
 
 All available fields in `trigger.event.data` you can check [here](#flight)
@@ -130,9 +135,14 @@ automation:
     action:
       service: notify.mobile_app_<device_name>
       data:
-        content: >-
+        message: >-
           Flight takes off {{ trigger.event.data.callsign }} to {{ trigger.event.data.airport_destination_city }}
           [Open FlightRadar](https://www.flightradar24.com/{{ trigger.event.data.callsign }})
+        data:
+          url: >-
+            https://fr24.com/{{ trigger.event.data.callsign }}/{{
+            trigger.event.data.id }}
+          image: "{{ trigger.event.data.aircraft_photo_medium }}"
 ```
 
 ### <a id="automation">Automation</a>

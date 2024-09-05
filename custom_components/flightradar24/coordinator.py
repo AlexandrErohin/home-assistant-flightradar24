@@ -173,7 +173,11 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
         remains = self.tracked.keys() - current.keys()
         if remains:
             for flight_id in remains:
+                size = current.__len__()
                 await self._find_flight(current, self.tracked[flight_id]['flight_number'])
+                if size == current.__len__():
+                    current[flight_id] = self.tracked[flight_id]
+                    current[flight_id]['tracked_type'] = 'not_found'
 
         self.tracked = current
 
