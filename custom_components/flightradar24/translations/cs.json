@@ -1,0 +1,33 @@
+{
+    "config":{
+       "step":{
+          "user":{
+             "description":"Vyplňte polohu pro sledování.",
+             "data":{
+                "radius":"Poloměr v metrech",
+                "latitude":"Zeměpisná šířka",
+                "longitude":"Zeměpisná délka",
+                "scan_interval":"Interval skenování pro aktualizace v sekundách"
+             }
+          }
+       }
+    },
+    "options":{
+       "step":{
+          "init":{
+             "description":"Upravit parametry pro sledovanou polohu.",
+             "data":{
+                "radius":"Poloměr v metrech",
+                "latitude":"Zeměpisná šířka",
+                "longitude":"Zeměpisná délka",
+                "scan_interval":"Interval skenování pro aktualizace v sekundách",
+                "min_altitude":"Minimální nadmořská výška ve stopách, nad kterou budou všechna letadla sledována.",
+                "max_altitude":"Maximální nadmořská výška ve stopách, pod kterou budou všechna letadla sledována.",
+                "most_tracked":"Povolit seznam nejvíce sledovaných letů",
+                "username":"VOLITELNÉ! Uživatelské jméno Flightradar24",
+                "password":"VOLITELNÉ! Heslo Flightradar24"
+             }
+          }
+       }
+    }
+ }
