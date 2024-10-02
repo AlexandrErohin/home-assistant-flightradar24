@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-import logging
+from logging import getLogger
 from collections.abc import Callable
 from typing import Any
 from homeassistant.config_entries import ConfigEntry
@@ -11,7 +11,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from .coordinator import FlightRadar24Coordinator
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = getLogger(__name__)
 
 
 @dataclass

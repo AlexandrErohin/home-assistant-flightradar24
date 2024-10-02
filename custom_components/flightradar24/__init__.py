@@ -1,5 +1,5 @@
 from __future__ import annotations
-import logging
+from logging import getLogger
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
@@ -29,7 +29,7 @@ PLATFORMS: list[Platform] = [
     Platform.TEXT,
 ]
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = getLogger(__name__)
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:

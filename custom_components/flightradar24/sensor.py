@@ -103,6 +103,8 @@ class FlightRadar24Sensor(
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
         self._attr_native_value = self.entity_description.value(self.coordinator)
+        self._attr_extra_state_attributes = {'flights': {}}
+        self.async_write_ha_state()
         self._attr_extra_state_attributes = self.entity_description.attributes(self.coordinator)
         self.async_write_ha_state()
 

@@ -1,5 +1,5 @@
 from __future__ import annotations
-import logging
+from logging import getLogger
 import voluptuous as vol
 from typing import Any
 from homeassistant.config_entries import (
@@ -30,7 +30,7 @@ from homeassistant.const import (
     CONF_USERNAME,
 )
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = getLogger(__name__)
 
 
 class FlightRadarConfigFlow(ConfigFlow, domain=DOMAIN):

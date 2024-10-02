@@ -5,7 +5,7 @@ from datetime import timedelta
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from homeassistant.helpers.device_registry import DeviceInfo
-import pycountry
+from pycountry import countries
 from .const import (
     DOMAIN,
     URL,
@@ -174,7 +174,7 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
         if remains:
             for flight_id in remains:
                 size = current.__len__()
-                await self._find_flight(current, self.tracked[flight_id]['flight_number'])
+                await self._find_flight(current, self.tracked[flight_id].get('flight_number', ''))
                 if size == current.__len__():
                     current[flight_id] = self.tracked[flight_id]
                     current[flight_id]['tracked_type'] = 'not_found'
@@ -284,7 +284,7 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
                 return code
 
             def _get_code(c: str):
-                return pycountry.countries.get(alpha_3=c)
+                return countries.get(alpha_3=c)
 
             country = await self.hass.async_add_executor_job(_get_code, code)
 
