@@ -38,12 +38,13 @@ def update_items(
     new_tracked: list[FlightRadar24Tracker] = []
     active: list[str] = []
     for flight in coordinator.tracked.values():
-        active.append(flight['flight_number'])
-        if flight['flight_number'] not in tracked:
-            tracked[flight['flight_number']] = FlightRadar24Tracker(coordinator, flight)
-            new_tracked.append(tracked[flight['flight_number']])
+        flight_id = flight['flight_number'] if flight['flight_number'] else flight['callsign']
+        active.append(flight_id)
+        if flight_id not in tracked:
+            tracked[flight_id] = FlightRadar24Tracker(coordinator, flight)
+            new_tracked.append(tracked[flight_id])
         else:
-            tracked[flight['flight_number']].info = flight
+            tracked[flight_id].info = flight
 
     if new_tracked:
         async_add_entities(new_tracked)

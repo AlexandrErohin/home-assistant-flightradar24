@@ -38,8 +38,11 @@ in [Edit Configuration](edit-configuration). When it is enabled - this integrati
 for every additional tracked flight from `sensor.flightradar24_additional_tracked`.
 
 To create device_tracker for a flight:
-1. Add a flight to Additional tracked by flight number
-2. Use device_tracker `device_tracker.FLIGHT_NUMBER`.
+1. Add a flight to Additional tracked by flight number. If it has no flight number, use callsign
+2. Use device_tracker `device_tracker.FLIGHT_NUMBER` if flight number exists or `device_tracker.CALL_SIGN`.
+
+To find device_tracker - Go to `Developer tools` and search for your flight number or callsign - you’ll find sensor
+like `device_tracker.FLIGHT_NUMBER` or `device_tracker.CALL_SIGN`.
 
 ### Configuration
  - Add to track
