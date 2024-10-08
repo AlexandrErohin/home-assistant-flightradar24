@@ -24,6 +24,7 @@
           "min_altitude": "La altitud mínima en pies por debajo de la cual se rastreará la aeronave.",
           "max_altitude": "La altitud máxima en pies por encima de la cual se rastreará la aeronave.",
           "most_tracked": "Activar la lista de vuelos más seguidos",
+          "enable_tracker": "Habilitar device_tracker para seguimiento adicional de vuelos",
           "username": "OPCIONAL! Nombre de usuario de Flightradar24",
           "password": "OPCIONAL! Contraseña de Flightradar24"
         }

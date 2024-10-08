@@ -24,6 +24,7 @@
           "min_altitude": "Wysokość, powyżej której samoloty będą śledzone (w stopach)",
           "max_altitude": "Wysokość, poniżej której samoloty będą śledzone (w stopach)",
           "most_tracked": "Włącz listę najczęściej śledzonych samolotów",
+          "enable_tracker": "Włącz device_tracker, aby dodatkowo śledzić loty",
           "username": "OPCJONALNE! Login do Flightradar24",
           "password": "OPCJONALNE! Hasło do Flightradar24"
         }

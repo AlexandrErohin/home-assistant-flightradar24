@@ -10,6 +10,7 @@ It allows you:
 4. Create notifications (example - [Get a notification when a flight enters or exits your area](#notification-enters), [Get a notification when a tracked scheduled flight takes off](#notification-scheduled))
 5. Create automations (example - [Automatically track a flight by your needs](#automation))
 6. Add flights table to your [Home Assistant dashboard](https://www.home-assistant.io/dashboards/) by [Lovelace Card](#lovelace))
+7. Track your flight as [Device Tracker](#device-tracker) 
 
 <img src="https://raw.githubusercontent.com/AlexandrErohin/home-assistant-flightradar24/master/docs/media/map.png" width="48%"><img src="https://raw.githubusercontent.com/AlexandrErohin/home-assistant-flightradar24/master/docs/media/sensors.png" width="48%">
 <p align="center"><img src="https://raw.githubusercontent.com/AlexandrErohin/home-assistant-flightradar24/master/docs/media/lovelace.png" width="50%"></p>
@@ -30,6 +31,15 @@ It allows you:
  - Exited area
  - Additional tracked
  - Most tracked flights (You may disable it via configuration)
+
+### <a id="device-tracker">Device Tracker</a>
+Track flights as device_tracker with flight information. To use it - you need to activate this feature
+in [Edit Configuration](edit-configuration). When it is enabled - this integration creates device_tracker
+for every additional tracked flight from `sensor.flightradar24_additional_tracked`.
+
+To create device_tracker for a flight:
+1. Add a flight to Additional tracked by flight number
+2. Use device_tracker `device_tracker.FLIGHT_NUMBER`.
 
 ### Configuration
  - Add to track
@@ -73,14 +83,15 @@ The default data is preset already
 3. You may change the default values for Radius, Latitude and Longitude
 4. Click `SUBMIT`
 
-### Edit Configuration
+### <a id="edit-configuration">Edit Configuration</a>
 You may edit configuration data like:
 1. Latitude and longitude of your point
 2. Radius of your zone
 3. Scan interval for updates in seconds
 4. The minimum and maximum altitudes in foots between which the aircraft will be tracked
-5. Enable/Disable [top 10 most tracked flights on FlightRadar24](#most-tracked) 
-6. Username and password if you have FlightRadar24 subscription
+5. Enable/Disable [top 10 most tracked flights on FlightRadar24](#most-tracked)
+6. Enable/Disable [device_tracker for flights](#device-tracker)
+7. Username and password if you have FlightRadar24 subscription
 
 To do that:
 

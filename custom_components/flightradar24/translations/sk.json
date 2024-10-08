@@ -24,6 +24,7 @@
           "min_altitude": "Minimálna výška v stopách, nad ktorou budú všetky lietadlá sledované.",
           "max_altitude": "Maximálna výška v stopách, pod ktorou budú všetky lietadlá sledované.",
           "most_tracked": "Povoliť zoznam najviac sledovaných letov",
+          "enable_tracker": "Povoľte device_tracker pre ďalšie sledovanie letov",
           "username": "VOLITEĽNÉ! Používateľské meno Flightradar24",
           "password": "VOLITEĽNÉ! Heslo Flightradar24"
         }

@@ -24,6 +24,7 @@
           "min_altitude": "Minimum hoogte in feet waarboven alle vliegverkeer gevolgd wordt.",
           "max_altitude": "Maximum hoogte in feet waaronder alle vliegverkeer gevolgd wordt.",
           "most_tracked": "Activeer meest gevolgde vluchtlijst",
+          "enable_tracker": "Device_tracker inschakelen voor extra trackingvluchten",
           "username": "OPTIONEEL! Flightradar24 gebruikersnaam",
           "password": "OPTIONEEL! Flightradar24 wachtwoord"
         }

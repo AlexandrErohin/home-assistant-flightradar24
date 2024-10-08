@@ -24,6 +24,7 @@
           "min_altitude": "Die minimale Höhe in Fuß über dem Flugzeuge verfolgt werden.",
           "max_altitude": "Die maximale Höhe in Fuß unter dem Flugzeug verfolgt werden.",
           "most_tracked": "Aktiviere die Liste der am häufigsten verfolgten Flüge",
+          "enable_tracker": "Aktivieren Sie device_tracker für zusätzliche Tracking-Flüge",
           "username": "OPTIONAL! Flightradar24 Benutzername",
           "password": "OPTIONAL! Flightradar24 Passwort"
         }

@@ -53,6 +53,7 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
         self.min_altitude = min_altitude
         self.max_altitude = max_altitude
         self.point = point
+        self.enable_tracker: bool = False
         self.device_info = DeviceInfo(
             configuration_url=URL,
             identifiers={(DOMAIN, self.unique_id)},
