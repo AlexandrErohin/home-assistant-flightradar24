@@ -58,15 +58,9 @@ Configuration inputs fields allows to add or remove a flight to/from sensor - Ad
 
 Have [HACS](https://hacs.xyz/) installed, this will allow you to update easily.
 
-[![Install quickly via a HACS link](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=AlexandrErohin&repository=home-assistant-flightradar24&category=integration)
+<a href="https://my.home-assistant.io/redirect/hacs_repository/?owner=AlexandrErohin&repository=home-assistant-flightradar24&category=integration" target="_blank"><img src="https://my.home-assistant.io/badges/hacs_repository.svg" alt="Open your Home Assistant instance and open a repository inside the Home Assistant Community Store." /></a>
 
-1. Go to the <b>Hacs</b>-><b>Integrations</b>.
-2. Add this repository (https://github.com/AlexandrErohin/home-assistant-flightradar24) as a [custom repository](https://hacs.xyz/docs/faq/custom_repositories/)
-3. Click on `+ Explore & Download Repositories`, search for `Flightradar24`. 
-4. Search for `Flightradar24`. 
-5. Navigate to `Flightradar24` integration 
-6. Press `DOWNLOAD` and in the next window also press `DOWNLOAD`. 
-7. After download, restart Home Assistant.
+or go to <b>Hacs</b> and search for `Flightradar24`.
 
 ### Manual
 
@@ -207,16 +201,18 @@ cards:
       type: markdown
       content: >-
         {% set data = state_attr('sensor.flightradar24_current_in_area',
-        'flights') %} {% for flight in data %}
+        'flights') %} {% for flight in data %}{% if (flight.tracked_type | default('live')) == 'live' %}
           <ha-icon icon="mdi:airplane"></ha-icon>{{ flight.flight_number }} - {{ flight.airline_short }} - {{ flight.aircraft_model }}
           {{ flight.airport_origin_city }}{%if flight.airport_origin_city %}<img src="https://flagsapi.com/{{ flight.airport_origin_country_code }}/shiny/16.png" title='{{ flight.airport_origin_country_name }}'/>{% endif %} -> {{ flight.airport_destination_city }}{%
           if flight.airport_destination_country_code %}<img src="https://flagsapi.com/{{ flight.airport_destination_country_code }}/shiny/16.png" title='{{ flight.airport_destination_country_name }}'/>{% endif %}
           {%if flight.time_scheduled_departure %}Departure - {{ flight.time_scheduled_departure | timestamp_custom('%H:%M') }}; {% endif %}{%if flight.time_scheduled_arrival%}Arrival - {{ flight.time_scheduled_arrival | timestamp_custom('%H:%M') }}{% endif %}
           Altitude - {{ flight.altitude }} ft{%if flight.altitude > 0 %} ({{(flight.altitude * 0.3048)| round(0)}} m){% endif%}; Gr. speed - {{ flight.ground_speed }} kts{%if flight.ground_speed > 0 %} ({{(flight.ground_speed * 1.852)| round(0)}} km/h){% endif%}
-          {% endfor %}
+          {% else%}
+          <ha-icon icon="mdi:airplane"></ha-icon>{{ flight.flight_number }} - {{ flight.callsign }} - {{ flight.tracked_type }}
+          {% endif%}{% endfor %}
 ```
 
-This example for `sensor.flightradar24_current_in_area` which shows flights in your area, to show additional tracked flights replace sensor name to `sensor.flightradar24_tracked`
+This example for `sensor.flightradar24_current_in_area` which shows flights in your area, to show additional tracked flights replace sensor name to `sensor.flightradar24_additional_tracked`
 
 All available fields for flight you can check [here](#flight)
 
