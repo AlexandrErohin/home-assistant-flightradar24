@@ -1,0 +1,34 @@
+{
+    "config": {
+      "step": {
+        "user": {
+          "description": "Aseta seurattava sijainti.",
+          "data": {
+            "radius": "Säde metreinä",
+            "latitude": "Latitudi",
+            "longitude": "Longitudi",
+            "scan_interval": "Päivitystiheys sekunneissa"
+          }
+        }
+      }
+    },
+    "options": {
+      "step": {
+        "init": {
+          "description": "Muokkaa seurattavan sijainnin asetuksia.",
+          "data": {
+            "radius": "Säde metreinä",
+            "latitude": "Latitudi",
+            "longitude": "Longitudi",
+            "scan_interval": "Päivitystiheys sekunneissa",
+            "min_altitude": "Minimikorkeus jalkoina, jonka yläpuolella olevia lentoaluksia seurataan.",
+            "max_altitude": "Maksimikorkeus jalkoina, jonka alapuolella olevia lentoaluksia seurataan.",
+            "most_tracked": "Ota käyttöön eniten seurattujen lentojen lista",
+            "enable_tracker": "Ota käyttöön laiteseuranta lentojen seuraamiseksi",
+            "username": "VALINNAINEN! FlightRadar24-tilin käyttäjätunnus",
+            "password": "VALINNAINEN! FlightRadar24-tilin salasana"
+          }
+        }
+      }
+    }
+  }
