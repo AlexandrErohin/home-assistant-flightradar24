@@ -32,7 +32,7 @@ SENSOR_TYPES: tuple[FlightRadar24SensorEntityDescription, ...] = (
         icon="mdi:airplane",
         state_class=SensorStateClass.TOTAL,
         value=lambda coord: len(coord.in_area) if coord.in_area is not None else 0,
-        attributes=lambda coord: {'flights': [coord.in_area[x] for x in coord.in_area]},
+        attributes=lambda coord: {'flights': [coord.in_area[x] for x in coord.in_area] if coord.in_area else {}},
     ),
     FlightRadar24SensorEntityDescription(
         key="entered",

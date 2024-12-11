@@ -54,6 +54,7 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
         self.max_altitude = max_altitude
         self.point = point
         self.enable_tracker: bool = False
+        self.scanning: bool = True
         self.device_info = DeviceInfo(
             configuration_url=URL,
             identifiers={(DOMAIN, self.unique_id)},
@@ -69,6 +70,9 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
         )
 
     async def add_track(self, number: str) -> None:
+        if not self.scanning:
+            self.logger.error('FlightRadar24: API data fetching if OFF')
+            return
         current: dict[str, dict[str, Any]] = {}
         await self._find_flight(current, number)
         if not current:
@@ -118,6 +122,9 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
             self.logger.error(e)
 
     async def remove_track(self, number: str) -> None:
+        if not self.scanning:
+            self.logger.error('FlightRadar24: API data fetching if OFF')
+            return
         flight_id = None
         for flight_id in self.tracked:
             flight = self.tracked[flight_id]
@@ -127,6 +134,8 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
             del self.tracked[flight_id]
 
     async def _async_update_data(self):
+        if not self.scanning:
+            return
         try:
             await self._update_flights_in_area()
             await self._update_flights_tracked()
@@ -185,7 +194,6 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
     async def _update_most_tracked(self) -> None:
         if self.most_tracked is None:
             return
-
         flights = await self.hass.async_add_executor_job(self._client.get_most_tracked)
         current: dict[int, dict[str, Any]] = {}
         for obj in flights.get('data'):
@@ -201,8 +209,9 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
                 'airport_destination_city': obj.get('to_city'),
                 'aircraft_code': obj.get('model'),
                 'aircraft_model': obj.get('type'),
+                'on_ground': obj.get('on_ground'),
             }
-        entries = self.entered = [current[x] for x in (current.keys() - self.most_tracked.keys())]
+        entries = [current[x] for x in (current.keys() - self.most_tracked.keys())]
         self.most_tracked = current
         self._handle_boundary(EVENT_MOST_TRACKED_NEW, entries)
 
@@ -212,10 +221,10 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
                                    tracked: dict[str, dict[str, Any]],
                                    sensor_type: SensorType | None = None,
                                    ) -> None:
-        altitude = None
-        if tracked is not None and obj.id in tracked and self._is_valid(tracked[obj.id]):
+        last_position = tracked[obj.id].get('on_ground') if tracked is not None and obj.id in tracked else None
+        if (tracked is not None and obj.id in tracked and self._is_valid(tracked[obj.id])
+                and self._to_int(last_position) == obj.on_ground):
             flight = tracked[obj.id]
-            altitude = flight.get('altitude')
         else:
             data = await self.hass.async_add_executor_job(
                 self._client.get_flight_details, obj
@@ -231,7 +240,8 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
             flight['squawk'] = obj.squawk
             flight['vertical_speed'] = obj.vertical_speed
             flight['distance'] = obj.get_distance_from(self.point)
-            self._takeoff_and_landing(flight, altitude, obj.altitude, sensor_type)
+            flight['on_ground'] = obj.on_ground
+            self._takeoff_and_landing(flight, last_position, obj.on_ground, sensor_type)
 
     def _handle_boundary(self, event: str, flights: list[dict[str, Any]]) -> None:
         for flight in flights:
@@ -243,29 +253,30 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
 
     def _takeoff_and_landing(self,
                              flight: dict[str, Any],
-                             altitude_old, altitude_new,
+                             last_position, position,
                              sensor_type: SensorType | None) -> None:
-        def to_int(element: any) -> None | int:
-            if element is None:
-                return None
-            try:
-                return int(element)
-            except ValueError:
-                return None
-
-        altitude_old = to_int(altitude_old)
-        altitude_new = to_int(altitude_new)
-        if sensor_type is None or altitude_old is None or altitude_new is None:
+        last_position = self._to_int(last_position)
+        position = self._to_int(position)
+        if sensor_type is None or last_position is None or position is None or last_position == position:
             return
-        if altitude_old < 10 and altitude_new >= 10:
+        if position == 0:
             self._fire_event(EVENT_AREA_TOOK_OFF if SensorType.IN_AREA == sensor_type else EVENT_TRACKED_TOOK_OFF,
                              flight)
-        elif altitude_old > 0 and altitude_new <= 0:
+        else:
             self._fire_event(EVENT_AREA_LANDED if SensorType.IN_AREA == sensor_type else EVENT_TRACKED_LANDED, flight)
 
     @staticmethod
     def _is_valid(flight: dict) -> bool:
-        return flight.get('flight_number') is not None and flight.get('time_scheduled_departure') is not None
+        return all(flight.get(f) is not None for f in ['flight_number', 'time_scheduled_departure'])
+
+    @staticmethod
+    def _to_int(element: any) -> None | int:
+        if element is None:
+            return None
+        try:
+            return int(element)
+        except ValueError:
+            return None
 
     @staticmethod
     def _get_value(dictionary: dict, keys: list) -> Any | None:

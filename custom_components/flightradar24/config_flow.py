@@ -1,4 +1,3 @@
-from __future__ import annotations
 from logging import getLogger
 import voluptuous as vol
 from typing import Any
@@ -6,6 +5,7 @@ from homeassistant.config_entries import (
     ConfigEntry,
     ConfigFlow,
     OptionsFlowWithConfigEntry,
+    OptionsFlow,
 )
 from .const import (
     DOMAIN,
@@ -59,11 +59,11 @@ class FlightRadarConfigFlow(ConfigFlow, domain=DOMAIN):
 
     @staticmethod
     @callback
-    def async_get_options_flow(config_entry: ConfigEntry) -> config_entries.OptionsFlow:
-        return OptionsFlow(config_entry)
+    def async_get_options_flow(config_entry: ConfigEntry) -> OptionsFlow:
+        return FlightRadarOptionsFlow(config_entry)
 
 
-class OptionsFlow(OptionsFlowWithConfigEntry):
+class FlightRadarOptionsFlow(OptionsFlowWithConfigEntry):
 
     async def async_step_init(self, user_input: dict[str, Any] | None = None) -> FlowResult:
         errors = {}

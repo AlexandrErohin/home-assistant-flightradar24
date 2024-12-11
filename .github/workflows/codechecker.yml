@@ -1,0 +1,13 @@
+name: Code Checker
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run flake8
+        uses: py-actions/flake8@v2

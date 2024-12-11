@@ -5,7 +5,7 @@ from typing import Any
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EntityCategory
 from homeassistant.components.text import TextEntity, TextEntityDescription
-from homeassistant.core import HomeAssistant, callback
+from homeassistant.core import HomeAssistant
 from .const import DOMAIN
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity

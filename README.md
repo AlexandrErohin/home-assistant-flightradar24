@@ -11,6 +11,7 @@ It allows you:
 5. Create automations (example - [Automatically track a flight by your needs](#automation))
 6. Add flights table to your [Home Assistant dashboard](https://www.home-assistant.io/dashboards/) by [Lovelace Card](#lovelace))
 7. Track your flight as [Device Tracker](#device-tracker) 
+8. Get info for last flights which were in your area or get info about latest exited flight by creating [Last Flights History Sensor](#last-flights) 
 
 <img src="https://raw.githubusercontent.com/AlexandrErohin/home-assistant-flightradar24/master/docs/media/map.png" width="48%"><img src="https://raw.githubusercontent.com/AlexandrErohin/home-assistant-flightradar24/master/docs/media/sensors.png" width="48%">
 <p align="center"><img src="https://raw.githubusercontent.com/AlexandrErohin/home-assistant-flightradar24/master/docs/media/lovelace.png" width="50%"></p>
@@ -34,7 +35,7 @@ It allows you:
 
 ### <a id="device-tracker">Device Tracker</a>
 Track flights as device_tracker with flight information. To use it - you need to activate this feature
-in [Edit Configuration](edit-configuration). When it is enabled - this integration creates device_tracker
+in [Edit Configuration](#edit-configuration). When it is enabled - this integration creates device_tracker
 for every additional tracked flight from `sensor.flightradar24_additional_tracked`.
 
 To create device_tracker for a flight:
@@ -47,6 +48,7 @@ like `device_tracker.FLIGHT_NUMBER` or `device_tracker.CALL_SIGN`.
 ### Configuration
  - Add to track
  - Remove from track
+ - API data fetching - you may disable FlightRadar API calls when not needed to prevent unnecessary API calls and save bandwidth and server load.
 
 Sensors shows how many flights in the given area, additional tracked, just have entered or exited it. All sensors have attribute `flights` with list of [flight object](#flight) contained a full information by every relevant flight for the sensor
 
@@ -174,6 +176,37 @@ automation:
 
 This is an example to filter flights to track, change the conditions for your needs
 
+### <a id="last-flights">Last Flights History Sensor</a>
+You may get info for last flights which were in your area. Or get info about latest exited flight.
+Here is an example for recording history for the last 5 flights.
+The sensor has the same structure as `sensor.flighradar24_current_in_area` and so you can use the same markdown code.
+Only the sensor state is different - it shows the latest exited flight.
+You may change it for your needs.
+Add following lines to your `configuration.yaml` file:
+```yaml
+template:
+  - trigger:
+      - platform: event
+        event_type: flightradar24_exit
+
+    sensor:
+      - unique_id: flightradar24_last_5_flights
+        name: "FlightRadar24 Last 5 Flights"
+        state: >-
+          {% set flight = trigger.event.data %}
+          {{ flight.flight_number }} - {{ flight.airline_short }} - {{ flight.aircraft_model }} ({{ flight.aircraft_registration }})
+          {{ flight.airport_origin_city }} > {{ flight.airport_destination_city }}
+        attributes:
+          flights: >-
+            {% set n = 5 %}
+            {% set m = this.attributes.flights | count | default(0) %}
+            {{ [ trigger.event.data ] + 
+               ( [] if m == 0 else 
+                 this.attributes.flights[0:n-1] )
+            }}
+          icon: mdi:airplane
+```
+
 ### <a id="lovelace">Lovelace Card</a>
 You can add flight table to your [Home Assistant dashboard](https://www.home-assistant.io/dashboards/)
 
@@ -276,6 +309,7 @@ recorder:
 | latitude | Current latitude of the aircraft |
 | longitude | Current longitude of the aircraft |
 | altitude | Altitude (measurement: foot) |
+| on_ground | Is the aircraft on ground (measurement: 0 - in the air; 1 - on ground) |
 | distance | Distance between the aircraft and your point (measurement: kilometers) |
 | ground_speed | Ground speed (measurement: knots) |
 | squawk | Squawk code are what air traffic control (ATC) use to identify aircraft when they are flying **(for subscription only)** |

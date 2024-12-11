@@ -24,11 +24,11 @@ from .const import (
     MAX_ALTITUDE,
 )
 from FlightRadar24 import FlightRadar24API, Entity
-from .sensor import SENSOR_TYPES
 
 PLATFORMS: list[Platform] = [
     Platform.DEVICE_TRACKER,
     Platform.SENSOR,
+    Platform.SWITCH,
     Platform.TEXT,
 ]
 
