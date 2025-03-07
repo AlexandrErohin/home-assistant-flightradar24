@@ -1,4 +1,9 @@
 # Flightradar24 integration for Home Assistant
+[![version](https://img.shields.io/github/manifest-json/v/AlexandrErohin/home-assistant-flightradar24?filename=custom_components%2Fflightradar24%2Fmanifest.json&color=slateblue)](https://github.com/AlexandrErohin/home-assistant-flightradar24/releases/latest)
+![GitHub all releases](https://img.shields.io/github/downloads/AlexandrErohin/home-assistant-flightradar24/total)
+[![HACS](https://img.shields.io/badge/HACS-Default-orange.svg?logo=HomeAssistantCommunityStore&logoColor=white)](https://github.com/hacs/integration)
+[![Community Forum](https://img.shields.io/static/v1.svg?label=Community&message=Forum&color=41bdf5&logo=HomeAssistant&logoColor=white)](https://community.home-assistant.io/t/custom-component-flightradar24)
+
 Flightradar24 integration allows one to track overhead flights in a given region or particular planes. It will also fire Home Assistant events when flights enter/exit/landed/took off.
 
 <b>IMPORTANT: No need FlightRadar24 subscription!</b>
@@ -34,16 +39,11 @@ It allows you:
  - Most tracked flights (You may disable it via configuration)
 
 ### <a id="device-tracker">Device Tracker</a>
-Track flights as device_tracker with flight information. To use it - you need to activate this feature
-in [Edit Configuration](#edit-configuration). When it is enabled - this integration creates device_tracker
-for every additional tracked flight from `sensor.flightradar24_additional_tracked`.
-
-To create device_tracker for a flight:
-1. Add a flight to Additional tracked by flight number. If it has no flight number, use callsign
-2. Use device_tracker `device_tracker.FLIGHT_NUMBER` if flight number exists or `device_tracker.CALL_SIGN`.
-
-To find device_tracker - Go to `Developer tools` and search for your flight number or callsign - you’ll find sensor
-like `device_tracker.FLIGHT_NUMBER` or `device_tracker.CALL_SIGN`.
+You may be interested to add a live flight as device_tracker with the flight information to a person in HA.
+To use it - you need to activate this feature in [Edit Configuration](#edit-configuration).
+When it is enabled - this integration creates device_tracker with static name `device_tracker.flightradar24` and
+this device_tracker updates when there is a live flight in the additional tracked list.
+It works ONLY with one live flight from the additional tracked list at a time!
 
 ### Configuration
  - Add to track

@@ -76,7 +76,7 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
         current: dict[str, dict[str, Any]] = {}
         await self._find_flight(current, number)
         if not current:
-            self.logger.error('FlightRadar24: No flight found by - {}'.format(number))
+            self.logger.error('FlightRadar24: Add Track - No flight found by - {}'.format(number))
             return
         self.tracked = self.tracked | current if self.tracked else current
 
@@ -113,8 +113,8 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
                 await self._update_flights_data(flight, current, self.tracked)
             else:
                 current[found.get('id')] = {
-                    'callsign': found['detail']['callsign'],
-                    'flight_number': found['detail']['flight'],
+                    'callsign': found['detail'].get('callsign'),
+                    'flight_number': found['detail'].get('flight'),
                     'aircraft_registration': None,
                 }
             current[found.get('id')]['tracked_type'] = found.get('type')
@@ -125,13 +125,16 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
         if not self.scanning:
             self.logger.error('FlightRadar24: API data fetching if OFF')
             return
-        flight_id = None
+        remove = None
         for flight_id in self.tracked:
             flight = self.tracked[flight_id]
-            if number in [flight['aircraft_registration'], flight['flight_number'], flight['callsign']]:
+            if number in [flight.get('aircraft_registration'), flight.get('flight_number'), flight.get('callsign')]:
+                remove = flight_id
                 break
-        if flight_id is not None:
-            del self.tracked[flight_id]
+        if remove:
+            del self.tracked[remove]
+        else:
+            self.logger.error('FlightRadar24: Remove Track - No flight found by - {}'.format(number))
 
     async def _async_update_data(self):
         if not self.scanning:
