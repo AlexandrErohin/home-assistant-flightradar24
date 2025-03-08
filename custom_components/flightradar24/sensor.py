@@ -4,14 +4,17 @@ from typing import Any
 from homeassistant.components.sensor import (
     SensorStateClass,
     SensorEntity,
+    RestoreSensor,
     SensorEntityDescription,
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
-from .const import DOMAIN
+from .const import DOMAIN, TRANSLATION_KEY_TRACKED
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from .coordinator import FlightRadar24Coordinator
+import datetime
+import copy
 
 
 @dataclass
@@ -51,14 +54,6 @@ SENSOR_TYPES: tuple[FlightRadar24SensorEntityDescription, ...] = (
         attributes=lambda coord: {'flights': coord.exited},
     ),
     FlightRadar24SensorEntityDescription(
-        key="tracked",
-        name="Additional tracked",
-        icon="mdi:airplane",
-        state_class=SensorStateClass.TOTAL,
-        value=lambda coord: len(coord.tracked) if coord.tracked is not None else 0,
-        attributes=lambda coord: {'flights': [coord.tracked[x] for x in coord.tracked] if coord.tracked else {}},
-    ),
-    FlightRadar24SensorEntityDescription(
         key="most_tracked",
         name="Most tracked",
         icon="mdi:airplane",
@@ -66,6 +61,18 @@ SENSOR_TYPES: tuple[FlightRadar24SensorEntityDescription, ...] = (
         value=lambda coord: len(coord.most_tracked) if coord.most_tracked is not None else None,
         attributes=lambda coord: {
             'flights': [coord.most_tracked[x] for x in coord.most_tracked] if coord.most_tracked else {}},
+    ),
+)
+
+RESTORE_SENSOR_TYPES: tuple[FlightRadar24SensorEntityDescription, ...] = (
+    FlightRadar24SensorEntityDescription(
+        key=TRANSLATION_KEY_TRACKED,
+        name="Additional tracked",
+        icon="mdi:airplane",
+        state_class=SensorStateClass.TOTAL,
+        translation_key=TRANSLATION_KEY_TRACKED,
+        value=lambda coord: len(coord.tracked) if coord.tracked is not None else 0,
+        attributes=lambda coord: {'flights': [coord.tracked[x] for x in coord.tracked] if coord.tracked else {}},
     ),
 )
 
@@ -79,12 +86,12 @@ async def async_setup_entry(
 
     for description in SENSOR_TYPES:
         sensors.append(FlightRadar24Sensor(coordinator, description))
+    for description in RESTORE_SENSOR_TYPES:
+        sensors.append(FlightRadar24RestoreSensor(coordinator, description))
     async_add_entities(sensors, False)
 
 
-class FlightRadar24Sensor(
-    CoordinatorEntity[FlightRadar24Coordinator], SensorEntity
-):
+class FlightRadar24Sensor(CoordinatorEntity[FlightRadar24Coordinator], SensorEntity):
     _attr_has_entity_name = True
     entity_description: FlightRadar24SensorEntityDescription
 
@@ -103,12 +110,16 @@ class FlightRadar24Sensor(
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
         self._attr_native_value = self.entity_description.value(self.coordinator)
-        self._attr_extra_state_attributes = {'flights': {}}
-        self.async_write_ha_state()
-        self._attr_extra_state_attributes = self.entity_description.attributes(self.coordinator)
+        new_attributes = copy.deepcopy(self.entity_description.attributes(self.coordinator))
+        new_attributes["last_updated"] = datetime.datetime.now().isoformat()
+        self._attr_extra_state_attributes = new_attributes
         self.async_write_ha_state()
 
     @property
     def available(self) -> bool:
         """Return True if entity is available."""
         return self.entity_description.value(self.coordinator) is not None
+
+
+class FlightRadar24RestoreSensor(FlightRadar24Sensor, RestoreSensor):
+    pass

@@ -3,8 +3,9 @@ from logging import getLogger
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
-from .const import DOMAIN
+from .const import DOMAIN, TRANSLATION_KEY_TRACKED
 from .coordinator import FlightRadar24Coordinator
+from homeassistant.helpers import restore_state, entity_registry
 from homeassistant.const import (
     CONF_LATITUDE,
     CONF_LONGITUDE,
@@ -60,6 +61,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         Entity(latitude, longitude),
     )
 
+    coordinator.tracked = get_restore_state(hass, entry)
     coordinator.most_tracked = {} if entry.data.get(CONF_MOST_TRACKED, CONF_MOST_TRACKED_DEFAULT) else None
     coordinator.enable_tracker = entry.data.get(CONF_ENABLE_TRACKER, CONF_ENABLE_TRACKER_DEFAULT)
 
@@ -78,3 +80,22 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 async def update_listener(hass: HomeAssistant, entry: ConfigEntry) -> None:
     await hass.config_entries.async_reload(entry.entry_id)
+
+
+def get_restore_state(hass: HomeAssistant, entry: ConfigEntry):
+    existing_entries = entity_registry.async_entries_for_config_entry(
+        entity_registry.async_get(hass),
+        entry.entry_id,
+    )
+    last_states = restore_state.async_get(hass).last_states
+    for entr in existing_entries:
+        if TRANSLATION_KEY_TRACKED == entr.translation_key:
+            state = last_states.get(entr.entity_id).state.attributes.get('flights')
+            if state:
+                tracked = {}
+                for item in state:
+                    key = item.get('id', item.get('callsign', item.get('flight_number')))
+                    if key:
+                        tracked[key] = item
+                return tracked
+    return {}
