@@ -32,7 +32,7 @@ SENSOR_TYPES: tuple[FlightRadar24SensorEntityDescription, ...] = (
     FlightRadar24SensorEntityDescription(
         key="in_area",
         name="Current in area",
-        icon="mdi:airplane",
+        icon="mdi:airplane-marker",
         state_class=SensorStateClass.TOTAL,
         value=lambda coord: len(coord.in_area) if coord.in_area is not None else 0,
         attributes=lambda coord: {'flights': [coord.in_area[x] for x in coord.in_area] if coord.in_area else {}},
@@ -40,7 +40,7 @@ SENSOR_TYPES: tuple[FlightRadar24SensorEntityDescription, ...] = (
     FlightRadar24SensorEntityDescription(
         key="entered",
         name="Entered area",
-        icon="mdi:airplane",
+        icon="mdi:airplane-check",
         state_class=SensorStateClass.TOTAL,
         value=lambda coord: len(coord.entered),
         attributes=lambda coord: {'flights': coord.entered},
@@ -48,7 +48,7 @@ SENSOR_TYPES: tuple[FlightRadar24SensorEntityDescription, ...] = (
     FlightRadar24SensorEntityDescription(
         key="exited",
         name="Exited area",
-        icon="mdi:airplane",
+        icon="mdi:airplane-remove",
         state_class=SensorStateClass.TOTAL,
         value=lambda coord: len(coord.exited),
         attributes=lambda coord: {'flights': coord.exited},
@@ -56,7 +56,7 @@ SENSOR_TYPES: tuple[FlightRadar24SensorEntityDescription, ...] = (
     FlightRadar24SensorEntityDescription(
         key="most_tracked",
         name="Most tracked",
-        icon="mdi:airplane",
+        icon="mdi:airplane-search",
         state_class=SensorStateClass.TOTAL,
         value=lambda coord: len(coord.most_tracked) if coord.most_tracked is not None else None,
         attributes=lambda coord: {
