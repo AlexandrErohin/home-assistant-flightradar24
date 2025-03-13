@@ -1,6 +1,5 @@
 # Flightradar24 integration for Home Assistant
 [![version](https://img.shields.io/github/manifest-json/v/AlexandrErohin/home-assistant-flightradar24?filename=custom_components%2Fflightradar24%2Fmanifest.json&color=slateblue)](https://github.com/AlexandrErohin/home-assistant-flightradar24/releases/latest)
-![GitHub all releases](https://img.shields.io/github/downloads/AlexandrErohin/home-assistant-flightradar24/total)
 [![HACS](https://img.shields.io/badge/HACS-Default-orange.svg?logo=HomeAssistantCommunityStore&logoColor=white)](https://github.com/hacs/integration)
 [![Community Forum](https://img.shields.io/static/v1.svg?label=Community&message=Forum&color=41bdf5&logo=HomeAssistant&logoColor=white)](https://community.home-assistant.io/t/custom-component-flightradar24)
 
