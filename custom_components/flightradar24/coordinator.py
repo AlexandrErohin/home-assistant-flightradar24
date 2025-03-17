@@ -74,6 +74,7 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
             self.logger.error('FlightRadar24: API data fetching if OFF')
             return
         current: dict[str, dict[str, Any]] = {}
+        number = number.upper()
         await self._find_flight(current, number)
         if not current:
             self.logger.error('FlightRadar24: Add Track - No flight found by - {}'.format(number))
@@ -113,6 +114,7 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
                 await self._update_flights_data(flight, current, self.tracked)
             else:
                 current[found.get('id')] = {
+                    'id': found.get('id'),
                     'callsign': found['detail'].get('callsign'),
                     'flight_number': found['detail'].get('flight'),
                     'aircraft_registration': None,
@@ -125,6 +127,7 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
         if not self.scanning:
             self.logger.error('FlightRadar24: API data fetching if OFF')
             return
+        number = number.upper()
         remove = None
         for flight_id in self.tracked:
             flight = self.tracked[flight_id]

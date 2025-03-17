@@ -9,7 +9,7 @@ from homeassistant.components.sensor import (
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
-from .const import DOMAIN, TRANSLATION_KEY_TRACKED
+from .const import DOMAIN
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from .coordinator import FlightRadar24Coordinator
@@ -66,11 +66,10 @@ SENSOR_TYPES: tuple[FlightRadar24SensorEntityDescription, ...] = (
 
 RESTORE_SENSOR_TYPES: tuple[FlightRadar24SensorEntityDescription, ...] = (
     FlightRadar24SensorEntityDescription(
-        key=TRANSLATION_KEY_TRACKED,
+        key="tracked",
         name="Additional tracked",
         icon="mdi:airplane",
         state_class=SensorStateClass.TOTAL,
-        translation_key=TRANSLATION_KEY_TRACKED,
         value=lambda coord: len(coord.tracked) if coord.tracked is not None else 0,
         attributes=lambda coord: {'flights': [coord.tracked[x] for x in coord.tracked] if coord.tracked else {}},
     ),
@@ -122,4 +121,13 @@ class FlightRadar24Sensor(CoordinatorEntity[FlightRadar24Coordinator], SensorEnt
 
 
 class FlightRadar24RestoreSensor(FlightRadar24Sensor, RestoreSensor):
-    pass
+    async def async_added_to_hass(self):
+        """Restore state on startup."""
+        await super().async_added_to_hass()
+        last_state = await self.async_get_last_state()
+
+        if last_state:
+            tracked = {}
+            for flight in last_state.attributes.get('flights', {}):
+                tracked[flight.get('id') or flight.get('callsign') or flight.get('flight_number')] = flight
+            self.coordinator.tracked = tracked
