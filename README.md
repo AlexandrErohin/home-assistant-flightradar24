@@ -117,6 +117,9 @@ automation:
           url: >-
             https://fr24.com/{{ trigger.event.data.callsign }}/{{
             trigger.event.data.id }}
+          clickAction: >-
+            https://fr24.com/{{ trigger.event.data.callsign }}/{{
+            trigger.event.data.id }}
           image: "{{ trigger.event.data.aircraft_photo_medium }}"
 ```
 
@@ -149,6 +152,9 @@ automation:
           [Open FlightRadar](https://www.flightradar24.com/{{ trigger.event.data.callsign }})
         data:
           url: >-
+            https://fr24.com/{{ trigger.event.data.callsign }}/{{
+            trigger.event.data.id }}
+          clickAction: >-
             https://fr24.com/{{ trigger.event.data.callsign }}/{{
             trigger.event.data.id }}
           image: "{{ trigger.event.data.aircraft_photo_medium }}"
