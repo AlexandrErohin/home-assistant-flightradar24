@@ -48,6 +48,7 @@ It works ONLY with one live flight from the additional tracked list at a time!
  - Add to track
  - Remove from track
  - API data fetching - you may disable FlightRadar API calls when not needed to prevent unnecessary API calls and save bandwidth and server load.
+ - Clear Additional tracked - Clear all flights in Additional tracked sensor
 
 Sensors shows how many flights in the given area, additional tracked, just have entered or exited it. All sensors have attribute `flights` with list of [flight object](#flight) contained a full information by every relevant flight for the sensor
 

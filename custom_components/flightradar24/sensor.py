@@ -129,5 +129,5 @@ class FlightRadar24RestoreSensor(FlightRadar24Sensor, RestoreSensor):
         if last_state:
             tracked = {}
             for flight in last_state.attributes.get('flights', {}):
-                tracked[flight.get('id') or flight.get('callsign') or flight.get('flight_number')] = flight
+                tracked[flight.get('id') or flight.get('flight_number') or flight.get('callsign')] = flight
             self.coordinator.tracked = tracked
