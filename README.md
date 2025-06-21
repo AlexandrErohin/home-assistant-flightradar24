@@ -307,49 +307,55 @@ recorder:
 ```
 
 ## <a id="flight">Flight fields</a>
-| Field | Description |
-| --- |---|
-| tracked_by_device | If you have defined more than one device of FlightRadar24 for more places to observe - you may be interested to know what device has fired the event. To rename the device check [this](#tracked_by_device) |
-| tracked_type | Only for tracked flights. It shows is flight live or scheduled |
-| flight_number | Flight Number |
-| latitude | Current latitude of the aircraft |
-| longitude | Current longitude of the aircraft |
-| altitude | Altitude (measurement: foot) |
-| on_ground | Is the aircraft on ground (measurement: 0 - in the air; 1 - on ground) |
-| distance | Distance between the aircraft and your point (measurement: kilometers) |
-| ground_speed | Ground speed (measurement: knots) |
-| squawk | Squawk code are what air traffic control (ATC) use to identify aircraft when they are flying **(for subscription only)** |
-| vertical_speed | Vertical speed |
-| heading | The compass direction in which the craft's bow or nose is pointed (measurement: degrees) |
-| callsign | Callsign of the flight |
-| aircraft_registration | Aircraft registration number |
-| aircraft_photo_small | Aircraft small size photo url |
-| aircraft_photo_medium | Aircraft medium size photo url |
-| aircraft_photo_large | Aircraft large size photo url |
-| aircraft_model | Aircraft model |
-| aircraft_code | Aircraft code |
-| airline | Airline full name |
-| airline_short | Airline short name |
-| airline_iata | Airline IATA code |
-| airline_icao | Airline ICAO code |
-| airport_origin_name | Origin airport name |
-| airport_origin_code_iata | Origin airport IATA code |
-| airport_origin_code_icao | Origin airport ICAO code |
-| airport_origin_country_name | Origin airport country name |
-| airport_origin_country_code | Origin airport country code |
-| airport_origin_city | Origin airport city name |
-| airport_destination_name | Destination airport name |
-| airport_destination_code_iata | Destination airport IATA code |
-| airport_destination_code_icao | Destination airport ICAO code |
-| airport_destination_country_name | Destination airport country name |
-| airport_destination_country_code | Destination airport country code |
-| airport_destination_city | Destination airport city name |
-| time_scheduled_departure | Scheduled departure time |
-| time_scheduled_arrival | Scheduled arrival time |
-| time_real_departure | Real departure time |
-| time_real_arrival | Real arrival time |
-| time_estimated_departure | Estimated departure time |
-| time_estimated_arrival | Estimated arrival time |
+| Field                               | Description                                                                                                                                                                                                 |
+|-------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| tracked_by_device                   | If you have defined more than one device of FlightRadar24 for more places to observe - you may be interested to know what device has fired the event. To rename the device check [this](#tracked_by_device) |
+| tracked_type                        | Only for tracked flights. It shows is flight live or scheduled                                                                                                                                              |
+| flight_number                       | Flight Number                                                                                                                                                                                               |
+| latitude                            | Current latitude of the aircraft                                                                                                                                                                            |
+| longitude                           | Current longitude of the aircraft                                                                                                                                                                           |
+| altitude                            | Altitude (measurement: foot)                                                                                                                                                                                |
+| on_ground                           | Is the aircraft on ground (measurement: 0 - in the air; 1 - on ground)                                                                                                                                      |
+| distance                            | Distance between the aircraft and your point (measurement: kilometers)                                                                                                                                      |
+| ground_speed                        | Ground speed (measurement: knots)                                                                                                                                                                           |
+| squawk                              | Squawk code are what air traffic control (ATC) use to identify aircraft when they are flying **(for subscription only)**                                                                                    |
+| vertical_speed                      | Vertical speed                                                                                                                                                                                              |
+| heading                             | The compass direction in which the craft's bow or nose is pointed (measurement: degrees)                                                                                                                    |
+| callsign                            | Callsign of the flight                                                                                                                                                                                      |
+| aircraft_registration               | Aircraft registration number                                                                                                                                                                                |
+| aircraft_photo_small                | Aircraft small size photo url                                                                                                                                                                               |
+| aircraft_photo_medium               | Aircraft medium size photo url                                                                                                                                                                              |
+| aircraft_photo_large                | Aircraft large size photo url                                                                                                                                                                               |
+| aircraft_model                      | Aircraft model                                                                                                                                                                                              |
+| aircraft_code                       | Aircraft code                                                                                                                                                                                               |
+| airline                             | Airline full name                                                                                                                                                                                           |
+| airline_short                       | Airline short name                                                                                                                                                                                          |
+| airline_iata                        | Airline IATA code                                                                                                                                                                                           |
+| airline_icao                        | Airline ICAO code                                                                                                                                                                                           |
+| airport_origin_name                 | Origin airport name                                                                                                                                                                                         |
+| airport_origin_code_iata            | Origin airport IATA code                                                                                                                                                                                    |
+| airport_origin_code_icao            | Origin airport ICAO code                                                                                                                                                                                    |
+| airport_origin_country_name         | Origin airport country name                                                                                                                                                                                 |
+| airport_origin_country_code         | Origin airport country code                                                                                                                                                                                 |
+| airport_origin_city                 | Origin airport city name                                                                                                                                                                                    |
+| airport_origin_timezone_offset      | Origin airport timezone offset (in seconds)                                                                                                                                                                 |
+| airport_origin_timezone_abbr        | Origin airport timezone abbreviation                                                                                                                                                                        |
+| airport_origin_terminal             | Origin airport terminal                                                                                                                                                                                     |
+| airport_destination_name            | Destination airport name                                                                                                                                                                                    |
+| airport_destination_code_iata       | Destination airport IATA code                                                                                                                                                                               |
+| airport_destination_code_icao       | Destination airport ICAO code                                                                                                                                                                               |
+| airport_destination_country_name    | Destination airport country name                                                                                                                                                                            |
+| airport_destination_country_code    | Destination airport country code                                                                                                                                                                            |
+| airport_destination_city            | Destination airport city name                                                                                                                                                                               |
+| airport_destination_timezone_offset | Destination airport timezone offset (in seconds)                                                                                                                                                                 |
+| airport_destination_timezone_abbr   | Destination airport timezone abbreviation                                                                                                                                                                        |
+| airport_destination_terminal        | Destination airport terminal                                                                                                                                                                              |
+| time_scheduled_departure            | Scheduled departure time                                                                                                                                                                                    |
+| time_scheduled_arrival              | Scheduled arrival time                                                                                                                                                                                      |
+| time_real_departure                 | Real departure time                                                                                                                                                                                         |
+| time_real_arrival                   | Real arrival time                                                                                                                                                                                           |
+| time_estimated_departure            | Estimated departure time                                                                                                                                                                                    |
+| time_estimated_arrival              | Estimated arrival time                                                                                                                                                                                      |
 
 ## <a id="most-tracked">Most tracked</a>
 Sensor `Most tracked` shows top 10 most tracked flights on FlightRadar24 with next flight fields
