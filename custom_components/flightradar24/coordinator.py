@@ -12,6 +12,7 @@ from .const import (
     DEFAULT_NAME,
     EVENT_ENTRY,
     EVENT_EXIT,
+    EVENT_PASS,
     EVENT_MOST_TRACKED_NEW,
     EVENT_AREA_LANDED,
     EVENT_AREA_TOOK_OFF,
@@ -50,6 +51,7 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
         self.most_tracked: dict[str, dict[str, Any]] | None = None
         self.entered = {}
         self.exited = {}
+        self.passed = {}
         self.min_altitude = min_altitude
         self.max_altitude = max_altitude
         self.point = point
@@ -155,6 +157,7 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
     async def _update_flights_in_area(self) -> None:
         self.entered = {}
         self.exited = {}
+        self.passed = {}
         flights = await self.hass.async_add_executor_job(
             self._client.get_flights, None, self._bounds
         )
@@ -169,8 +172,10 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
             self.entered = [current[x] for x in entries]
             exits = self.in_area.keys() - current.keys()
             self.exited = [self.in_area[x] for x in exits]
+            self.passed = [v for k, v in current.items() if v.get('passed')] + [self.in_area[x] for x in exits if self.in_area[x].get('approaching')]
             self._handle_boundary(EVENT_ENTRY, self.entered)
             self._handle_boundary(EVENT_EXIT, self.exited)
+            self._handle_boundary(EVENT_PASS, self.passed)
         self.in_area = current
 
     async def _update_flights_tracked(self) -> None:
@@ -248,6 +253,8 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
                                    sensor_type: SensorType | None = None,
                                    ) -> None:
         last_position = tracked[obj.id].get('on_ground') if tracked is not None and obj.id in tracked else None
+        last_distance = tracked[obj.id].get('distance') if tracked is not None and obj.id in tracked else None
+        last_approaching = tracked[obj.id].get('approaching') if tracked is not None and obj.id in tracked else True
         if (tracked is not None and obj.id in tracked and self._is_valid(tracked[obj.id])
                 and self._to_int(last_position) == obj.on_ground):
             flight = tracked[obj.id]
@@ -267,6 +274,8 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
             flight['vertical_speed'] = obj.vertical_speed
             flight['distance'] = obj.get_distance_from(self.point)
             flight['on_ground'] = obj.on_ground
+            flight['approaching'] = last_distance is None or last_distance > flight['distance']
+            flight['passed'] = not flight['approaching'] and last_approaching
             self._takeoff_and_landing(flight, last_position, obj.on_ground, sensor_type)
 
     def _handle_boundary(self, event: str, flights: list[dict[str, Any]]) -> None:

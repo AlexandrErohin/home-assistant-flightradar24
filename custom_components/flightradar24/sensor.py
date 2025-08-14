@@ -54,6 +54,14 @@ SENSOR_TYPES: tuple[FlightRadar24SensorEntityDescription, ...] = (
         attributes=lambda coord: {'flights': coord.exited},
     ),
     FlightRadar24SensorEntityDescription(
+        key="passed",
+        name="Passed through area",
+        icon="mdi:airplane-marker",
+        state_class=SensorStateClass.TOTAL,
+        value=lambda coord: len(coord.passed),
+        attributes=lambda coord: {'flights': coord.passed},
+    ),
+    FlightRadar24SensorEntityDescription(
         key="most_tracked",
         name="Most tracked",
         icon="mdi:airplane-search",

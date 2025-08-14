@@ -11,6 +11,7 @@ CONF_ENABLE_TRACKER_DEFAULT = False
 
 EVENT_ENTRY = f"{DOMAIN}_entry"
 EVENT_EXIT = f"{DOMAIN}_exit"
+EVENT_PASS= f"{DOMAIN}_pass"
 EVENT_AREA_LANDED = f"{DOMAIN}_area_landed"
 EVENT_AREA_TOOK_OFF = f"{DOMAIN}_area_took_off"
 EVENT_TRACKED_LANDED = f"{DOMAIN}_tracked_landed"

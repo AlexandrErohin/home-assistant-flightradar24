@@ -3,15 +3,15 @@
 [![HACS](https://img.shields.io/badge/HACS-Default-orange.svg?logo=HomeAssistantCommunityStore&logoColor=white)](https://github.com/hacs/integration)
 [![Community Forum](https://img.shields.io/static/v1.svg?label=Community&message=Forum&color=41bdf5&logo=HomeAssistant&logoColor=white)](https://community.home-assistant.io/t/custom-component-flightradar24)
 
-Flightradar24 integration allows one to track overhead flights in a given region or particular planes. It will also fire Home Assistant events when flights enter/exit/landed/took off.
+Flightradar24 integration allows one to track overhead flights in a given region or particular planes. It will also fire Home Assistant events when flights enter/exit/pass/landed/took off.
 
 <b>IMPORTANT: No need FlightRadar24 subscription!</b>
 
 It allows you:
-1. Know how many flights in your area right now, or just have entered or exited it. And get list of flights with [full information](#flight) by every relevant flight for the sensor 
+1. Know how many flights in your area right now, or just have entered, exited it or passed the point of closest approach to its center. And get list of flights with [full information](#flight) by every relevant flight for the sensor 
 2. Track a particular plane or planes no matter where it currently is, even if it is a scheduled flight
 3. Get [top 10 most tracked flights on FlightRadar24](#most-tracked) 
-4. Create notifications (example - [Get a notification when a flight enters or exits your area](#notification-enters), [Get a notification when a tracked scheduled flight takes off](#notification-scheduled))
+4. Create notifications (example - [Get a notification when a flight enters, exits or passes through your area](#notification-enters), [Get a notification when a tracked scheduled flight takes off](#notification-scheduled))
 5. Create automations (example - [Automatically track a flight by your needs](#automation))
 6. Add flights table to your [Home Assistant dashboard](https://www.home-assistant.io/dashboards/) by [Lovelace Card](#lovelace))
 7. Track your flight as [Device Tracker](#device-tracker) 
@@ -24,6 +24,7 @@ It allows you:
 ### Events
  - flightradar24_entry: Fired when a flight enters the region.
  - flightradar24_exit: Fired when a flight exits the region.
+ - flightradar24_pass: Firesd when a flight inside the region passes the point of closest approach to regions center.
  - flightradar24_most_tracked_new: Fired when a new flight appears in top 10 most tracked flights on FlightRadar24
  - flightradar24_area_landed: Fired when a flight lands in your area.
  - flightradar24_area_took_off: Fired when a flight takes off in your area.
@@ -34,6 +35,7 @@ It allows you:
  - Current in area
  - Entered area
  - Exited area
+ - Passed area
  - Additional tracked
  - Most tracked flights (You may disable it via configuration)
 
@@ -50,7 +52,7 @@ It works ONLY with one live flight from the additional tracked list at a time!
  - API data fetching - you may disable FlightRadar API calls when not needed to prevent unnecessary API calls and save bandwidth and server load.
  - Clear Additional tracked - Clear all flights in Additional tracked sensor
 
-Sensors shows how many flights in the given area, additional tracked, just have entered or exited it. All sensors have attribute `flights` with list of [flight object](#flight) contained a full information by every relevant flight for the sensor
+Sensors shows how many flights in the given area, additional tracked, just have entered, exited or passed through it. All sensors have attribute `flights` with list of [flight object](#flight) contained a full information by every relevant flight for the sensor
 
 Configuration inputs fields allows to add or remove a flight to/from sensor - Additional tracked. Adding/Removing supports flight number, call sign, aircraft registration number
 
@@ -100,7 +102,7 @@ To do that:
 4. Edit the options you need and click `SUBMIT`
 
 ## Uses
-### <a id="notification-enters">Notification - When a flight enters or exits your area</a>
+### <a id="notification-enters">Notification - When a flight enters, exits or passes through your area</a>
 To receive notifications of the entering flights add following lines to your `configuration.yaml` file:
 ```yaml
 automation:
@@ -355,7 +357,9 @@ recorder:
 | time_real_departure                 | Real departure time                                                                                                                                                                                         |
 | time_real_arrival                   | Real arrival time                                                                                                                                                                                           |
 | time_estimated_departure            | Estimated departure time                                                                                                                                                                                    |
-| time_estimated_arrival              | Estimated arrival time                                                                                                                                                                                      |
+| time_estimated_arrival              | Estimated arrival time
+| approaching                         | Whether the aircraft is currently approaching the center of your region
+| passed                              | Whether the aircraft passed the center of your region since the last update
 
 ## <a id="most-tracked">Most tracked</a>
 Sensor `Most tracked` shows top 10 most tracked flights on FlightRadar24 with next flight fields
