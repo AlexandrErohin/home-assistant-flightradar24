@@ -340,7 +340,9 @@ recorder:
 | airport_origin_city                 | Origin airport city name                                                                                                                                                                                    |
 | airport_origin_timezone_offset      | Origin airport timezone offset (in seconds)                                                                                                                                                                 |
 | airport_origin_timezone_abbr        | Origin airport timezone abbreviation                                                                                                                                                                        |
-| airport_origin_terminal             | Origin airport terminal                                                                                                                                                                                     |
+| airport_origin_terminal             | Origin airport terminal
+| airport_origin_latitude             | Origin airport latitude
+| airport_origin_longitude            | Origin airport longitude
 | airport_destination_name            | Destination airport name                                                                                                                                                                                    |
 | airport_destination_code_iata       | Destination airport IATA code                                                                                                                                                                               |
 | airport_destination_code_icao       | Destination airport ICAO code                                                                                                                                                                               |
@@ -349,7 +351,9 @@ recorder:
 | airport_destination_city            | Destination airport city name                                                                                                                                                                               |
 | airport_destination_timezone_offset | Destination airport timezone offset (in seconds)                                                                                                                                                                 |
 | airport_destination_timezone_abbr   | Destination airport timezone abbreviation                                                                                                                                                                        |
-| airport_destination_terminal        | Destination airport terminal                                                                                                                                                                              |
+| airport_destination_terminal        | Destination airport terminal    
+| airport_destination_latitude        | Destination airport latitude
+| airport_destination_longitude       | Destination airport longitude
 | time_scheduled_departure            | Scheduled departure time                                                                                                                                                                                    |
 | time_scheduled_arrival              | Scheduled arrival time                                                                                                                                                                                      |
 | time_real_departure                 | Real departure time                                                                                                                                                                                         |
