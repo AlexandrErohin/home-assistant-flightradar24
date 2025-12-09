@@ -5,7 +5,7 @@ from datetime import timedelta
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from homeassistant.helpers.device_registry import DeviceInfo
-from pycountry import countries
+import pycountry
 from .const import (
     DOMAIN,
     URL,
@@ -322,7 +322,7 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
                 return code
 
             def _get_code(c: str):
-                return countries.get(alpha_3=c)
+                return pycountry.countries.get(alpha_3=c)
 
             country = await self.hass.async_add_executor_job(_get_code, code)
 
