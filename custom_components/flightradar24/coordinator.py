@@ -266,9 +266,8 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
             flight['squawk'] = obj.squawk
             flight['vertical_speed'] = obj.vertical_speed
             new_distance = obj.get_distance_from(self.point)
-            prev_distance = flight.get('distance', None) or new_distance
             flight['distance'] = new_distance
-            flight['closest_distance'] = min(new_distance, prev_distance)
+            flight['closest_distance'] = min(new_distance, flight.get('closest_distance', new_distance))
             flight['on_ground'] = obj.on_ground
             self._takeoff_and_landing(flight, last_position, obj.on_ground, sensor_type)
 
