@@ -256,16 +256,13 @@ This example for `sensor.flightradar24_current_in_area` which shows flights in y
 All available fields for flight you can check [here](#flight)
 
 ### Lovelace Card with Map
-<p align="center"><img src="https://raw.githubusercontent.com/AlexandrErohin/home-assistant-flightradar24/master/docs/media/map.png" width="55%"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/AlexandrErohin/home-assistant-flightradar24/master/docs/media/map2.png" width="55%"></p>
 
-1. Open in a browser https://www.flightradar24.com
-2. Move the map so that your area is in the middle of the screen. And scroll to select comfortable map zoom
-3. Now you have URL of the map like https://www.flightradar24.com/50.03,8.49/12 Remember this URL
-4. Go to your [Home Assistant dashboard](https://www.home-assistant.io/dashboards/)
-5. In the top right corner, select the three-dot menu, then select Edit dashboard 
-6. Click on `+ ADD CARD`, search for `Manual`, click on `Manual`. 
-7. Add following code to the input window. Replace LATITUDE, LONGITUDE and ZOOM from URL from step 3. (Example - https://www.flightradar24.com/50.03,8.49/12 - LATITUDE is 50.03, LONGITUDE is 8.49, ZOOM is 12)
-8. Click `SAVE`
+1. Go to your [Home Assistant dashboard](https://www.home-assistant.io/dashboards/)
+2. In the top right corner, select the three-dot menu, then select Edit dashboard 
+3. Click on `+ ADD CARD`, search for `Manual`, click on `Manual`. 
+4. Add following code to the input window. Replace LATITUDE, LONGITUDE with your coordinates
+5. Click `SAVE`
 
 ```markdown
 type: vertical-stack
@@ -293,7 +290,7 @@ cards:
           {% endfor %}
   - type: iframe
     url: >-
-      https://www.flightradar24.com/simple?lat=LATITUDE&lon=LONGITUDE&z=ZOOM&label1=reg&size=small
+      https://globe.adsb.fi/?enableLabels&trackLabels&zoom=12&hideSideBar&SiteLat=LATITUDE&SiteLon=LONGITUDE
     aspect_ratio: 100%
 ```
 
