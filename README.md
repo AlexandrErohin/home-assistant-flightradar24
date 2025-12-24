@@ -261,7 +261,7 @@ All available fields for flight you can check [here](#flight)
 1. Go to your [Home Assistant dashboard](https://www.home-assistant.io/dashboards/)
 2. In the top right corner, select the three-dot menu, then select Edit dashboard 
 3. Click on `+ ADD CARD`, search for `Manual`, click on `Manual`. 
-4. Add following code to the input window. Replace LATITUDE, LONGITUDE with your coordinates (URL example = https://globe.adsb.fi/?enableLabels&trackLabels&zoom=12&hideSideBar&lat=50.984944839678334&lon=11.311357147743463)
+4. Add following code to the input window. Replace LATITUDE, LONGITUDE with your coordinates. URL example = https://globe.adsb.fi/?enableLabels&trackLabels&zoom=12&hideSideBar&lat=50.984944839678334&lon=11.311357147743463
 5. Click `SAVE`
 
 ```markdown
