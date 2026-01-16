@@ -295,7 +295,8 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
 
     @staticmethod
     def _is_valid(flight: dict) -> bool:
-        return all(flight.get(f) is not None for f in ['flight_number', 'time_scheduled_departure'])
+        return all(flight.get(f) is not None for f in ['flight_number', 'time_scheduled_departure',
+                                                       'time_estimated_arrival'])
 
     @staticmethod
     def _to_int(element: any) -> None | int:

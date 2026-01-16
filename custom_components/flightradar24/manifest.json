@@ -7,5 +7,5 @@
     "iot_class": "cloud_polling",
     "issue_tracker": "https://github.com/AlexandrErohin/home-assistant-flightradar24/issues",
     "requirements": ["FlightRadarAPI==1.3.34", "pycountry==23.12.11"],
-    "version": "1.29.1"
+    "version": "1.29.2"
 }
