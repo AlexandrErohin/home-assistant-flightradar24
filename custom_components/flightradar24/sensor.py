@@ -86,12 +86,12 @@ SENSOR_TYPES: tuple[FlightRadar24SensorEntityDescription, ...] = (
         attributes=None,
     ),
     FlightRadar24SensorEntityDescription(
-        key="airport_arrivals_schedule",
-        name="Airport arrivals schedule",
+        key="airport_arrivals",
+        name="Airport arrivals",
         icon="mdi:airplane-landing",
         state_class=SensorStateClass.TOTAL,
-        value=lambda coord: len(coord.airport.arrivals) if coord.airport.arrivals else None,
-        attributes=lambda coord: {'flights': coord.airport.arrivals} if coord.airport.arrivals else None,
+        value=lambda coord: len(coord.airport.arrivals) if coord.airport.arrivals is not None else None,
+        attributes=lambda coord: {'flights': coord.airport.arrivals} if coord.airport.arrivals is not None else None,
     ),
     FlightRadar24SensorEntityDescription(
         key="airport_departures_on_time",
@@ -118,12 +118,13 @@ SENSOR_TYPES: tuple[FlightRadar24SensorEntityDescription, ...] = (
         attributes=None,
     ),
     FlightRadar24SensorEntityDescription(
-        key="airport_departures_schedule",
-        name="Airport departures schedule",
+        key="airport_departures",
+        name="Airport departures",
         icon="mdi:airplane-takeoff",
         state_class=SensorStateClass.TOTAL,
-        value=lambda coord: len(coord.airport.departures) if coord.airport.departures else None,
-        attributes=lambda coord: {'flights': coord.airport.departures} if coord.airport.departures else None,
+        value=lambda coord: len(coord.airport.departures) if coord.airport.departures is not None else None,
+        attributes=lambda coord: ({'flights': coord.airport.departures}
+                                  if coord.airport.departures is not None else None),
     ),
 )
 

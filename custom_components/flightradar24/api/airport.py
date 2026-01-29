@@ -74,12 +74,12 @@ class AirportProcessor:
 
     def _update_schedule(self, schedule: ScheduleType, data: list) -> None:
         flights = []
+        airport = 'origin' if schedule == ScheduleType.ARRIVAL else 'destination'
+        i = 0
         for item in data:
-            if not get_value(item, ['flight', 'status', 'live']):
-                continue
-
-            airport = 'origin' if schedule == ScheduleType.ARRIVAL else 'destination'
+            i += 1
             item = get_value(item, ['flight'])
+
             flights.append({
                 'status_text': get_value(item, ['status', 'text']),
                 'status': get_value(item, ['status', 'generic', 'status', 'text']),
@@ -96,7 +96,7 @@ class AirportProcessor:
                 'airport_code_icao': get_value(item, ['airport', airport, 'code', 'icao']),
                 'airport_country_name': get_value(item, ['airport', airport, 'position', 'country', 'name']),
                 'airport_country_code': get_value(item, ['airport', airport, 'position', 'country', 'code']),
-                'airport_country_city': get_value(item, ['airport', airport, 'position', 'region', 'city']),
+                'airport_city': get_value(item, ['airport', airport, 'position', 'region', 'city']),
                 'time_scheduled_departure': get_value(item, ['time', 'scheduled', 'departure']),
                 'time_scheduled_arrival': get_value(item, ['time', 'scheduled', 'arrival']),
                 'time_real_departure': get_value(item, ['time', 'real', 'arrival']),
@@ -104,6 +104,8 @@ class AirportProcessor:
                 'time_estimated_departure': get_value(item, ['time', 'estimated', 'arrival']),
                 'time_estimated_arrival': get_value(item, ['time', 'estimated', 'arrival']),
             })
+            if i == 50:
+                break
         if schedule == ScheduleType.ARRIVAL:
             self._arrivals = flights
         else:
