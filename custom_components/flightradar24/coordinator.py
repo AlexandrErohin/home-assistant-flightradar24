@@ -89,6 +89,7 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
             await self.hass.async_add_executor_job(self.flight.update_flights_in_area)
             await self.hass.async_add_executor_job(self.flight.update_flights_tracked)
             await self.hass.async_add_executor_job(self.flight.update_most_tracked)
+            await self.hass.async_add_executor_job(self.airport.update_airport_info)
         except Exception as e:
             self.logger.error("FlightRadar24: %s", e)
 

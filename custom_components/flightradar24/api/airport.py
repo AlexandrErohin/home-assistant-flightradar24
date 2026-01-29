@@ -79,7 +79,6 @@ class AirportProcessor:
         for item in data:
             i += 1
             item = get_value(item, ['flight'])
-
             flights.append({
                 'status_text': get_value(item, ['status', 'text']),
                 'status': get_value(item, ['status', 'generic', 'status', 'text']),
