@@ -35,7 +35,7 @@ BUTTON_TYPES = (
         name="Clear Additional tracked",
         device_class=ButtonDeviceClass.RESTART,
         entity_category=EntityCategory.CONFIG,
-        method=lambda coordinator: coordinator.clear_tracked(),
+        method=lambda coordinator: coordinator.flight.clear_tracked(),
     ),
 )
 

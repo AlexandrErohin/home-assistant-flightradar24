@@ -61,7 +61,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         Entity(latitude, longitude),
     )
 
-    coordinator.most_tracked = {} if entry.data.get(CONF_MOST_TRACKED, CONF_MOST_TRACKED_DEFAULT) else None
+    if entry.data.get(CONF_MOST_TRACKED, CONF_MOST_TRACKED_DEFAULT):
+        coordinator.flight.enable_most_tracked()
     coordinator.enable_tracker = entry.data.get(CONF_ENABLE_TRACKER, CONF_ENABLE_TRACKER_DEFAULT)
 
     await coordinator.async_config_entry_first_refresh()

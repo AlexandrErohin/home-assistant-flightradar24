@@ -17,8 +17,10 @@ It allows you:
 7. Track your flight as [Device Tracker](#device-tracker) 
 8. Get info for last flights which were in your area or get info about latest exited flight by creating [Last Flights History Sensor](#last-flights) 
 
-<img src="https://raw.githubusercontent.com/AlexandrErohin/home-assistant-flightradar24/master/docs/media/map.png" width="48%"><img src="https://raw.githubusercontent.com/AlexandrErohin/home-assistant-flightradar24/master/docs/media/sensors.png" width="48%">
-<p align="center"><img src="https://raw.githubusercontent.com/AlexandrErohin/home-assistant-flightradar24/master/docs/media/lovelace.png" width="50%"></p>
+<img src="https://raw.githubusercontent.com/AlexandrErohin/home-assistant-flightradar24/master/docs/media/map.png" width="48%">
+<img src="https://raw.githubusercontent.com/AlexandrErohin/home-assistant-flightradar24/master/docs/media/lovelace.png" width="50%">
+<img src="https://raw.githubusercontent.com/AlexandrErohin/home-assistant-flightradar24/master/docs/media/sensors1.png" width="48%">
+<img src="https://raw.githubusercontent.com/AlexandrErohin/home-assistant-flightradar24/master/docs/media/sensors2.png" width="48%">
 
 ## Components
 ### Events
@@ -374,6 +376,34 @@ Sensor `Most tracked` shows top 10 most tracked flights on FlightRadar24 with ne
 | airport_origin_city | Origin airport city name |
 | airport_destination_code_iata | Destination airport IATA code |
 | airport_destination_city | Destination airport city name |
+
+## <a id="airport">Airport tracking</a>
+Sensor `sensor.flightradar24_airport_arrivals_schedule` and `sensor.flightradar24_airport_departures_schedule` shows flights with next flight fields
+
+| Field | Description |
+|---|---|
+| status_text | Flight status test (example: Delayed 17:02) |
+| status | Flight status (example: delayed) |
+| flight_id | Flight id on FlightRadar24 |
+| flight_number | Flight Number |
+| callsign | Callsign of the flight |
+| aircraft_model | Aircraft model |
+| aircraft_code | Aircraft code |
+| aircraft_registration | Aircraft registration number |
+| airline | Airline full name |
+| airline_short | Airline short name |
+| airport_name | Airport name |
+| airport_code_iata | Airport IATA code |
+| airport_code_icao | Airport ICAO code |
+| airport_country_name | Airport country name |
+| airport_country_code | Airport country code |
+| airport_country_city | Airport city |
+| time_scheduled_departure | Scheduled departure time |
+| time_scheduled_arrival | Scheduled arrival time |
+| time_real_departure | Real departure time |
+| time_real_arrival | Real arrival time |
+| time_estimated_departure | Estimated departure time |
+| time_estimated_arrival | Estimated arrival time |
 
 ## Thanks To
  - [FlightRadarAPI](https://github.com/JeanExtreme002/FlightRadarAPI) by [@JeanExtreme002](https://github.com/JeanExtreme002)
