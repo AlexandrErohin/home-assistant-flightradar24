@@ -65,7 +65,7 @@ Sensors (Current in area, Entered area, Exited area, Additional tracked) shows h
 
 Sensor Most tracked has attribute `flights` with list of [most tracked object](#most-tracked)
 
-Sensors Airport arrivals and Airport departures have attribute `flights` with list of [airport flight](#airport-flight)
+Sensors Airport arrivals and Airport departures have attribute `flights` with list of the next 50 [airport flights](#airport-flight)
 
 ## Installation
 
