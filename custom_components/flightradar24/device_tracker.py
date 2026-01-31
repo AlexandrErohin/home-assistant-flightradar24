@@ -36,14 +36,14 @@ def update_items(coordinator: FlightRadar24Coordinator, tracked: FlightRadar24Tr
         return
 
     if not tracked.info:
-        for flight in coordinator.tracked.values():
+        for flight in coordinator.flight.tracked.values():
             if flight.get('tracked_type') == 'live':
                 tracked.info = flight
                 break
     else:
-        flight = coordinator.tracked.get(tracked.info['id'])
+        flight = coordinator.flight.tracked.get(tracked.info['id'])
         if flight and flight.get('tracked_type') == 'live':
-            tracked.info = coordinator.tracked.get(tracked.info['id'])
+            tracked.info = coordinator.flight.tracked.get(tracked.info['id'])
         else:
             tracked.info = {}
 

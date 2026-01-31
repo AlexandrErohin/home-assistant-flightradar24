@@ -21,6 +21,7 @@ It allows you:
 
 <img src="https://raw.githubusercontent.com/AlexandrErohin/home-assistant-flightradar24/master/docs/media/map.png" width="48%"><img src="https://raw.githubusercontent.com/AlexandrErohin/home-assistant-flightradar24/master/docs/media/lovelace.png" width="48%">
 <img src="https://raw.githubusercontent.com/AlexandrErohin/home-assistant-flightradar24/master/docs/media/sensors1.png" width="48%"><img src="https://raw.githubusercontent.com/AlexandrErohin/home-assistant-flightradar24/master/docs/media/sensors2.png" width="48%">
+<img src="https://raw.githubusercontent.com/AlexandrErohin/home-assistant-flightradar24/master/docs/media/airport.jpg" width="48%">
 
 ## Components
 ### Events
@@ -438,6 +439,8 @@ cards:
 ```
 
 All available fields for flight you can check [here](#airport-flight)
+
+To start receiving data for an airport - Pass IATA or ICAO airport code to `text.flightradar24_airport_track`. To stop receiving airport data just pass an empty string
 
 ### <a id="airport-flight">Airport Flight fields</a>
 Sensor `sensor.flightradar24_airport_arrivals` and `sensor.flightradar24_airport_departures` shows flights with next flight fields
