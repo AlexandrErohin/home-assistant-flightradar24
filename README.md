@@ -457,6 +457,8 @@ Sensor `sensor.flightradar24_airport_arrivals` and `sensor.flightradar24_airport
 | aircraft_registration | Aircraft registration number |
 | airline | Airline full name |
 | airline_short | Airline short name |
+| airline_iata | Airline IATA code |
+| airline_icao | Airline ICAO code |
 | airport_name | Airport name |
 | airport_code_iata | Airport IATA code |
 | airport_code_icao | Airport ICAO code |

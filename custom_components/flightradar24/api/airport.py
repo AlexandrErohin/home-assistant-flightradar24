@@ -49,6 +49,10 @@ class AirportProcessor:
         self.update_airport_info(code)
         self._code = code
 
+    def restore_code(self, code: str) -> None:
+        code = code.upper()
+        self._code = code
+
     def remove_track(self) -> None:
         self._code = None
         self._stats = None
@@ -90,6 +94,8 @@ class AirportProcessor:
                 'aircraft_registration': get_value(item, ['aircraft', 'registration']),
                 'airline': get_value(item, ['airline', 'name']),
                 'airline_short': get_value(item, ['airline', 'short']),
+                'airline_iata': get_value(item, ['airline', 'code', 'iata']),
+                'airline_icao': get_value(item, ['airline', 'code', 'icao']),
                 'airport_name': get_value(item, ['airport', airport, 'name']),
                 'airport_code_iata': get_value(item, ['airport', airport, 'code', 'iata']),
                 'airport_code_icao': get_value(item, ['airport', airport, 'code', 'icao']),

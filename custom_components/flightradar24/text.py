@@ -4,7 +4,7 @@ from collections.abc import Callable
 from typing import Any
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EntityCategory
-from homeassistant.components.text import TextEntity, TextEntityDescription, TextMode
+from homeassistant.components.text import TextEntity, TextEntityDescription, TextMode, RestoreEntity
 from homeassistant.core import HomeAssistant
 from .const import DOMAIN
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -92,7 +92,7 @@ class FlightRadar24TextFlight(
 
 
 class FlightRadar24TextAirport(
-    CoordinatorEntity[FlightRadar24Coordinator], TextEntity
+    CoordinatorEntity[FlightRadar24Coordinator], TextEntity, RestoreEntity
 ):
     _attr_has_entity_name = True
     entity_description: FlightRadar24TextEntityDescription
@@ -117,3 +117,12 @@ class FlightRadar24TextAirport(
         self._attr_native_value = value
         await self.entity_description.method(self.coordinator, value)
         self.async_write_ha_state()
+
+    async def async_added_to_hass(self) -> None:
+        """Restore last value."""
+        await super().async_added_to_hass()
+
+        last_state = await self.async_get_last_state()
+        if last_state is not None and last_state.state not in ("unknown", "unavailable", ""):
+            self._attr_native_value = last_state.state
+            self.coordinator.airport.restore_code(self._attr_native_value)
