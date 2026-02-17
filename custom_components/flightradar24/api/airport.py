@@ -104,9 +104,9 @@ class AirportProcessor:
                 'airport_city': get_value(item, ['airport', airport, 'position', 'region', 'city']),
                 'time_scheduled_departure': get_value(item, ['time', 'scheduled', 'departure']),
                 'time_scheduled_arrival': get_value(item, ['time', 'scheduled', 'arrival']),
-                'time_real_departure': get_value(item, ['time', 'real', 'arrival']),
+                'time_real_departure': get_value(item, ['time', 'real', 'departure']),
                 'time_real_arrival': get_value(item, ['time', 'real', 'arrival']),
-                'time_estimated_departure': get_value(item, ['time', 'estimated', 'arrival']),
+                'time_estimated_departure': get_value(item, ['time', 'estimated', 'departure']),
                 'time_estimated_arrival': get_value(item, ['time', 'estimated', 'arrival']),
             })
             if i == 50:
