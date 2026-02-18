@@ -308,6 +308,14 @@ cards:
     aspect_ratio: 100%
 ```
 
+### Custom Lovelace Card
+
+There is also a custom card developed by the community:
+
+**[Flightradar Flight Card](https://github.com/plckr/flightradar-flight-card)** by [@plckr](https://github.com/plckr)
+
+![Flightradar Flight Card](https://raw.githubusercontent.com/plckr/flightradar-flight-card/refs/heads/main/card-examples/area-card-light.png)
+
 ## Database decrease
 To decrease data stored by [Recorder](https://www.home-assistant.io/integrations/recorder/) in database add following lines to your `configuration.yaml` file:
 ```yaml
