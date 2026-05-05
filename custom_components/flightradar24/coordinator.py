@@ -81,6 +81,9 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
                 await self.hass.async_add_executor_job(self.airport.set_track, code)
         except Exception as e:
             self.logger.error("FlightRadar24: %s", e)
+            return
+
+        self.async_set_updated_data(self.data)
 
     async def _async_update_data(self):
         if not self.scanning:
