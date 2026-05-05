@@ -67,7 +67,7 @@ class AirportProcessor:
         if not self._code and not code:
             return
 
-        data = get_value(self._client.get_airport_details(self._code or code), ['airport', 'pluginData'])
+        data = get_value(self._client.get_airport_details(code or self._code), ['airport', 'pluginData'])
         self._stats = AirportStats()
         stats = get_value(data, ['details', 'stats', 'arrivals'])
         self._stats.arrivals_on_time = to_int(get_value(stats, ['today', 'quantity', 'onTime']))
