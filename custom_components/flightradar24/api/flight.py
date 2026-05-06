@@ -13,6 +13,7 @@ from ..const import (
     EVENT_MOST_TRACKED_NEW,
 )
 import pycountry
+import time
 
 
 class FlightType(Enum):
@@ -221,20 +222,51 @@ class FlightProcessor:
         entries = [current[x] for x in (current.keys() - self._most_tracked.keys())]
         self._most_tracked = current
         self._event_manager.add_events(EVENT_MOST_TRACKED_NEW, entries)
-
+    
+    # --- Cooldown‑aware detail fetch ---
     def _update_flights_data(self,
                              obj: Flight,
                              current: dict[str, dict[str, Any]],
                              tracked: dict[str, dict[str, Any]],
                              sensor_type: FlightType | None = None,
                              ) -> None:
-        last_position = tracked[obj.id].get('on_ground') if tracked is not None and obj.id in tracked else None
-        if (tracked is not None and obj.id in tracked and self._is_valid(tracked[obj.id])
-                and to_int(last_position) == obj.on_ground):
-            flight = tracked[obj.id]
+        now = time.time()
+        cached = tracked.get(obj.id) if tracked is not None and obj.id in tracked else None
+        last_position = cached.get('on_ground') if cached else None
+
+        if cached:
+            backoff_until = cached.get("details_backoff_until", 0)
+            last_fetch = cached.get("last_details_fetch", 0)
+
+            if now < backoff_until:
+                flight = cached
+            elif self._is_valid(cached) and to_int(last_position) == obj.on_ground:
+                flight = cached
+            elif now - last_fetch < 1800:  # 30 minutes cool‑down
+                flight = cached
+            else:
+                try:
+                    data = self._client.get_flight_details(obj)
+                    flight = self._get_flight_data(data)
+                    if flight is not None:
+                        flight["last_details_fetch"] = now
+                        flight["details_backoff_until"] = 0
+                    else:
+                        flight = cached
+                except Exception:
+                    flight = cached
+                    if flight is not None:
+                        flight["details_backoff_until"] = now + 3600  # 1h after 429
         else:
-            data = self._client.get_flight_details(obj)
-            flight = self._get_flight_data(data)
+            try:
+                data = self._client.get_flight_details(obj)
+                flight = self._get_flight_data(data)
+                if flight is not None:
+                    flight["last_details_fetch"] = now
+                    flight["details_backoff_until"] = 0
+            except Exception:
+                flight = None
+
         if flight is not None:
             current[flight['id']] = flight
             flight['latitude'] = obj.latitude
