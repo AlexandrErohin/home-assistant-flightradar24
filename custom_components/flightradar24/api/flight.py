@@ -99,8 +99,8 @@ class FlightProcessor:
         return None
 
     def update_flights_in_area(self) -> None:
-        self._entered = {}
-        self._exited = {}
+        self._entered = []
+        self._exited = []
         flights = self._client.get_flights(bounds=self._bounds)
         current: dict[str, dict[str, Any]] = {}
         for obj in flights:
@@ -238,11 +238,18 @@ class FlightProcessor:
             backoff_until = cached.get("details_backoff_until", 0)
             last_fetch = cached.get("last_details_fetch", 0)
 
+            if sensor_type is FlightType.TRACKED:
+                cooldown = 600
+            elif sensor_type is FlightType.IN_AREA:
+                cooldown = 1800
+            else:
+                cooldown = 1800
+
             if now < backoff_until:
                 flight = cached
             elif self._is_valid(cached) and to_int(last_position) == obj.on_ground:
                 flight = cached
-            elif now - last_fetch < 1800:  # 30 minutes cool‑down
+            elif now - last_fetch < cooldown:
                 flight = cached
             else:
                 try:
@@ -256,7 +263,7 @@ class FlightProcessor:
                 except Exception:
                     flight = cached
                     if flight is not None:
-                        flight["details_backoff_until"] = now + 3600  # 1h after 429
+                        flight["details_backoff_until"] = now + 3600
         else:
             try:
                 data = self._client.get_flight_details(obj)
