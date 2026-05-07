@@ -38,27 +38,17 @@ PLATFORMS: list[Platform] = [
 _LOGGER = getLogger(__name__)
 
 
-Python
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     username = entry.data.get(CONF_USERNAME)
     password = entry.data.get(CONF_PASSWORD)
     proxy_url = entry.data.get(CONF_PROXY_URL)
 
-    # UPDATED: We only change the User-Agent, keeping all other original headers
+    # UPDATED: Use .update() to preserve the developer's original headers (like Accept: application/json)
     Core.headers.update({
         "user-agent": "Flightradar24/10.0.0 (com.flightradar24.iphone; build:10.0.0.1; iOS 17.4.1) Alamofire/5.9.1",
     })
-    # Ensure the JSON headers are refreshed with the new user-agent
-    Core.json_headers = {
-        "Accept": "application/json",
-        **Core.headers
-    }
-    Core.json_headers = {
-        "accept": "application/json",
-        **Core.headers
-    }
 
-    # Initialize Client with or without Proxy
+    # UPDATED: Initialize the client using the proxy regardless of login status
     if proxy_url and proxy_url.strip() != "":
         formatted_url = proxy_url.strip()
         if not formatted_url.endswith("?url="):
