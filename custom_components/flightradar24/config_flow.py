@@ -18,6 +18,7 @@ from .const import (
     CONF_ENABLE_TRACKER_DEFAULT,
     MIN_ALTITUDE,
     MAX_ALTITUDE,
+    CONF_PROXY_URL,
 )
 from FlightRadar24 import FlightRadar24API
 import homeassistant.helpers.config_validation as cv
@@ -48,6 +49,7 @@ class FlightRadarConfigFlow(ConfigFlow, domain=DOMAIN):
                     vol.Required(CONF_LATITUDE): cv.latitude,
                     vol.Required(CONF_LONGITUDE): cv.longitude,
                     vol.Required(CONF_SCAN_INTERVAL, default=10): int,
+                    vol.Optional(CONF_PROXY_URL, default=""): cv.string,
                 }
             ),
             {
@@ -72,10 +74,18 @@ class FlightRadarOptionsFlow(OptionsFlowWithConfigEntry):
         if user_input is not None:
             username = data.get(CONF_USERNAME)
             password = data.get(CONF_PASSWORD)
+            proxy_url = data.get(CONF_PROXY_URL, "")
 
             try:
                 if username and password:
-                    client = FlightRadar24API()
+                    if proxy_url and proxy_url.strip() != "":
+                        formatted_url = proxy_url.strip()
+                        if not formatted_url.endswith("?url="):
+                            formatted_url = f"{formatted_url.rstrip('/')}/?url="
+                        client = FlightRadar24API(proxy_url=formatted_url)
+                    else:
+                        client = FlightRadar24API()
+                        
                     await self.hass.async_add_executor_job(client.login, username, password)
                 elif password and not username or username and not password:
                     errors['base'] = 'You need to pass username and password'
@@ -105,6 +115,7 @@ class FlightRadarOptionsFlow(OptionsFlowWithConfigEntry):
                                                          CONF_ENABLE_TRACKER_DEFAULT)}): cv.boolean,
             vol.Optional(CONF_USERNAME, description={"suggested_value": data.get(CONF_USERNAME, '')}): cv.string,
             vol.Optional(CONF_PASSWORD, description={"suggested_value": data.get(CONF_PASSWORD, '')}): cv.string,
+            vol.Optional(CONF_PROXY_URL, description={"suggested_value": data.get(CONF_PROXY_URL, '')}): cv.string,
         })
 
         return self.async_show_form(step_id="init", data_schema=data_schema, errors=errors)
