@@ -22,6 +22,7 @@ from .const import (
     CONF_ENABLE_TRACKER_DEFAULT,
     MIN_ALTITUDE,
     MAX_ALTITUDE,
+    CONF_PROXY_URL,
 )
 from FlightRadar24 import FlightRadar24API, Entity
 from FlightRadar24.core import Core
@@ -40,22 +41,29 @@ _LOGGER = getLogger(__name__)
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     username = entry.data.get(CONF_USERNAME)
     password = entry.data.get(CONF_PASSWORD)
+    proxy_url = entry.data.get(CONF_PROXY_URL)
 
+    # iOS Spoofing Headers
     Core.headers = {
-        "Accept": "application/json",
-        "Accept-Encoding": "gzip, br",
-        "Accept-Language": "en-US,en;q=0.9",
-        "Cache-Control": "max-age=0",
-        "Referer": "https://www.flightradar24.com/",
-        "User-Agent": (
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-            "AppleWebKit/537.36 (KHTML, like Gecko) "
-            "Chrome/120.0.0.0 Safari/537.36"
-        ),
+        "accept-encoding": "gzip, br",
+        "accept-language": "en-US,en;q=0.9",
+        "cache-control": "max-age=0",
+        "user-agent": "Flightradar24/10.0.0 (com.flightradar24.iphone; build:10.0.0.1; iOS 17.4.1) Alamofire/5.9.1",
     }
-    Core.json_headers = Core.headers.copy()
+    Core.json_headers = {
+        "accept": "application/json",
+        **Core.headers
+    }
 
-    client = FlightRadar24API()
+    # Initialize Client with or without Proxy
+    if proxy_url and proxy_url.strip() != "":
+        formatted_url = proxy_url.strip()
+        if not formatted_url.endswith("?url="):
+            formatted_url = f"{formatted_url.rstrip('/')}/?url="
+        client = FlightRadar24API(proxy_url=formatted_url)
+    else:
+        client = FlightRadar24API()
+
     if username and password:
         await hass.async_add_executor_job(client.login, username, password)
 
