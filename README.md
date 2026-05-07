@@ -3,6 +3,13 @@
 [![HACS](https://img.shields.io/badge/HACS-Default-orange.svg?logo=HomeAssistantCommunityStore&logoColor=white)](https://github.com/hacs/integration)
 [![Community Forum](https://img.shields.io/static/v1.svg?label=Community&message=Forum&color=41bdf5&logo=HomeAssistant&logoColor=white)](https://community.home-assistant.io/t/custom-component-flightradar24)
 
+> [!WARNING]
+> **Connection Issue (403 Forbidden)**: Flightradar24 is currently blocking direct connections from Home Assistant IP addresses.
+> To fix this, you must set up a **Cloudflare Worker Proxy** to bypass the block.
+> * **Solution**: Use a personal proxy to bypass Cloudflare bot detection.
+> * **Guide**: Follow the [Troubleshooting guide](#-troubleshooting-resolving-403-forbidden-errors) at the bottom of this page.
+> * **Configuration**: Paste your Worker URL into the "Cloudflare Proxy URL" field in the integration settings.
+
 Flightradar24 integration allows one to track overhead flights in a given region or particular planes. It will also fire Home Assistant events when flights enter/exit/landed/took off. Or monitor departures and arrivals at an airport
 
 <b>IMPORTANT: No need FlightRadar24 subscription!</b>
@@ -475,6 +482,28 @@ Sensor `sensor.flightradar24_airport_arrivals` and `sensor.flightradar24_airport
 | time_real_arrival | Real arrival time |
 | time_estimated_departure | Estimated departure time |
 | time_estimated_arrival | Estimated arrival time |
+
+## 🛠️ Troubleshooting: Resolving 403 Forbidden Errors
+If you are receiving `403 Forbidden` errors in your logs, Flightradar24 is likely blocking your IP. You can bypass this by setting up a personal **Cloudflare Worker Proxy**.
+
+### Step 1: Deploy the Cloudflare Worker
+1. Click this [**1-Step Deploy Link**](https://deploy.workers.cloudflare.com/?url=https://github.com/DimaD16/cloudflare-workers-fr24-proxy/tree/main) (provided by @DimaD16).
+2. Log into your Cloudflare account.
+3. **Crucial:** Change the pre-entered project name to something unique that you will recognize.
+4. Click **Deploy**.
+
+### Step 2: Retrieve your Proxy URL
+1. After deployment is complete, click the blue **Visit** button in the top right corner.
+2. A new tab will open. **Copy the URL** from your browser's address bar (e.g., `https://your-unique-name.your-subdomain.workers.dev`).
+
+### Step 3: Configure the Integration
+1. In Home Assistant, go to **Settings** > **Devices & Services** > **Flightradar24**.
+2. Click **Configure**.
+3. Paste your URL into the **Cloudflare Proxy URL (Optional)** field.
+4. Click **Submit**.
+
+> [!TIP]
+> The integration automatically handles the URL formatting. You can paste the base URL directly, and the code will append the necessary parameters.
 
 ## Thanks To
  - [FlightRadarAPI](https://github.com/JeanExtreme002/FlightRadarAPI) by [@JeanExtreme002](https://github.com/JeanExtreme002)
