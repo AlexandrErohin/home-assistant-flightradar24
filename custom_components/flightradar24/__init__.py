@@ -38,17 +38,20 @@ PLATFORMS: list[Platform] = [
 _LOGGER = getLogger(__name__)
 
 
+Python
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     username = entry.data.get(CONF_USERNAME)
     password = entry.data.get(CONF_PASSWORD)
     proxy_url = entry.data.get(CONF_PROXY_URL)
 
-    # iOS Spoofing Headers
-    Core.headers = {
-        "accept-encoding": "gzip, br",
-        "accept-language": "en-US,en;q=0.9",
-        "cache-control": "max-age=0",
+    # UPDATED: We only change the User-Agent, keeping all other original headers
+    Core.headers.update({
         "user-agent": "Flightradar24/10.0.0 (com.flightradar24.iphone; build:10.0.0.1; iOS 17.4.1) Alamofire/5.9.1",
+    })
+    # Ensure the JSON headers are refreshed with the new user-agent
+    Core.json_headers = {
+        "Accept": "application/json",
+        **Core.headers
     }
     Core.json_headers = {
         "accept": "application/json",
