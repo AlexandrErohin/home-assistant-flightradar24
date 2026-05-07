@@ -6,7 +6,8 @@
           "radius": "[%key:common::config_flow::data::radius%]",
           "latitude": "[%key:common::config_flow::data::latitude%]",
           "longitude": "[%key:common::config_flow::data::longitude%]",
-          "scan_interval": "[%key:common::config_flow::data::scan_interval%]"
+          "scan_interval": "[%key:common::config_flow::data::scan_interval%]",
+          "proxy_url": "Cloudflare Proxy URL (Optional)"
         }
       }
     }
@@ -23,7 +24,8 @@
           "max_altitude": "[%key:common::config_flow::data::max_altitude%]",
           "most_tracked": "[%key:common::config_flow::data::most_tracked%]",
           "username": "[%key:common::config_flow::data::username%]",
-          "password": "[%key:common::config_flow::data::password%]"
+          "password": "[%key:common::config_flow::data::password%]",
+          "proxy_url": "Cloudflare Proxy URL (Optional)"
         }
       }
     }
