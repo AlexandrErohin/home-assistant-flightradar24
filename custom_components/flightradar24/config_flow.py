@@ -77,15 +77,17 @@ class FlightRadarOptionsFlow(OptionsFlowWithConfigEntry):
             proxy_url = data.get(CONF_PROXY_URL, "")
 
             try:
+                # UPDATED: Proxy client is generated independently of the login credentials
+                if proxy_url and proxy_url.strip() != "":
+                    formatted_url = proxy_url.strip()
+                    if not formatted_url.endswith("?url="):
+                        formatted_url = f"{formatted_url.rstrip('/')}/?url="
+                    client = FlightRadar24API(proxy_url=formatted_url)
+                else:
+                    client = FlightRadar24API()
+
+                # ONLY check login if credentials are provided
                 if username and password:
-                    if proxy_url and proxy_url.strip() != "":
-                        formatted_url = proxy_url.strip()
-                        if not formatted_url.endswith("?url="):
-                            formatted_url = f"{formatted_url.rstrip('/')}/?url="
-                        client = FlightRadar24API(proxy_url=formatted_url)
-                    else:
-                        client = FlightRadar24API()
-                        
                     await self.hass.async_add_executor_job(client.login, username, password)
                 elif password and not username or username and not password:
                     errors['base'] = 'You need to pass username and password'
