@@ -169,6 +169,10 @@ class FlightProcessor:
                     
                     if old_number == number and old_data.get('tracked_type') == 'live':
                         keys_to_remove.append(fid)
+                        
+                        # NEW FEATURE: Fire an event to Home Assistant for automations!
+                        self._event_manager.add_events('flightradar24_tracked_arrived_gate', [old_data])
+                        
                         break
 
         # Remove the landed flights from the current tracking list
