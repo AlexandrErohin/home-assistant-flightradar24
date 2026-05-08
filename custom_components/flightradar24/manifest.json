@@ -12,5 +12,5 @@
     "ddima16-flightradarapi==1.4.1",
     "pycountry==24.6.1"
   ],
-  "version": "v1.32.1-proxyfix"
+  "version": "v1.32.3-features3"
 }
