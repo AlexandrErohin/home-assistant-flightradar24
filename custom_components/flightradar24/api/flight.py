@@ -157,6 +157,25 @@ class FlightProcessor:
                     current[flight_id] = self._tracked[flight_id]
                     current[flight_id]['tracked_type'] = 'not_found'
 
+        # --- AUTO-CLEANUP LOGIC: Delete flights that arrived at the gate ---
+        keys_to_remove = []
+        for fid, new_data in current.items():
+            if new_data.get('tracked_type') == 'schedule':
+                number = new_data.get('flight_number') or new_data.get('callsign')
+                
+                # Check if this flight was 'live' in our previous update
+                for old_data in self._tracked.values():
+                    old_number = old_data.get('flight_number') or old_data.get('callsign')
+                    
+                    if old_number == number and old_data.get('tracked_type') == 'live':
+                        keys_to_remove.append(fid)
+                        break
+
+        # Remove the landed flights from the current tracking list
+        for fid in keys_to_remove:
+            current.pop(fid, None)
+        # -------------------------------------------------------------------
+
         self._tracked = current
 
     def _find_flight(self, current: dict[str, dict[str, Any]], number: str) -> None:
@@ -329,5 +348,7 @@ class FlightProcessor:
         }
 
     def _is_valid(self, flight: dict) -> bool:
-        return all(flight.get(f) is not None for f in ['flight_number', 'time_scheduled_departure',
-                                                       'time_estimated_arrival'])
+        # FIXED: Helicopters, gliders, and ad-hoc flights do not have scheduled times.
+        # Requiring them causes an infinite loop of API calls that gets blocked by FR24.
+        # As long as we have the basic flight ID, the cache is valid.
+        return flight.get('id') is not None
