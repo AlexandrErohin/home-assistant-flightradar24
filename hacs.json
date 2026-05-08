@@ -1,7 +1,6 @@
 {
-  "name": "Flightradar24",
-  "filename": "flightradar24Beta.zip",
+  "name": "Flightradar24"
   "homeassistant": "2023.9.3",
   "render_readme": true,
-  "zip_release": true
+  "zip_release": false
 }
