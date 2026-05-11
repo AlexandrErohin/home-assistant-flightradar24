@@ -37,24 +37,26 @@ cp -r home-assistant-flightradar24/custom_components/flight_radar24 /config/cust
 
 Restart Home Assistant.
 
-## Configuration (YAML)
+## Configuration of the integration
 
-Example in `configuration.yaml`:
+- Radius in meters
+- Latitude (eg. 40.0755367)
+- Longtitude (eg. 16.4378)
+- Scan interval for telemetry updates in seconds
+- The minimum altitude in feet abowe all aircraft will be tracked
+- The maximum altitude in feed bellow all aircraft will be tracked
+- username: "your_fr24_login" # optional - currently not being used for anything
+- password: "your_fr24_password"  # optional - currently not being used for anything
+- Enable Most Tracked Flight list
+- Enable Device_tracker for additional tracking # optional - required for tracking specific flights
 
-```yaml
-flight_radar24:
-  username: "your_fr24_login"
-  password: "your_fr24_password"  # optional
-  upper_altitude: 30000  # feet
-  lower_altitude: 0      # feet
-  point:
-    latitude: 40.0755367
-    longitude: 16.4378
-  radius: 50000          # meters (optional, default 50 km)
-  tracked:
-    - BA123
-    - "ECABC"
-```
+## Configuration of the FlightRadar24 device added by integration
+
+- Add to track # add flight - ie BA123)
+- Airport track # add airport code in IATA or ICAO format (Ie LAX or KLAX, AMS or EHAM)
+- Enable API data fetching
+- Clear Additional Tracked
+- Remove from track 
 
 Entities created:
 
