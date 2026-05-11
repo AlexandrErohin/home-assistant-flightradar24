@@ -1,4 +1,4 @@
-# Flightradar24 Integration for Home Assistant
+# Cached Flightradar24 Integration for Home Assistant
 
 This is a fork of the original [Flightradar24 integration](https://github.com/AlexandrErohin/home-assistant-flightradar24) by [AlexandrErohin](https://github.com/AlexandrErohin), extended with request‑throttling and caching to reduce 429 API errors.
 
