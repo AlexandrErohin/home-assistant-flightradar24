@@ -33,14 +33,14 @@ def is_helicopter(flight) -> bool:
     if re.match(r"^(LIFELN|POLICE|MEDIC|LL|HELI|SAR|SGR|ZULU|SLAYR|CRNGE|VORTX|SHARK|REAPER|APACHE|FIRE|RESCUE|PNTHR|VICTR|CHX|NHC|UKP|NPAS|AAC|AMBUSH|BARON|ARCTIC|COAST|KUST|RAINBOW|SAMU|DRAG|PEGASO|HEMS)", callsign, re.IGNORECASE):
         return True
 
-    # 2. THE MODEL NET (No changes needed, already perfect!)
+    # 2. THE MODEL NET
     if re.search(r'(HELICOPTER|EUROCOPTER|ROBINSON|AGUSTA|BELL\s|SIKORSKY|AEROSPATIALE|MD\sHELICOPTERS|GUIMBAL|KAMOV|LEONARDO|WESTLAND|APACHE|CHINOOK|GAZELLE|MERLIN|WILDCAT|LYNX|PUMA|BOEING\sAH|AH\-64)', model, re.IGNORECASE):
         return True
         
     # 3. THE ICAO CODE NET
-    # Changed B[045] to B[0245] so it catches the B212 and B222 Bell helicopters!
     if re.match(r'^(R22|R44|R66|EC|AS[35]|H1[23467]|H6[045]|H47|AW|B[0245]|UH|CH|A1[0-9]|H500|MI[0-9]|NH90|SK[0-9]|EH10|LYNX|G2CA|S76|S92|EC45)', code, re.IGNORECASE):
         return True
+
 
 @dataclass
 class FlightRadar24SensorRequiredKeysMixin:
@@ -133,7 +133,7 @@ SENSOR_TYPES: tuple[FlightRadar24SensorEntityDescription, ...] = (
         icon="mdi:airplane-landing",
         state_class=SensorStateClass.TOTAL,
         value=lambda coord: len(coord.airport.arrivals) if coord.airport.arrivals is not None else None,
-        # keeps only the top 10 flights to prevent the 16KB database err ^^
+        # Keeping the top 10 flights with ALL rich data to prevent 16KB DB errors
         attributes=lambda coord: {'flights': coord.airport.arrivals[:10]} if coord.airport.arrivals is not None else None,
     ),
     FlightRadar24SensorEntityDescription(
@@ -183,7 +183,7 @@ SENSOR_TYPES: tuple[FlightRadar24SensorEntityDescription, ...] = (
         icon="mdi:airplane-takeoff",
         state_class=SensorStateClass.TOTAL,
         value=lambda coord: len(coord.airport.departures) if coord.airport.departures is not None else None,
-        # SLICE ADDED HERE: [:10] keeps only the top 10 flights to prevent the 16KB database error
+        # Keeping the top 10 flights with ALL rich data to prevent 16KB DB errors
         attributes=lambda coord: ({'flights': coord.airport.departures[:10]}
                                   if coord.airport.departures is not None else None),
     ),
@@ -196,6 +196,7 @@ SENSOR_TYPES: tuple[FlightRadar24SensorEntityDescription, ...] = (
         attributes=lambda coord: {'flights': [f for f in coord.flight.in_area_list if is_helicopter(f)]},
     ),
 )
+
 
 RESTORE_SENSOR_TYPES: tuple[FlightRadar24SensorEntityDescription, ...] = (
     FlightRadar24SensorEntityDescription(
