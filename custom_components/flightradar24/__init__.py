@@ -24,7 +24,6 @@ from .const import (
     MAX_ALTITUDE,
 )
 from FlightRadar24 import FlightRadar24API, Entity
-from FlightRadar24.core import Core
 
 PLATFORMS: list[Platform] = [
     Platform.DEVICE_TRACKER,
