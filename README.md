@@ -48,8 +48,8 @@ flight_radar24:
   upper_altitude: 30000  # feet
   lower_altitude: 0      # feet
   point:
-    latitude: 50.0755
-    longitude: 14.4378
+    latitude: 40.0755367
+    longitude: 16.4378
   radius: 50000          # meters (optional, default 50 km)
   tracked:
     - BA123
