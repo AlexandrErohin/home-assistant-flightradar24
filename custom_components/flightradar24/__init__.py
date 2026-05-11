@@ -40,22 +40,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     username = entry.data.get(CONF_USERNAME)
     password = entry.data.get(CONF_PASSWORD)
 
-    # --- THE CLOUDFLARE BYPASS HEADERS ---
-    Core.headers = {
-        "Accept": "application/json",
-        "Accept-Encoding": "gzip, br",
-        "Accept-Language": "en-US,en;q=0.9",
-        "Cache-Control": "max-age=0",
-        "Referer": "https://www.flightradar24.com/",
-        "User-Agent": (
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-            "AppleWebKit/537.36 (KHTML, like Gecko) "
-            "Chrome/120.0.0.0 Safari/537.36"
-        ),
-    }
-    Core.json_headers = Core.headers.copy()
-    # -------------------------------------
-
     client = FlightRadar24API()
     if username and password:
         await hass.async_add_executor_job(client.login, username, password)
