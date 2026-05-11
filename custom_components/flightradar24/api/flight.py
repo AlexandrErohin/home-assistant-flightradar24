@@ -239,9 +239,9 @@ class FlightProcessor:
             last_fetch = cached.get("last_details_fetch", 0)
 
             if sensor_type is FlightType.TRACKED:
-                cooldown = 600
+                cooldown = 600 # can be modified as you please
             elif sensor_type is FlightType.IN_AREA:
-                cooldown = 1800
+                cooldown = 1800 # can be modified as you please
             else:
                 cooldown = 1800
 
