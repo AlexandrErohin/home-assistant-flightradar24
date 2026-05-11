@@ -8,7 +8,6 @@ CONF_MOST_TRACKED = "most_tracked"
 CONF_ENABLE_TRACKER = "enable_tracker"
 CONF_MOST_TRACKED_DEFAULT = True
 CONF_ENABLE_TRACKER_DEFAULT = False
-CONF_PROXY_URL = "proxy_url"
 
 EVENT_ENTRY = f"{DOMAIN}_entry"
 EVENT_EXIT = f"{DOMAIN}_exit"
