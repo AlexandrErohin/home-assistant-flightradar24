@@ -1,6 +1,6 @@
 # Flightradar24 Integration for Home Assistant
 
-This is a fork of the original Flightradar24 integration by AlexandrErohin, extended with request‑throttling and caching to reduce 429 API errors.
+This is a fork of the original [Flightradar24 integration](https://github.com/AlexandrErohin/home-assistant-flightradar24) by [AlexandrErohin](https://github.com/AlexandrErohin), extended with request‑throttling and caching to reduce 429 API errors.
 
 Track flights around your home or specific aircraft, get Home Assistant events when flights enter, exit, land or take off, and optionally monitor the most‑tracked flights.
 
