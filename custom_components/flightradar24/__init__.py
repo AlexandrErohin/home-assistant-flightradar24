@@ -24,7 +24,6 @@ from .const import (
     MAX_ALTITUDE,
 )
 from FlightRadar24 import FlightRadar24API, Entity
-from FlightRadar24.core import Core
 
 PLATFORMS: list[Platform] = [
     Platform.DEVICE_TRACKER,
@@ -40,20 +39,6 @@ _LOGGER = getLogger(__name__)
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     username = entry.data.get(CONF_USERNAME)
     password = entry.data.get(CONF_PASSWORD)
-
-    Core.headers = {
-        "Accept": "application/json",
-        "Accept-Encoding": "gzip, br",
-        "Accept-Language": "en-US,en;q=0.9",
-        "Cache-Control": "max-age=0",
-        "Referer": "https://www.flightradar24.com/",
-        "User-Agent": (
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-            "AppleWebKit/537.36 (KHTML, like Gecko) "
-            "Chrome/120.0.0.0 Safari/537.36"
-        ),
-    }
-    Core.json_headers = Core.headers.copy()
 
     client = FlightRadar24API()
     if username and password:
