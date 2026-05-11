@@ -22,10 +22,8 @@ from .const import (
     CONF_ENABLE_TRACKER_DEFAULT,
     MIN_ALTITUDE,
     MAX_ALTITUDE,
-    CONF_PROXY_URL,
 )
 from FlightRadar24 import FlightRadar24API, Entity
-from FlightRadar24.core import Core
 
 PLATFORMS: list[Platform] = [
     Platform.DEVICE_TRACKER,
@@ -41,22 +39,8 @@ _LOGGER = getLogger(__name__)
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     username = entry.data.get(CONF_USERNAME)
     password = entry.data.get(CONF_PASSWORD)
-    proxy_url = entry.data.get(CONF_PROXY_URL)
 
-    # UPDATED: Use .update() to preserve the developer's original headers (like Accept: application/json)
-    Core.headers.update({
-        "user-agent": "Flightradar24/10.0.0 (com.flightradar24.iphone; build:10.0.0.1; iOS 17.4.1) Alamofire/5.9.1",
-    })
-
-    # UPDATED: Initialize the client using the proxy regardless of login status
-    if proxy_url and proxy_url.strip() != "":
-        formatted_url = proxy_url.strip()
-        if not formatted_url.endswith("?url="):
-            formatted_url = f"{formatted_url.rstrip('/')}/?url="
-        client = FlightRadar24API(proxy_url=formatted_url)
-    else:
-        client = FlightRadar24API()
-
+    client = FlightRadar24API()
     if username and password:
         await hass.async_add_executor_job(client.login, username, password)
 
