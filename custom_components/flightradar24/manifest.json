@@ -1,16 +1,11 @@
 {
-  "domain": "flightradar24",
-  "name": "Flightradar24",
-  "codeowners": [
-    "@AlexandrErohin"
-  ],
-  "config_flow": true,
-  "documentation": "https://github.com/AlexandrErohin/home-assistant-flightradar24",
-  "iot_class": "cloud_polling",
-  "issue_tracker": "https://github.com/AlexandrErohin/home-assistant-flightradar24/issues",
-  "requirements": [
-    "ddima16-flightradarapi==1.4.1",
-    "pycountry==24.6.1"
-  ],
-  "version": "v1.32.1-proxyfix"
+    "domain": "flightradar24",
+    "name": "Flightradar24",
+    "codeowners": ["@AlexandrErohin"],
+    "config_flow": true,
+    "documentation": "https://github.com/AlexandrErohin/home-assistant-flightradar24",
+    "iot_class": "cloud_polling",
+    "issue_tracker": "https://github.com/AlexandrErohin/home-assistant-flightradar24/issues",
+    "requirements": ["FlightRadarAPI==1.4.1", "pycountry==24.6.1"],
+    "version": "1.32.4"
 }
