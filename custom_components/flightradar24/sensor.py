@@ -133,7 +133,8 @@ SENSOR_TYPES: tuple[FlightRadar24SensorEntityDescription, ...] = (
         icon="mdi:airplane-landing",
         state_class=SensorStateClass.TOTAL,
         value=lambda coord: len(coord.airport.arrivals) if coord.airport.arrivals is not None else None,
-        attributes=lambda coord: {'flights': coord.airport.arrivals} if coord.airport.arrivals is not None else None,
+        # keeps only the top 10 flights to prevent the 16KB database err ^^
+        attributes=lambda coord: {'flights': coord.airport.arrivals[:10]} if coord.airport.arrivals is not None else None,
     ),
     FlightRadar24SensorEntityDescription(
         key="airport_departures_on_time",
@@ -182,7 +183,8 @@ SENSOR_TYPES: tuple[FlightRadar24SensorEntityDescription, ...] = (
         icon="mdi:airplane-takeoff",
         state_class=SensorStateClass.TOTAL,
         value=lambda coord: len(coord.airport.departures) if coord.airport.departures is not None else None,
-        attributes=lambda coord: ({'flights': coord.airport.departures}
+        # SLICE ADDED HERE: [:10] keeps only the top 10 flights to prevent the 16KB database error
+        attributes=lambda coord: ({'flights': coord.airport.departures[:10]}
                                   if coord.airport.departures is not None else None),
     ),
     FlightRadar24SensorEntityDescription(
