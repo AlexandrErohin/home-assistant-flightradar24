@@ -1,0 +1,59 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "description": "추적할 위치를 입력하세요.",
+        "data": {
+          "radius": "반경(미터)",
+          "latitude": "위도",
+          "longitude": "경도",
+          "scan_interval": "업데이트 간격(초)"
+        }
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "description": "추적할 위치의 매개변수를 편집합니다.",
+        "data": {
+          "radius": "반경(미터)",
+          "latitude": "위도",
+          "longitude": "경도",
+          "scan_interval": "업데이트 간격(초)",
+          "min_altitude": "최소 고도",
+          "max_altitude": "최대 고도",
+          "most_tracked": "가장 많이 추적된 항공편 목록 활성화",
+          "enable_tracker": "추가 추적 항공편에 대해 device_tracker 활성화",
+          "username": "사용자 이름 (선택 사항)",
+          "password": "비밀번호 (선택 사항)"
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "in_area": { "name": "구역 내 항공편" },
+      "entered": { "name": "구역 진입" },
+      "exited": { "name": "구역 이탈" },
+      "most_tracked": { "name": "가장 많이 추적됨" },
+      "additional_tracked": { "name": "추가 추적됨" },
+      "airport_arrivals": { "name": "공항 도착" },
+      "airport_departures": { "name": "공항 출발" },
+      "helicopters_in_area": { "name": "구역 내 헬리콥터" },
+      "airport_arrivals_on_time": { "name": "정시 도착" },
+      "airport_arrivals_delayed": { "name": "지연 도착" },
+      "airport_arrivals_delay_average": { "name": "도착 평균 지연" },
+      "airport_arrivals_delay_index": { "name": "도착 지연 지수" },
+      "airport_arrivals_canceled": { "name": "도착 취소" },
+      "airport_departures_on_time": { "name": "정시 출발" },
+      "airport_departures_delayed": { "name": "지연 출발" },
+      "airport_departures_delay_average": { "name": "출발 평균 지연" },
+      "airport_departures_delay_index": { "name": "출발 지연 지수" },
+      "airport_departures_canceled": { "name": "출발 취소" }
+    },
+    "button": {
+      "clear_tracked": { "name": "추적 목록 지우기" }
+    }
+  }
+}

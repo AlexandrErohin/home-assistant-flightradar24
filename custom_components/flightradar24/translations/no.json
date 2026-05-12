@@ -1,0 +1,59 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "description": "Fyll inn posisjonen som skal spores.",
+        "data": {
+          "radius": "Radius i meter",
+          "latitude": "Breddegrad",
+          "longitude": "Lengdegrad",
+          "scan_interval": "Oppdateringsintervall i sekunder"
+        }
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "description": "Rediger parametere for posisjonen som spores.",
+        "data": {
+          "radius": "Radius i meter",
+          "latitude": "Breddegrad",
+          "longitude": "Lengdegrad",
+          "scan_interval": "Oppdateringsintervall i sekunder",
+          "min_altitude": "Minimum høyde",
+          "max_altitude": "Maksimum høyde",
+          "most_tracked": "Aktiver liste over mest sporet fly",
+          "enable_tracker": "Aktiver device_tracker for ekstra flysporing",
+          "username": "Brukernavn (Valgfritt)",
+          "password": "Passord (Valgfritt)"
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "in_area": { "name": "Fly i området" },
+      "entered": { "name": "Område inntrådt" },
+      "exited": { "name": "Område forlatt" },
+      "most_tracked": { "name": "Mest sporet" },
+      "additional_tracked": { "name": "Ekstra sporet" },
+      "airport_arrivals": { "name": "Flyplassankomster" },
+      "airport_departures": { "name": "Flyplassavganger" },
+      "helicopters_in_area": { "name": "Helikoptre i området" },
+      "airport_arrivals_on_time": { "name": "Ankomster i tide" },
+      "airport_arrivals_delayed": { "name": "Forsinkede ankomster" },
+      "airport_arrivals_delay_average": { "name": "Gjennomsnittlig ankomstforsinkelse" },
+      "airport_arrivals_delay_index": { "name": "Ankomstforsinkelsesindeks" },
+      "airport_arrivals_canceled": { "name": "Kansellerte ankomster" },
+      "airport_departures_on_time": { "name": "Avganger i tide" },
+      "airport_departures_delayed": { "name": "Forsinkede avganger" },
+      "airport_departures_delay_average": { "name": "Gjennomsnittlig avgangsforsinkelse" },
+      "airport_departures_delay_index": { "name": "Avgangsforsinkelsesindeks" },
+      "airport_departures_canceled": { "name": "Kansellerte avganger" }
+    },
+    "button": {
+      "clear_tracked": { "name": "Tøm sporingsliste" }
+    }
+  }
+}

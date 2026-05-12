@@ -1,0 +1,59 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "description": "Введіть місцезнаходження для відстеження.",
+        "data": {
+          "radius": "Радіус у метрах",
+          "latitude": "Широта",
+          "longitude": "Довгота",
+          "scan_interval": "Інтервал оновлення в секундах"
+        }
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "description": "Редагуйте параметри для відстежуваного місцезнаходження.",
+        "data": {
+          "radius": "Радіус у метрах",
+          "latitude": "Широта",
+          "longitude": "Довгота",
+          "scan_interval": "Інтервал оновлення в секундах",
+          "min_altitude": "Мінімальна висота",
+          "max_altitude": "Максимальна висота",
+          "most_tracked": "Увімкнути список рейсів, що найбільше відстежуються",
+          "enable_tracker": "Увімкнути device_tracker для додаткових рейсів",
+          "username": "Ім'я користувача (необов'язково)",
+          "password": "Пароль (необов'язково)"
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "in_area": { "name": "Рейси в зоні" },
+      "entered": { "name": "Увійшли в зону" },
+      "exited": { "name": "Вийшли з зони" },
+      "most_tracked": { "name": "Найбільше відстежуються" },
+      "additional_tracked": { "name": "Додатково відстежуються" },
+      "airport_arrivals": { "name": "Прибуття в аеропорт" },
+      "airport_departures": { "name": "Вильоти з аеропорту" },
+      "helicopters_in_area": { "name": "Гвинтокрили в зоні" },
+      "airport_arrivals_on_time": { "name": "Прибуття за розкладом" },
+      "airport_arrivals_delayed": { "name": "Затримка прибуття" },
+      "airport_arrivals_delay_average": { "name": "Середня затримка прибуття" },
+      "airport_arrivals_delay_index": { "name": "Індекс затримки прибуття" },
+      "airport_arrivals_canceled": { "name": "Скасовані прибуття" },
+      "airport_departures_on_time": { "name": "Вильоти за розкладом" },
+      "airport_departures_delayed": { "name": "Затримка вильоту" },
+      "airport_departures_delay_average": { "name": "Середня затримка вильоту" },
+      "airport_departures_delay_index": { "name": "Індекс затримки вильоту" },
+      "airport_departures_canceled": { "name": "Скасовані вильоти" }
+    },
+    "button": {
+      "clear_tracked": { "name": "Очистити список відстеження" }
+    }
+  }
+}
