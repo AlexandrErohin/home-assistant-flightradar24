@@ -7,7 +7,7 @@
           "radius": "Radius in meters",
           "latitude": "Latitude",
           "longitude": "Longitude",
-          "scan_interval": "Scan interval for updates in seconds"
+          "scan_interval": "Update interval in seconds"
         }
       }
     }
@@ -20,15 +20,40 @@
           "radius": "Radius in meters",
           "latitude": "Latitude",
           "longitude": "Longitude",
-          "scan_interval": "Scan interval for updates in seconds",
-          "min_altitude": "The minimum altitude in feet above which all aircraft will be tracked.",
-          "max_altitude": "The maximum altitude in feet below which all aircraft will be tracked.",
-          "most_tracked": "Enable most tracked flights list",
-          "enable_tracker": "Enable device_tracker for additional tracking flights",
-          "username": "OPTIONAL! Flightradar24 username",
-          "password": "OPTIONAL! Flightradar24 password"
+          "scan_interval": "Update interval in seconds",
+          "min_altitude": "Minimum altitude",
+          "max_altitude": "Maximum altitude",
+          "most_tracked": "Enable most tracked flights",
+          "enable_tracker": "Enable device tracker",
+          "username": "Username (Optional)",
+          "password": "Password (Optional)"
         }
       }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "in_area": { "name": "Current in area" },
+      "entered": { "name": "Entered area" },
+      "exited": { "name": "Exited area" },
+      "most_tracked": { "name": "Most tracked" },
+      "additional_tracked": { "name": "Additional tracked" },
+      "airport_arrivals": { "name": "Airport arrivals" },
+      "airport_departures": { "name": "Airport departures" },
+      "helicopters_in_area": { "name": "Helicopters in area" },
+      "airport_arrivals_on_time": { "name": "Airport arrivals on time" },
+      "airport_arrivals_delayed": { "name": "Airport arrivals delayed" },
+      "airport_arrivals_delay_average": { "name": "Arrivals delay average" },
+      "airport_arrivals_delay_index": { "name": "Arrivals delay index" },
+      "airport_arrivals_canceled": { "name": "Arrivals canceled" },
+      "airport_departures_on_time": { "name": "Departures on time" },
+      "airport_departures_delayed": { "name": "Departures delayed" },
+      "airport_departures_delay_average": { "name": "Departures delay average" },
+      "airport_departures_delay_index": { "name": "Departures delay index" },
+      "airport_departures_canceled": { "name": "Departures canceled" }
+    },
+    "button": {
+      "clear_tracked": { "name": "Clear tracked" }
     }
   }
 }
