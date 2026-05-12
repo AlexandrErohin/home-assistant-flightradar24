@@ -2,12 +2,12 @@
   "config": {
     "step": {
       "user": {
-        "description": "Vyplňte miesto na sledovanie.",
+        "description": "Zadajte miesto na sledovanie.",
         "data": {
           "radius": "Polomer v metroch",
           "latitude": "Zemepisná šírka",
           "longitude": "Zemepisná dĺžka",
-          "scan_interval": "Interval skenovania aktualizácií v sekundách"
+          "scan_interval": "Interval aktualizácie v sekundách"
         }
       }
     }
@@ -15,20 +15,45 @@
   "options": {
     "step": {
       "init": {
-        "description": "Upravte parametre miesta, ktoré chcete sledovať.",
+        "description": "Upravte parametre pre sledované miesto.",
         "data": {
           "radius": "Polomer v metroch",
           "latitude": "Zemepisná šírka",
           "longitude": "Zemepisná dĺžka",
-          "scan_interval": "Interval skenovania aktualizácií v sekundách",
-          "min_altitude": "Minimálna výška v stopách, nad ktorou budú všetky lietadlá sledované.",
-          "max_altitude": "Maximálna výška v stopách, pod ktorou budú všetky lietadlá sledované.",
+          "scan_interval": "Interval aktualizácie v sekundách",
+          "min_altitude": "Minimálna výška v stopách",
+          "max_altitude": "Maximálna výška v stopách",
           "most_tracked": "Povoliť zoznam najviac sledovaných letov",
-          "enable_tracker": "Povoľte device_tracker pre ďalšie sledovanie letov",
-          "username": "VOLITEĽNÉ! Používateľské meno Flightradar24",
-          "password": "VOLITEĽNÉ! Heslo Flightradar24"
+          "enable_tracker": "Povoliť device_tracker pre ďalšie sledované lety",
+          "username": "Používateľské meno (voliteľné)",
+          "password": "Heslo (voliteľné)"
         }
       }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "in_area": { "name": "Lety v oblasti" },
+      "entered": { "name": "Vstúpili do oblasti" },
+      "exited": { "name": "Opustili oblasť" },
+      "most_tracked": { "name": "Najviac sledované" },
+      "additional_tracked": { "name": "Ďalšie sledované" },
+      "airport_arrivals": { "name": "Prílety na letisko" },
+      "airport_departures": { "name": "Odlety z letiska" },
+      "helicopters_in_area": { "name": "Vrtuľníky v oblasti" },
+      "airport_arrivals_on_time": { "name": "Prílety načas" },
+      "airport_arrivals_delayed": { "name": "Omeškané prílety" },
+      "airport_arrivals_delay_average": { "name": "Priemerné meškanie príletov" },
+      "airport_arrivals_delay_index": { "name": "Index meškania príletov" },
+      "airport_arrivals_canceled": { "name": "Zrušené prílety" },
+      "airport_departures_on_time": { "name": "Odlety načas" },
+      "airport_departures_delayed": { "name": "Omeškané odlety" },
+      "airport_departures_delay_average": { "name": "Priemerné meškanie odletov" },
+      "airport_departures_delay_index": { "name": "Index meškania odletov" },
+      "airport_departures_canceled": { "name": "Zrušené odlety" }
+    },
+    "button": {
+      "clear_tracked": { "name": "Vymazať zoznam sledovania" }
     }
   }
 }
