@@ -2,12 +2,12 @@
   "config": {
     "step": {
       "user": {
-        "description": "Попълнете местоположението за проследяване.",
+        "description": "Въведете местоположение за проследяване.",
         "data": {
           "radius": "Радиус в метри",
           "latitude": "Географска ширина",
           "longitude": "Географска дължина",
-          "scan_interval": "Интервал на сканиране за актуализации в секунди"
+          "scan_interval": "Интервал на актуализация в секунди"
         }
       }
     }
@@ -15,20 +15,45 @@
   "options": {
     "step": {
       "init": {
-        "description": "Редактирайте параметрите за местоположението за проследяване.",
+        "description": "Редактиране на параметрите за местоположението.",
         "data": {
           "radius": "Радиус в метри",
           "latitude": "Географска ширина",
           "longitude": "Географска дължина",
-          "scan_interval": "Интервал на сканиране за актуализации в секунди",
-          "min_altitude": "Минималната надморска височина във футове, над която всички самолети ще бъдат проследявани.",
-          "max_altitude": "Максималната надморска височина във футове, под която всички самолети ще бъдат проследявани.",
-          "most_tracked": "Активирайте списъка с най-проследяваните полети",
-          "enable_tracker": "Активирайте device_tracker за допълнителни полети за проследяване",
-          "username": "ПО ИЗБОР! Потребителско име в Flightradar24",
-          "password": "ПО ИЗБОР! Парола за Flightradar24"
+          "scan_interval": "Интервал на актуализация в секунди",
+          "min_altitude": "Минимална височина във футове",
+          "max_altitude": "Максимална височина във футове",
+          "most_tracked": "Активиране на списък с най-проследявани полети",
+          "enable_tracker": "Активиране на device_tracker за допълнително проследявани полети",
+          "username": "Потребителско име (По желание)",
+          "password": "Парола (По желание)"
         }
       }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "in_area": { "name": "Полети в зоната" },
+      "entered": { "name": "Влезли в зоната" },
+      "exited": { "name": "Напуснали зоната" },
+      "most_tracked": { "name": "Най-проследявани" },
+      "additional_tracked": { "name": "Допълнително проследявани" },
+      "airport_arrivals": { "name": "Пристигащи на летището" },
+      "airport_departures": { "name": "Заминаващи от летището" },
+      "helicopters_in_area": { "name": "Хеликоптери в зоната" },
+      "airport_arrivals_on_time": { "name": "Пристигащи навреме" },
+      "airport_arrivals_delayed": { "name": "Закъснели пристигащи" },
+      "airport_arrivals_delay_average": { "name": "Средно закъснение пристигащи" },
+      "airport_arrivals_delay_index": { "name": "Индекс на закъснение пристигащи" },
+      "airport_arrivals_canceled": { "name": "Отменени пристигащи" },
+      "airport_departures_on_time": { "name": "Заминаващи навреме" },
+      "airport_departures_delayed": { "name": "Закъснели заминаващи" },
+      "airport_departures_delay_average": { "name": "Средно закъснение заминаващи" },
+      "airport_departures_delay_index": { "name": "Индекс на закъснение заминаващи" },
+      "airport_departures_canceled": { "name": "Отменени заминаващи" }
+    },
+    "button": {
+      "clear_tracked": { "name": "Изчистване на списъка" }
     }
   }
 }
