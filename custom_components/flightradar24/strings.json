@@ -27,5 +27,31 @@
         }
       }
     }
+  },
+  "entity": {
+    "sensor": {
+      "in_area": { "name": "Current in area" },
+      "entered": { "name": "Entered area" },
+      "exited": { "name": "Exited area" },
+      "most_tracked": { "name": "Most tracked" },
+      "tracked": { "name": "Additional tracked" },
+      "airport_arrivals": { "name": "Airport arrivals" },
+      "airport_departures": { "name": "Airport departures" },
+      "helicopters_in_area": { "name": "Helicopters in area" },
+      "airport_arrivals_on_time": { "name": "Airport arrivals on time" },
+      "airport_arrivals_delayed": { "name": "Airport arrivals delayed" },
+      "airport_arrivals_delay_average": { "name": "Airport arrivals delay average" },
+      "airport_arrivals_delay_index": { "name": "Airport arrivals delay index" },
+      "airport_arrivals_canceled": { "name": "Airport arrivals canceled" },
+      "airport_departures_on_time": { "name": "Airport departures on time" },
+      "airport_departures_delayed": { "name": "Airport departures delayed" },
+      "airport_departures_delay_average": { "name": "Airport departures delay average" },
+      "airport_departures_delay_index": { "name": "Airport departures delay index" },
+      "helicopters_in_area": { "name": "Helicopters in area" },
+      "airport_departures_canceled": { "name": "Airport departures canceled" }
+    },
+    "button": {
+      "clear_tracked": { "name": "Clear tracked" }
+    }
   }
 }
