@@ -17,10 +17,8 @@ from .coordinator import FlightRadar24Coordinator
 import datetime
 import copy
 
-
 def is_helicopter(flight) -> bool:
     """Check if a flight is a helicopter based on callsign, model or ICAO code."""
-    # Get values safely whether the flight is a dict or an object
     def get_val(key):
         return str(flight.get(key, '') if isinstance(flight, dict) else getattr(flight, key, '') or '')
 
@@ -28,35 +26,28 @@ def is_helicopter(flight) -> bool:
     model = get_val('aircraft_model')
     code = get_val('aircraft_code')
 
-    # 1. THE CALLSIGN NET
-    # Added: SAMU & DRAG (France), PEGASO (Italy), HEMS (Global Medical)
     if re.match(r"^(LIFELN|POLICE|MEDIC|LL|HELI|SAR|SGR|ZULU|SLAYR|CRNGE|VORTX|SHARK|REAPER|APACHE|FIRE|RESCUE|PNTHR|VICTR|CHX|NHC|UKP|NPAS|AAC|AMBUSH|BARON|ARCTIC|COAST|KUST|RAINBOW|SAMU|DRAG|PEGASO|HEMS)", callsign, re.IGNORECASE):
         return True
 
-    # 2. THE MODEL NET
     if re.search(r'(HELICOPTER|EUROCOPTER|ROBINSON|AGUSTA|BELL\s|SIKORSKY|AEROSPATIALE|MD\sHELICOPTERS|GUIMBAL|KAMOV|LEONARDO|WESTLAND|APACHE|CHINOOK|GAZELLE|MERLIN|WILDCAT|LYNX|PUMA|BOEING\sAH|AH\-64)', model, re.IGNORECASE):
         return True
         
-    # 3. THE ICAO CODE NET
     if re.match(r'^(R22|R44|R66|EC|AS[35]|H1[23467]|H6[045]|H47|AW|B[0245]|UH|CH|A1[0-9]|H500|MI[0-9]|NH90|SK[0-9]|EH10|LYNX|G2CA|S76|S92|EC45)', code, re.IGNORECASE):
         return True
-
 
 @dataclass
 class FlightRadar24SensorRequiredKeysMixin:
     value: Callable[[FlightRadar24Coordinator], Any]
     attributes: Callable[[FlightRadar24Coordinator], Any] | None
 
-
 @dataclass
 class FlightRadar24SensorEntityDescription(SensorEntityDescription, FlightRadar24SensorRequiredKeysMixin):
     """A class that describes sensor entities."""
 
-
 SENSOR_TYPES: tuple[FlightRadar24SensorEntityDescription, ...] = (
     FlightRadar24SensorEntityDescription(
-        key="in_area",
-        name="Current in area",
+        key="in_area",              
+        translation_key="in_area",   
         icon="mdi:airplane-marker",
         state_class=SensorStateClass.TOTAL,
         value=lambda coord: len(coord.flight.in_area_list),
@@ -64,7 +55,7 @@ SENSOR_TYPES: tuple[FlightRadar24SensorEntityDescription, ...] = (
     ),
     FlightRadar24SensorEntityDescription(
         key="entered",
-        name="Entered area",
+        translation_key="entered",
         icon="mdi:airplane-check",
         state_class=SensorStateClass.TOTAL,
         value=lambda coord: len(coord.flight.entered_list),
@@ -72,7 +63,7 @@ SENSOR_TYPES: tuple[FlightRadar24SensorEntityDescription, ...] = (
     ),
     FlightRadar24SensorEntityDescription(
         key="exited",
-        name="Exited area",
+        translation_key="exited",
         icon="mdi:airplane-remove",
         state_class=SensorStateClass.TOTAL,
         value=lambda coord: len(coord.flight.exited_list),
@@ -80,7 +71,7 @@ SENSOR_TYPES: tuple[FlightRadar24SensorEntityDescription, ...] = (
     ),
     FlightRadar24SensorEntityDescription(
         key="most_tracked",
-        name="Most tracked",
+        translation_key="most_tracked",
         icon="mdi:airplane-search",
         state_class=SensorStateClass.TOTAL,
         value=lambda coord: len(coord.flight.most_tracked_list) if coord.flight.most_tracked_list else None,
@@ -88,7 +79,7 @@ SENSOR_TYPES: tuple[FlightRadar24SensorEntityDescription, ...] = (
     ),
     FlightRadar24SensorEntityDescription(
         key="airport_arrivals_on_time",
-        name="Airport arrivals on time",
+        translation_key="airport_arrivals_on_time",
         icon="mdi:airplane-check",
         state_class=SensorStateClass.TOTAL,
         value=lambda coord: coord.airport.stats.arrivals_on_time if coord.airport.stats else None,
@@ -96,7 +87,7 @@ SENSOR_TYPES: tuple[FlightRadar24SensorEntityDescription, ...] = (
     ),
     FlightRadar24SensorEntityDescription(
         key="airport_arrivals_delayed",
-        name="Airport arrivals delayed",
+        translation_key="airport_arrivals_delayed",
         icon="mdi:airplane-alert",
         state_class=SensorStateClass.TOTAL,
         value=lambda coord: coord.airport.stats.arrivals_delayed if coord.airport.stats else None,
@@ -104,7 +95,7 @@ SENSOR_TYPES: tuple[FlightRadar24SensorEntityDescription, ...] = (
     ),
     FlightRadar24SensorEntityDescription(
         key="airport_arrivals_delay_average",
-        name="Airport arrivals delay average",
+        translation_key="airport_arrivals_delay_average",
         icon="mdi:airplane-clock",
         state_class=SensorStateClass.TOTAL,
         value=lambda coord: coord.airport.stats.arrivals_delay_average if coord.airport.stats else None,
@@ -112,7 +103,7 @@ SENSOR_TYPES: tuple[FlightRadar24SensorEntityDescription, ...] = (
     ),
     FlightRadar24SensorEntityDescription(
         key="airport_arrivals_delay_index",
-        name="Airport arrivals delay index",
+        translation_key="airport_arrivals_delay_index",
         icon="mdi:airplane-clock",
         state_class=SensorStateClass.MEASUREMENT,
         suggested_display_precision=2,
@@ -121,7 +112,7 @@ SENSOR_TYPES: tuple[FlightRadar24SensorEntityDescription, ...] = (
     ),
     FlightRadar24SensorEntityDescription(
         key="airport_arrivals_canceled",
-        name="Airport arrivals canceled",
+        translation_key="airport_arrivals_canceled",
         icon="mdi:airplane-remove",
         state_class=SensorStateClass.TOTAL,
         value=lambda coord: coord.airport.stats.arrivals_canceled if coord.airport.stats else None,
@@ -129,16 +120,15 @@ SENSOR_TYPES: tuple[FlightRadar24SensorEntityDescription, ...] = (
     ),
     FlightRadar24SensorEntityDescription(
         key="airport_arrivals",
-        name="Airport arrivals",
+        translation_key="airport_arrivals",
         icon="mdi:airplane-landing",
         state_class=SensorStateClass.TOTAL,
         value=lambda coord: len(coord.airport.arrivals) if coord.airport.arrivals is not None else None,
-        # Keeping the top 10 flights with ALL rich data to prevent 16KB DB errors
         attributes=lambda coord: {'flights': coord.airport.arrivals[:10]} if coord.airport.arrivals is not None else None,
     ),
     FlightRadar24SensorEntityDescription(
         key="airport_departures_on_time",
-        name="Airport departures on time",
+        translation_key="airport_departures_on_time",
         icon="mdi:airplane-check",
         state_class=SensorStateClass.TOTAL,
         value=lambda coord: coord.airport.stats.departures_on_time if coord.airport.stats else None,
@@ -146,7 +136,7 @@ SENSOR_TYPES: tuple[FlightRadar24SensorEntityDescription, ...] = (
     ),
     FlightRadar24SensorEntityDescription(
         key="airport_departures_delayed",
-        name="Airport departures delayed",
+        translation_key="airport_departures_delayed",
         icon="mdi:airplane-alert",
         state_class=SensorStateClass.TOTAL,
         value=lambda coord: coord.airport.stats.departures_delayed if coord.airport.stats else None,
@@ -154,7 +144,7 @@ SENSOR_TYPES: tuple[FlightRadar24SensorEntityDescription, ...] = (
     ),
     FlightRadar24SensorEntityDescription(
         key="airport_departures_delay_average",
-        name="Airport departures delay average",
+        translation_key="airport_departures_delay_average",
         icon="mdi:airplane-clock",
         state_class=SensorStateClass.TOTAL,
         value=lambda coord: coord.airport.stats.departures_delay_average if coord.airport.stats else None,
@@ -162,7 +152,7 @@ SENSOR_TYPES: tuple[FlightRadar24SensorEntityDescription, ...] = (
     ),
     FlightRadar24SensorEntityDescription(
         key="airport_departures_delay_index",
-        name="Airport departures delay index",
+        translation_key="airport_departures_delay_index",
         icon="mdi:airplane-clock",
         state_class=SensorStateClass.MEASUREMENT,
         suggested_display_precision=2,
@@ -171,7 +161,7 @@ SENSOR_TYPES: tuple[FlightRadar24SensorEntityDescription, ...] = (
     ),
     FlightRadar24SensorEntityDescription(
         key="airport_departures_canceled",
-        name="Airport departures canceled",
+        translation_key="airport_departures_canceled",
         icon="mdi:airplane-remove",
         state_class=SensorStateClass.TOTAL,
         value=lambda coord: coord.airport.stats.departures_canceled if coord.airport.stats else None,
@@ -179,17 +169,16 @@ SENSOR_TYPES: tuple[FlightRadar24SensorEntityDescription, ...] = (
     ),
     FlightRadar24SensorEntityDescription(
         key="airport_departures",
-        name="Airport departures",
+        translation_key="airport_departures",
         icon="mdi:airplane-takeoff",
         state_class=SensorStateClass.TOTAL,
         value=lambda coord: len(coord.airport.departures) if coord.airport.departures is not None else None,
-        # Keeping the top 10 flights with ALL rich data to prevent 16KB DB errors
         attributes=lambda coord: ({'flights': coord.airport.departures[:10]}
                                   if coord.airport.departures is not None else None),
     ),
     FlightRadar24SensorEntityDescription(
         key="helicopters_in_area",
-        name="Helicopters in area",
+        translation_key="helicopters_in_area",
         icon="mdi:helicopter",
         state_class=SensorStateClass.TOTAL,
         value=lambda coord: len([f for f in coord.flight.in_area_list if is_helicopter(f)]),
@@ -197,11 +186,10 @@ SENSOR_TYPES: tuple[FlightRadar24SensorEntityDescription, ...] = (
     ),
 )
 
-
 RESTORE_SENSOR_TYPES: tuple[FlightRadar24SensorEntityDescription, ...] = (
     FlightRadar24SensorEntityDescription(
-        key="tracked",
-        name="Additional tracked",
+        key="additional_tracked",
+        translation_key="additional_tracked",
         icon="mdi:airplane",
         state_class=SensorStateClass.TOTAL,
         value=lambda coord: len(coord.flight.tracked_list),
@@ -209,10 +197,7 @@ RESTORE_SENSOR_TYPES: tuple[FlightRadar24SensorEntityDescription, ...] = (
     ),
 )
 
-
-async def async_setup_entry(
-        hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
-) -> None:
+async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback) -> None:
     coordinator = hass.data[DOMAIN][entry.entry_id]
 
     sensors = []
@@ -222,7 +207,6 @@ async def async_setup_entry(
     for description in RESTORE_SENSOR_TYPES:
         sensors.append(FlightRadar24RestoreSensor(coordinator, description))
     async_add_entities(sensors, False)
-
 
 class FlightRadar24Sensor(CoordinatorEntity[FlightRadar24Coordinator], SensorEntity):
     _attr_has_entity_name = True
@@ -234,11 +218,12 @@ class FlightRadar24Sensor(CoordinatorEntity[FlightRadar24Coordinator], SensorEnt
             description: FlightRadar24SensorEntityDescription,
     ) -> None:
         """Initialize."""
+        # Assign the description before initializing the base classes
+        self.entity_description = description
         super().__init__(coordinator)
+        
         self._attr_device_info = coordinator.device_info
         self._attr_unique_id = f"{coordinator.unique_id}_{DOMAIN}_{description.key}"
-        self.entity_description = description
-
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
