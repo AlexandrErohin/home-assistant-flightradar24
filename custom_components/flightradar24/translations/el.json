@@ -2,34 +2,29 @@
   "config": {
     "step": {
       "user": {
-        "title": "Flightradar24",
-        "description": "Συμπληρώστε την τοποθεσία προς παρακολούθηση.",
+        "description": "Συμπληρώστε την τοποθεσία για παρακολούθηση.",
         "data": {
           "radius": "Ακτίνα σε μέτρα",
           "latitude": "Γεωγραφικό πλάτος",
           "longitude": "Γεωγραφικό μήκος",
-          "scan_interval": "Διάστημα σάρωσης για ενημερώσεις (δευτερόλεπτα)"
+          "scan_interval": "Διάστημα ενημέρωσης σε δευτερόλεπτα"
         }
       }
-    },
-    "abort": {
-      "already_configured": "Η τοποθεσία έχει ήδη ρυθμιστεί."
     }
   },
   "options": {
     "step": {
       "init": {
-        "title": "Ρυθμίσεις Flightradar24",
-        "description": "Επεξεργασία παραμέτρων για την τοποθεσία προς παρακολούθηση.",
+        "description": "Επεξεργασία παραμέτρων για την τοποθεσία.",
         "data": {
           "radius": "Ακτίνα σε μέτρα",
           "latitude": "Γεωγραφικό πλάτος",
           "longitude": "Γεωγραφικό μήκος",
-          "scan_interval": "Διάστημα σάρωσης για ενημερώσεις (δευτερόλεπτα)",
-          "min_altitude": "Ελάχιστο υψόμετρο (πόδια)",
-          "max_altitude": "Μέγιστο υψόμετρο (πόδια)",
-          "most_tracked": "Ενεργοποίηση λίστας Most Tracked",
-          "enable_tracker": "Ενεργοποίηση device_tracker πτήσεων",
+          "scan_interval": "Διάστημα ενημέρωσης σε δευτερόλεπτα",
+          "min_altitude": "Ελάχιστο υψόμετρο σε πόδια",
+          "max_altitude": "Μέγιστο υψόμετρο σε πόδια",
+          "most_tracked": "Ενεργοποίηση λίστας πτήσεων με τη μεγαλύτερη παρακολούθηση",
+          "enable_tracker": "Ενεργοποίηση device_tracker για επιπλέον παρακολούθηση πτήσεων",
           "username": "Όνομα χρήστη (Προαιρετικό)",
           "password": "Κωδικός πρόσβασης (Προαιρετικό)"
         }
@@ -41,10 +36,10 @@
       "in_area": { "name": "Πτήσεις στην περιοχή" },
       "entered": { "name": "Εισήλθαν στην περιοχή" },
       "exited": { "name": "Εξήλθαν από την περιοχή" },
-      "most_tracked": { "name": "Πτήσεις με τη μεγαλύτερη παρακολούθηση" },
-      "tracked": { "name": "Επιπλέον παρακολουθούμενες πτήσεις" },
-      "airport_arrivals": { "name": "Αφίξεις Αεροδρομίου" },
-      "airport_departures": { "name": "Αναχωρήσεις Αεροδρομίου" },
+      "most_tracked": { "name": "Μεγαλύτερη παρακολούθηση" },
+      "additional_tracked": { "name": "Επιπλέον παρακολούθηση" },
+      "airport_arrivals": { "name": "Αφίξεις αεροδρομίου" },
+      "airport_departures": { "name": "Αναχωρήσεις αεροδρομίου" },
       "helicopters_in_area": { "name": "Ελικόπτερα στην περιοχή" },
       "airport_arrivals_on_time": { "name": "Αφίξεις στην ώρα τους" },
       "airport_arrivals_delayed": { "name": "Καθυστερημένες αφίξεις" },
@@ -55,7 +50,6 @@
       "airport_departures_delayed": { "name": "Καθυστερημένες αναχωρήσεις" },
       "airport_departures_delay_average": { "name": "Μέσος όρος καθυστέρησης αναχωρήσεων" },
       "airport_departures_delay_index": { "name": "Δείκτης καθυστέρησης αναχωρήσεων" },
-      "helicopters_in_area": { "name": "Ελικόπτερα στην περιοχή" },
       "airport_departures_canceled": { "name": "Ακυρωμένες αναχωρήσεις" }
     },
     "button": {
