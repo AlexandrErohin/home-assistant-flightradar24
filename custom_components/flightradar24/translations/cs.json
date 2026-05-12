@@ -1,34 +1,59 @@
 {
-    "config":{
-       "step":{
-          "user":{
-             "description":"Vyplňte polohu pro sledování.",
-             "data":{
-                "radius":"Poloměr v metrech",
-                "latitude":"Zeměpisná šířka",
-                "longitude":"Zeměpisná délka",
-                "scan_interval":"Interval skenování pro aktualizace v sekundách"
-             }
-          }
-       }
-    },
-    "options":{
-       "step":{
-          "init":{
-             "description":"Upravit parametry pro sledovanou polohu.",
-             "data":{
-                "radius":"Poloměr v metrech",
-                "latitude":"Zeměpisná šířka",
-                "longitude":"Zeměpisná délka",
-                "scan_interval":"Interval skenování pro aktualizace v sekundách",
-                "min_altitude":"Minimální nadmořská výška ve stopách, nad kterou budou všechna letadla sledována.",
-                "max_altitude":"Maximální nadmořská výška ve stopách, pod kterou budou všechna letadla sledována.",
-                "most_tracked":"Povolit seznam nejvíce sledovaných letů",
-                "enable_tracker": "Povolte device_tracker pro další sledování letů",
-                "username":"VOLITELNÉ! Uživatelské jméno Flightradar24",
-                "password":"VOLITELNÉ! Heslo Flightradar24"
-             }
-          }
-       }
+  "config": {
+    "step": {
+      "user": {
+        "description": "Vyplňte místo ke sledování.",
+        "data": {
+          "radius": "Poloměr v metrech",
+          "latitude": "Zeměpisná šířka",
+          "longitude": "Zeměpisná délka",
+          "scan_interval": "Interval aktualizace v sekundách"
+        }
+      }
     }
- }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "description": "Upravte parametry sledovaného místa.",
+        "data": {
+          "radius": "Poloměr v metrech",
+          "latitude": "Zeměpisná šířka",
+          "longitude": "Zeměpisná délka",
+          "scan_interval": "Interval aktualizace v sekundách",
+          "min_altitude": "Minimální výška ve stopách",
+          "max_altitude": "Maximální výška ve stopách",
+          "most_tracked": "Povolit seznam nejsledovanějších letů",
+          "enable_tracker": "Povolit device_tracker pro další sledované lety",
+          "username": "Uživatelské jméno (Volitelné)",
+          "password": "Heslo (Volitelné)"
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "in_area": { "name": "Lety v oblasti" },
+      "entered": { "name": "Vstoupily do oblasti" },
+      "exited": { "name": "Opustily oblast" },
+      "most_tracked": { "name": "Nejsledovanější" },
+      "additional_tracked": { "name": "Další sledované" },
+      "airport_arrivals": { "name": "Přílety na letiště" },
+      "airport_departures": { "name": "Odlety z letiště" },
+      "helicopters_in_area": { "name": "Vrtulníky v oblasti" },
+      "airport_arrivals_on_time": { "name": "Přílety včas" },
+      "airport_arrivals_delayed": { "name": "Zpožděné přílety" },
+      "airport_arrivals_delay_average": { "name": "Průměrné zpoždění příletů" },
+      "airport_arrivals_delay_index": { "name": "Index zpoždění příletů" },
+      "airport_arrivals_canceled": { "name": "Zrušené přílety" },
+      "airport_departures_on_time": { "name": "Odlety včas" },
+      "airport_departures_delayed": { "name": "Zpožděné odlety" },
+      "airport_departures_delay_average": { "name": "Průměrné zpoždění odletů" },
+      "airport_departures_delay_index": { "name": "Index zpoždění odletů" },
+      "airport_departures_canceled": { "name": "Zrušené odlety" }
+    },
+    "button": {
+      "clear_tracked": { "name": "Vymazat seznam sledování" }
+    }
+  }
+}
