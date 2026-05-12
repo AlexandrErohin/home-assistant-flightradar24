@@ -38,20 +38,28 @@
   },
   "entity": {
     "sensor": {
-      "in_area": {
-        "name": "Πτήσεις στην περιοχή"
-      },
-      "most_tracked": {
-        "name": "Πτήσεις με τη μεγαλύτερη παρακολούθηση"
-      },
-      "additional_tracked": {
-        "name": "Επιπλέον παρακολουθούμενες πτήσεις"
-      }
+      "in_area": { "name": "Πτήσεις στην περιοχή" },
+      "entered": { "name": "Εισήλθαν στην περιοχή" },
+      "exited": { "name": "Εξήλθαν από την περιοχή" },
+      "most_tracked": { "name": "Πτήσεις με τη μεγαλύτερη παρακολούθηση" },
+      "tracked": { "name": "Επιπλέον παρακολουθούμενες πτήσεις" },
+      "airport_arrivals": { "name": "Αφίξεις Αεροδρομίου" },
+      "airport_departures": { "name": "Αναχωρήσεις Αεροδρομίου" },
+      "helicopters_in_area": { "name": "Ελικόπτερα στην περιοχή" },
+      "airport_arrivals_on_time": { "name": "Αφίξεις στην ώρα τους" },
+      "airport_arrivals_delayed": { "name": "Καθυστερημένες αφίξεις" },
+      "airport_arrivals_delay_average": { "name": "Μέσος όρος καθυστέρησης αφίξεων" },
+      "airport_arrivals_delay_index": { "name": "Δείκτης καθυστέρησης αφίξεων" },
+      "airport_arrivals_canceled": { "name": "Ακυρωμένες αφίξεις" },
+      "airport_departures_on_time": { "name": "Αναχωρήσεις στην ώρα τους" },
+      "airport_departures_delayed": { "name": "Καθυστερημένες αναχωρήσεις" },
+      "airport_departures_delay_average": { "name": "Μέσος όρος καθυστέρησης αναχωρήσεων" },
+      "airport_departures_delay_index": { "name": "Δείκτης καθυστέρησης αναχωρήσεων" },
+      "helicopters_in_area": { "name": "Ελικόπτερα στην περιοχή" },
+      "airport_departures_canceled": { "name": "Ακυρωμένες αναχωρήσεις" }
     },
     "button": {
-      "clear_tracked": {
-        "name": "Εκκαθάριση λίστας παρακολούθησης"
-      }
+      "clear_tracked": { "name": "Εκκαθάριση λίστας παρακολούθησης" }
     }
   }
 }
