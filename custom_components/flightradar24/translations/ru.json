@@ -2,12 +2,12 @@
   "config": {
     "step": {
       "user": {
-        "description": "Заполните местоположение для отслеживания.",
+        "description": "Введите местоположение для отслеживания.",
         "data": {
           "radius": "Радиус в метрах",
           "latitude": "Широта",
           "longitude": "Долгота",
-          "scan_interval": "Интервал сканирования для обновлений в секундах"
+          "scan_interval": "Интервал обновления в секундах"
         }
       }
     }
@@ -15,20 +15,45 @@
   "options": {
     "step": {
       "init": {
-        "description": "Отредактируйте параметры для отслеживаемого местоположения.",
+        "description": "Измените параметры для отслеживаемого местоположения.",
         "data": {
           "radius": "Радиус в метрах",
           "latitude": "Широта",
           "longitude": "Долгота",
-          "scan_interval": "Интервал сканирования для обновлений в секундах",
-          "min_altitude": "Минимальная высота в футах, выше которой будут отслеживаться все самолеты.",
-          "max_altitude": "Максимальная высота в футах, ниже которой будут отслеживаться все самолеты.",
-          "most_tracked": "Включить список наиболее отслеживаемых рейсов",
-          "enable_tracker": "Включить device_tracker для дополнительно отслеживаемых рейсов",
-          "username": "НЕОБЯЗАТЕЛЬНО! Имя пользователя Flightradar24",
-          "password": "НЕОБЯЗАТЕЛЬНО! Пароль Flightradar24"
+          "scan_interval": "Интервал обновления в секундах",
+          "min_altitude": "Минимальная высота в футах",
+          "max_altitude": "Максимальная высота в футах",
+          "most_tracked": "Включить список самых отслеживаемых рейсов",
+          "enable_tracker": "Включить device_tracker для дополнительных отслеживаемых рейсов",
+          "username": "Имя пользователя (Необязательно)",
+          "password": "Пароль (Необязательно)"
         }
       }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "in_area": { "name": "Рейсы в зоне" },
+      "entered": { "name": "Вошли в зону" },
+      "exited": { "name": "Покинули зону" },
+      "most_tracked": { "name": "Самые отслеживаемые" },
+      "additional_tracked": { "name": "Дополнительно отслеживаемые" },
+      "airport_arrivals": { "name": "Прибытие в аэропорт" },
+      "airport_departures": { "name": "Вылет из аэропорта" },
+      "helicopters_in_area": { "name": "Вертолеты в зоне" },
+      "airport_arrivals_on_time": { "name": "Прибытие по расписанию" },
+      "airport_arrivals_delayed": { "name": "Прибытие с задержкой" },
+      "airport_arrivals_delay_average": { "name": "Средняя задержка прибытия" },
+      "airport_arrivals_delay_index": { "name": "Индекс задержки прибытия" },
+      "airport_arrivals_canceled": { "name": "Отмененные прибытия" },
+      "airport_departures_on_time": { "name": "Вылет по расписанию" },
+      "airport_departures_delayed": { "name": "Вылет с задержкой" },
+      "airport_departures_delay_average": { "name": "Средняя задержка вылета" },
+      "airport_departures_delay_index": { "name": "Индекс задержки вылета" }, 
+      "airport_departures_canceled": { "name": "Отмененные вылеты" }
+    },
+    "button": {
+      "clear_tracked": { "name": "Очистить список отслеживания" }
     }
   }
 }
