@@ -1,34 +1,59 @@
 {
-    "config": {
-      "step": {
-        "user": {
-          "description": "Aseta seurattava sijainti.",
-          "data": {
-            "radius": "Säde metreinä",
-            "latitude": "Latitudi",
-            "longitude": "Longitudi",
-            "scan_interval": "Päivitystiheys sekunneissa"
-          }
-        }
-      }
-    },
-    "options": {
-      "step": {
-        "init": {
-          "description": "Muokkaa seurattavan sijainnin asetuksia.",
-          "data": {
-            "radius": "Säde metreinä",
-            "latitude": "Latitudi",
-            "longitude": "Longitudi",
-            "scan_interval": "Päivitystiheys sekunneissa",
-            "min_altitude": "Minimikorkeus jalkoina, jonka yläpuolella olevia lentoaluksia seurataan.",
-            "max_altitude": "Maksimikorkeus jalkoina, jonka alapuolella olevia lentoaluksia seurataan.",
-            "most_tracked": "Ota käyttöön eniten seurattujen lentojen lista",
-            "enable_tracker": "Ota käyttöön laiteseuranta lentojen seuraamiseksi",
-            "username": "VALINNAINEN! FlightRadar24-tilin käyttäjätunnus",
-            "password": "VALINNAINEN! FlightRadar24-tilin salasana"
-          }
+  "config": {
+    "step": {
+      "user": {
+        "description": "Anna seurattava sijainti.",
+        "data": {
+          "radius": "Säde metreinä",
+          "latitude": "Leveysaste",
+          "longitude": "Pituusaste",
+          "scan_interval": "Päivitysväli sekunteina"
         }
       }
     }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "description": "Muokkaa seurattavan sijainnin parametreja.",
+        "data": {
+          "radius": "Säde metreinä",
+          "latitude": "Leveysaste",
+          "longitude": "Pituusaste",
+          "scan_interval": "Päivitysväli sekunteina",
+          "min_altitude": "Minimikorkeus jalkoina",
+          "max_altitude": "Maksimikorkeus jalkoina",
+          "most_tracked": "Ota käyttöön seuratuimpien lentojen luettelo",
+          "enable_tracker": "Ota device_tracker käyttöön lisäseurannalle",
+          "username": "Käyttäjätunnus (Valinnainen)",
+          "password": "Salasana (Valinnainen)"
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "in_area": { "name": "Lennot alueella" },
+      "entered": { "name": "Saapunut alueelle" },
+      "exited": { "name": "Poistunut alueelta" },
+      "most_tracked": { "name": "Seuratuimmat" },
+      "additional_tracked": { "name": "Lisäseurannassa" },
+      "airport_arrivals": { "name": "Lentokentän saapuvat" },
+      "airport_departures": { "name": "Lentokentän lähtevät" },
+      "helicopters_in_area": { "name": "Helikopterit alueella" },
+      "airport_arrivals_on_time": { "name": "Saapuvat ajoissa" },
+      "airport_arrivals_delayed": { "name": "Saapuvat myöhässä" },
+      "airport_arrivals_delay_average": { "name": "Keskimääräinen saapumisviive" },
+      "airport_arrivals_delay_index": { "name": "Saapumisviiveindeksi" },
+      "airport_arrivals_canceled": { "name": "Perutut saapuvat" },
+      "airport_departures_on_time": { "name": "Lähtevät ajoissa" },
+      "airport_departures_delayed": { "name": "Lähtevät myöhässä" },
+      "airport_departures_delay_average": { "name": "Keskimääräinen lähtöviive" },
+      "airport_departures_delay_index": { "name": "Lähtöviiveindeksi" },
+      "airport_departures_canceled": { "name": "Perutut lähtevät" }
+    },
+    "button": {
+      "clear_tracked": { "name": "Tyhjennä seurantaluettelo" }
+    }
   }
+}
