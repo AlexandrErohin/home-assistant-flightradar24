@@ -25,6 +25,7 @@
           "max_altitude": "최대 고도",
           "most_tracked": "가장 많이 추적된 항공편 목록 활성화",
           "enable_tracker": "추가 추적 항공편에 대해 device_tracker 활성화",
+          "auto_cleanup": "착륙한 추적 항공편의 자동 정리 활성화",
           "username": "사용자 이름 (선택 사항)",
           "password": "비밀번호 (선택 사항)"
         }

@@ -25,6 +25,7 @@
           "max_altitude": "Maximum hoogte in feet",
           "most_tracked": "Activeer meest gevolgde vluchtlijst",
           "enable_tracker": "Device_tracker inschakelen voor extra trackingvluchten",
+          "auto_cleanup": "Automatisch opschonen van gelande gevolgde vluchten inschakelen",
           "username": "Gebruikersnaam (Optioneel)",
           "password": "Wachtwoord (Optioneel)"
         }

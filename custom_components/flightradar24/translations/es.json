@@ -25,6 +25,7 @@
           "max_altitude": "Altitud máxima en pies",
           "most_tracked": "Habilitar lista de vuelos más rastreados",
           "enable_tracker": "Habilitar device_tracker para vuelos adicionales",
+          "auto_cleanup": "Habilitar la limpieza automática de vuelos rastreados aterrizados",
           "username": "Nombre de usuario (Opcional)",
           "password": "Contraseña (Opcional)"
         }

@@ -25,6 +25,7 @@
           "max_altitude": "Maksimum irtifa",
           "most_tracked": "En çok izlenen uçuşlar listesini etkinleştir",
           "enable_tracker": "Ek izleme uçuşları için device_tracker'ı etkinleştir",
+          "auto_cleanup": "İniş yapan takip edilen uçuşlar için otomatik temizlemeyi etkinleştir",
           "username": "Kullanıcı adı (İsteğe bağlı)",
           "password": "Şifre (İsteğe bağlı)"
         }

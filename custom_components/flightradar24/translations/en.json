@@ -25,6 +25,7 @@
           "max_altitude": "Maximum altitude",
           "most_tracked": "Enable most tracked flights",
           "enable_tracker": "Enable device tracker",
+          "auto_cleanup": "Enable auto-cleanup of landed tracked flights",
           "username": "Username (Optional)",
           "password": "Password (Optional)"
         }

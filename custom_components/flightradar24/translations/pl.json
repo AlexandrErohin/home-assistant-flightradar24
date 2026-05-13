@@ -25,6 +25,7 @@
           "max_altitude": "Maksymalna wysokość w stopach",
           "most_tracked": "Włącz listę najczęściej śledzonych lotów",
           "enable_tracker": "Włącz device_tracker dla dodatkowych śledzonych lotów",
+          "auto_cleanup": "Włącz automatyczne czyszczenie śledzonych wylądowanych lotów",
           "username": "Nazwa użytkownika (Opcjonalnie)",
           "password": "Hasło (Opcjonalnie)"
         }

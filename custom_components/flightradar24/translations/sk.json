@@ -25,6 +25,7 @@
           "max_altitude": "Maximálna výška v stopách",
           "most_tracked": "Povoliť zoznam najviac sledovaných letov",
           "enable_tracker": "Povoliť device_tracker pre ďalšie sledované lety",
+          "auto_cleanup": "Povoliť automatické čistenie sledovaných pristátých letov",
           "username": "Používateľské meno (voliteľné)",
           "password": "Heslo (voliteľné)"
         }

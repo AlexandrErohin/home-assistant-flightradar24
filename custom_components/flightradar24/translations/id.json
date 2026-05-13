@@ -25,6 +25,7 @@
           "max_altitude": "Ketinggian maksimum",
           "most_tracked": "Aktifkan daftar penerbangan paling banyak dilacak",
           "enable_tracker": "Aktifkan device_tracker untuk pelacakan tambahan",
+          "auto_cleanup": "Aktifkan pembersihan otomatis untuk penerbangan terlacak yang telah mendarat",
           "username": "Nama pengguna (Opsional)",
           "password": "Kata sandi (Opsional)"
         }

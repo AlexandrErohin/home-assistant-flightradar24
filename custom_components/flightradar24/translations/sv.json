@@ -25,6 +25,7 @@
           "max_altitude": "Högsta höjd",
           "most_tracked": "Aktivera lista över mest spårade flyg",
           "enable_tracker": "Aktivera device_tracker för extra flygspårning",
+          "auto_cleanup": "Aktivera automatisk rensning av spårade landade flygningar",
           "username": "Användarnamn (Valfritt)",
           "password": "Lösenord (Valfritt)"
         }
