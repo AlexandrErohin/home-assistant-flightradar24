@@ -26,6 +26,7 @@
           "most_tracked": "Activeer meest gevolgde vluchtlijst",
           "enable_tracker": "Device_tracker inschakelen voor extra trackingvluchten",
           "auto_cleanup": "Automatisch opschonen van gelande gevolgde vluchten inschakelen",
+          "tracker_name_style": "Naamstijl kaarttracker",
           "username": "Gebruikersnaam (Optioneel)",
           "password": "Wachtwoord (Optioneel)"
         }

@@ -26,6 +26,7 @@
           "most_tracked": "启用被追踪最多的航班列表",
           "enable_tracker": "为额外追踪的航班启用 device_tracker",
           "auto_cleanup": "启用已降落追踪航班的自动清理",
+          "tracker_name_style": "地图追踪器命名样式",
           "username": "用户名 (可选)",
           "password": "密码 (可选)"
         }

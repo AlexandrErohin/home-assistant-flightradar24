@@ -26,6 +26,7 @@
           "most_tracked": "Abilita l'elenco dei voli più seguiti",
           "enable_tracker": "Abilita device_tracker per voli extra",
           "auto_cleanup": "Abilita la pulizia automatica dei voli tracciati atterrati",
+          "tracker_name_style": "Stile di denominazione del tracker sulla mappa",
           "username": "Nome utente (Opzionale)",
           "password": "Password (Opzionale)"
         }

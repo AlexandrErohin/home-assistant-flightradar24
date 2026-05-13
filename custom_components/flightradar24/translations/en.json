@@ -26,6 +26,7 @@
           "most_tracked": "Enable most tracked flights",
           "enable_tracker": "Enable device tracker",
           "auto_cleanup": "Enable auto-cleanup of landed tracked flights",
+          "tracker_name_style": "Map Tracker Naming Style",
           "username": "Username (Optional)",
           "password": "Password (Optional)"
         }

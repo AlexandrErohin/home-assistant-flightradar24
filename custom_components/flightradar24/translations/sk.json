@@ -5,7 +5,7 @@
         "description": "Zadajte miesto na sledovanie.",
         "data": {
           "radius": "Polomer v metroch",
-          "latitude": "Zemepisná šírka",
+          "latitude": "Zemepisná šířka",
           "longitude": "Zemepisná dĺžka",
           "scan_interval": "Interval aktualizácie v sekundách"
         }
@@ -18,7 +18,7 @@
         "description": "Upravte parametre pre sledované miesto.",
         "data": {
           "radius": "Polomer v metroch",
-          "latitude": "Zemepisná šírka",
+          "latitude": "Zemepisná šířka",
           "longitude": "Zemepisná dĺžka",
           "scan_interval": "Interval aktualizácie v sekundách",
           "min_altitude": "Minimálna výška v stopách",
@@ -26,6 +26,7 @@
           "most_tracked": "Povoliť zoznam najviac sledovaných letov",
           "enable_tracker": "Povoliť device_tracker pre ďalšie sledované lety",
           "auto_cleanup": "Povoliť automatické čistenie sledovaných pristátých letov",
+          "tracker_name_style": "Štýl pomenovania sledovania na mape",
           "username": "Používateľské meno (voliteľné)",
           "password": "Heslo (voliteľné)"
         }

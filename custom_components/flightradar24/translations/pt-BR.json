@@ -26,6 +26,7 @@
           "most_tracked": "Ativar lista de voos mais rastreados",
           "enable_tracker": "Ativar device_tracker para voos adicionais",
           "auto_cleanup": "Ativar limpeza automática de voos rastreados que pousaram",
+          "tracker_name_style": "Estilo de nomenclatura do rastreador de mapa",
           "username": "Nome de usuário (Opcional)",
           "password": "Senha (Opcional)"
         }
@@ -58,7 +59,7 @@
       "tracked_clear": { "name": "Limpar rastreamento adicional" }
     },
     "switch": {
-      "scanning": { "name": "Busca de dados via API" }
+      "scanning": { "name": "Busca de datos via API" }
     },
     "text": {
       "add_track": { "name": "Adicionar ao rastreamento" },

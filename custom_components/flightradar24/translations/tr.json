@@ -26,6 +26,7 @@
           "most_tracked": "En çok izlenen uçuşlar listesini etkinleştir",
           "enable_tracker": "Ek izleme uçuşları için device_tracker'ı etkinleştir",
           "auto_cleanup": "İniş yapan takip edilen uçuşlar için otomatik temizlemeyi etkinleştir",
+          "tracker_name_style": "Harita Takipçisi Adlandırma Stili",
           "username": "Kullanıcı adı (İsteğe bağlı)",
           "password": "Şifre (İsteğe bağlı)"
         }
@@ -61,9 +62,9 @@
       "scanning": { "name": "API veri alımı" }
     },
     "text": {
-      "add_track": { "name": "İzlemeye ekle" },
-      "remove_track": { "name": "İzlenenlerden çıkar" },
-      "airport_track": { "name": "Havalimanı izleme" }
+      "add_track": { "name": "Takibe ekle" },
+      "remove_track": { "name": "Takipten çıkar" },
+      "airport_track": { "name": "Havalimanı takibi" }
     }
   }
 }

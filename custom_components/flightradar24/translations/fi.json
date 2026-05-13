@@ -26,6 +26,7 @@
           "most_tracked": "Ota käyttöön seuratuimpien lentojen luettelo",
           "enable_tracker": "Ota device_tracker käyttöön lisäseurannalle",
           "auto_cleanup": "Ota käyttöön laskeutuneiden seurattujen lentojen automaattinen puhdistus",
+          "tracker_name_style": "Karttaseurannan nimeämistyyli",
           "username": "Käyttäjätunnus (Valinnainen)",
           "password": "Salasana (Valinnainen)"
         }

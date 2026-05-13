@@ -26,6 +26,7 @@
           "most_tracked": "Povolit seznam nejsledovanějších letů",
           "enable_tracker": "Povolit device_tracker pro další sledované lety",
           "auto_cleanup": "Povolit automatické čištění sledovaných přistálých letů",
+          "tracker_name_style": "Styl pojmenování sledování mapy",
           "username": "Uživatelské jméno (Volitelné)",
           "password": "Heslo (Volitelné)"
         }

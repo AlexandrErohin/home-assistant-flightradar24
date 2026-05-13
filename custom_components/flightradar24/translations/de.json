@@ -26,6 +26,7 @@
           "most_tracked": "Liste der meistverfolgten Flüge aktivieren",
           "enable_tracker": "Device_tracker für zusätzliche verfolgte Flüge aktivieren",
           "auto_cleanup": "Automatische Bereinigung gelandeter verfolgter Flüge aktivieren",
+          "tracker_name_style": "Benennungsstil für Karten-Tracker",
           "username": "Benutzername (Optional)",
           "password": "Passwort (Optional)"
         }

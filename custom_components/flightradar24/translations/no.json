@@ -26,6 +26,7 @@
           "most_tracked": "Aktiver liste over mest sporet fly",
           "enable_tracker": "Aktiver device_tracker for ekstra flysporing",
           "auto_cleanup": "Aktiver automatisk opprydding av sporede landede flyvninger",
+          "tracker_name_style": "Navngivningsstil for kartsporing",
           "username": "Brukernavn (Valgfritt)",
           "password": "Passord (Valgfritt)"
         }

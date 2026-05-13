@@ -26,6 +26,7 @@
           "most_tracked": "Aktifkan daftar penerbangan paling banyak dilacak",
           "enable_tracker": "Aktifkan device_tracker untuk pelacakan tambahan",
           "auto_cleanup": "Aktifkan pembersihan otomatis untuk penerbangan terlacak yang telah mendarat",
+          "tracker_name_style": "Gaya Penamaan Pelacak Peta",
           "username": "Nama pengguna (Opsional)",
           "password": "Kata sandi (Opsional)"
         }

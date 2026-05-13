@@ -26,6 +26,7 @@
           "most_tracked": "Aktivera lista över mest spårade flyg",
           "enable_tracker": "Aktivera device_tracker for extra flygspårning",
           "auto_cleanup": "Aktivera automatisk rensning av spårade landade flygningar",
+          "tracker_name_style": "Namngivningsstil för kartspårare",
           "username": "Användarnamn (Valfritt)",
           "password": "Lösenord (Valfritt)"
         }

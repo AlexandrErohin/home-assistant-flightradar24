@@ -26,6 +26,7 @@
           "most_tracked": "Włącz listę najczęściej śledzonych lotów",
           "enable_tracker": "Włącz device_tracker dla dodatkowych śledzonych lotów",
           "auto_cleanup": "Włącz automatyczne czyszczenie śledzonych wylądowanych lotów",
+          "tracker_name_style": "Styl nazywania śledzenia na mapie",
           "username": "Nazwa użytkownika (Opcjonalnie)",
           "password": "Hasło (Opcjonalnie)"
         }
