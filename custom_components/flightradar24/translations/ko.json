@@ -21,8 +21,8 @@
           "latitude": "위도",
           "longitude": "경도",
           "scan_interval": "업데이트 간격(초)",
-          "min_altitude": "최소 고도",
-          "max_altitude": "최대 고도",
+          "min_altitude": "최소 고도(피트)",
+          "max_altitude": "최대 고도(피트)",
           "most_tracked": "가장 많이 추적된 항공편 목록 활성화",
           "enable_tracker": "추가 추적 항공편에 대해 device_tracker 활성화",
           "auto_cleanup": "착륙한 추적 항공편의 자동 정리 활성화",
@@ -54,7 +54,16 @@
       "airport_departures_canceled": { "name": "출발 취소" }
     },
     "button": {
-      "clear_tracked": { "name": "추적 목록 지우기" }
+      "clear_tracked": { "name": "추적 목록 지우기" },
+      "tracked_clear": { "name": "추가 추적 목록 지우기" }
+    },
+    "switch": {
+      "scanning": { "name": "API 데이터 가져오기" }
+    },
+    "text": {
+      "add_track": { "name": "추적에 추가" },
+      "remove_track": { "name": "추적에서 제거" },
+      "airport_track": { "name": "공항 추적" }
     }
   }
 }

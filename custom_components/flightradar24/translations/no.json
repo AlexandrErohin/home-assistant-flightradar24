@@ -21,8 +21,8 @@
           "latitude": "Breddegrad",
           "longitude": "Lengdegrad",
           "scan_interval": "Oppdateringsintervall i sekunder",
-          "min_altitude": "Minimum høyde",
-          "max_altitude": "Maksimum høyde",
+          "min_altitude": "Minimum høyde i fot",
+          "max_altitude": "Maksimum høyde i fot",
           "most_tracked": "Aktiver liste over mest sporet fly",
           "enable_tracker": "Aktiver device_tracker for ekstra flysporing",
           "auto_cleanup": "Aktiver automatisk opprydding av sporede landede flyvninger",
@@ -54,7 +54,16 @@
       "airport_departures_canceled": { "name": "Kansellerte avganger" }
     },
     "button": {
-      "clear_tracked": { "name": "Tøm sporingsliste" }
+      "clear_tracked": { "name": "Tøm sporingsliste" },
+      "tracked_clear": { "name": "Tøm ekstra sporing" }
+    },
+    "switch": {
+      "scanning": { "name": "API-datainnhenting" }
+    },
+    "text": {
+      "add_track": { "name": "Legg til sporing" },
+      "remove_track": { "name": "Fjern fra sporing" },
+      "airport_track": { "name": "Flyplass-sporing" }
     }
   }
 }

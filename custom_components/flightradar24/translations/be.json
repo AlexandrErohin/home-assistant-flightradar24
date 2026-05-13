@@ -54,7 +54,16 @@
       "airport_departures_canceled": { "name": "Адмененыя вылеты" }
     },
     "button": {
-      "clear_tracked": { "name": "Ачысціць спіс адсочвання" }
+      "clear_tracked": { "name": "Ачысціць спіс адсочвання" },
+      "tracked_clear": { "name": "Ачысціць дадаткова адсочваемыя" }
+    },
+    "switch": {
+      "scanning": { "name": "Атрыманне даных API" }
+    },
+    "text": {
+      "add_track": { "name": "Дадаць у адсочванне" },
+      "remove_track": { "name": "Выдаліць з адсочвання" },
+      "airport_track": { "name": "Адсочванне аэрапорта" }
     }
   }
 }

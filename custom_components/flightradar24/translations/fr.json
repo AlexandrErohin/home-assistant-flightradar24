@@ -54,7 +54,16 @@
       "airport_departures_canceled": { "name": "Départs annulés" }
     },
     "button": {
-      "clear_tracked": { "name": "Effacer la liste de suivi" }
+      "clear_tracked": { "name": "Effacer la liste de suivi" },
+      "tracked_clear": { "name": "Effacer les suivis supplémentaires" }
+    },
+    "switch": {
+      "scanning": { "name": "Récupération des données API" }
+    },
+    "text": {
+      "add_track": { "name": "Ajouter au suivi" },
+      "remove_track": { "name": "Supprimer du suivi" },
+      "airport_track": { "name": "Suivi d'aéroport" }
     }
   }
 }

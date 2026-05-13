@@ -54,7 +54,16 @@
       "airport_departures_canceled": { "name": "Ακυρωμένες αναχωρήσεις" }
     },
     "button": {
-      "clear_tracked": { "name": "Εκκαθάριση λίστας παρακολούθησης" }
+      "clear_tracked": { "name": "Εκκαθάριση λίστας παρακολούθησης" },
+      "tracked_clear": { "name": "Εκκαθάριση επιπλέον παρακολούθησης" }
+    },
+    "switch": {
+      "scanning": { "name": "Λήψη δεδομένων API" }
+    },
+    "text": {
+      "add_track": { "name": "Προσθήκη στην παρακολούθηση" },
+      "remove_track": { "name": "Αφαίρεση από την παρακολούθηση" },
+      "airport_track": { "name": "Παρακολούθηση αεροδρομίου" }
     }
   }
 }

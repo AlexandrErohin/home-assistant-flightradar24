@@ -54,7 +54,16 @@
       "airport_departures_canceled": { "name": "Geannuleerde vertrekken" }
     },
     "button": {
-      "clear_tracked": { "name": "Clear tracked" }
+      "clear_tracked": { "name": "Lijst wissen" },
+      "tracked_clear": { "name": "Extra gevolgde vluchten wissen" }
+    },
+    "switch": {
+      "scanning": { "name": "API gegevens ophalen" }
+    },
+    "text": {
+      "add_track": { "name": "Toevoegen aan volgen" },
+      "remove_track": { "name": "Verwijderen van volgen" },
+      "airport_track": { "name": "Luchthaven volgen" }
     }
   }
 }

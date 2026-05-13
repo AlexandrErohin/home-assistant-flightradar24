@@ -21,8 +21,8 @@
           "latitude": "Latitudine",
           "longitude": "Longitudine",
           "scan_interval": "Intervallo di aggiornamento in secondi",
-          "min_altitude": "Altitudine minima",
-          "max_altitude": "Altitudine massima",
+          "min_altitude": "Altitudine minima in piedi",
+          "max_altitude": "Altitudine massima in piedi",
           "most_tracked": "Abilita l'elenco dei voli più seguiti",
           "enable_tracker": "Abilita device_tracker per voli extra",
           "auto_cleanup": "Abilita la pulizia automatica dei voli tracciati atterrati",
@@ -54,7 +54,16 @@
       "airport_departures_canceled": { "name": "Partenze cancellate" }
     },
     "button": {
-      "clear_tracked": { "name": "Cancella lista monitoraggio" }
+      "clear_tracked": { "name": "Cancella lista monitoraggio" },
+      "tracked_clear": { "name": "Cancella seguiti extra" }
+    },
+    "switch": {
+      "scanning": { "name": "Recupero dati API" }
+    },
+    "text": {
+      "add_track": { "name": "Aggiungi al monitoraggio" },
+      "remove_track": { "name": "Rimuovi dal monitoraggio" },
+      "airport_track": { "name": "Monitoraggio aeroporto" }
     }
   }
 }

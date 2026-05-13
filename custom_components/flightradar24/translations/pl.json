@@ -54,7 +54,16 @@
       "airport_departures_canceled": { "name": "Odloty odwołane" }
     },
     "button": {
-      "clear_tracked": { "name": "Wyczyść listę śledzenia" }
+      "clear_tracked": { "name": "Wyczyść listę śledzenia" },
+      "tracked_clear": { "name": "Wyczyść dodatkowo śledzone" }
+    },
+    "switch": {
+      "scanning": { "name": "Pobieranie danych API" }
+    },
+    "text": {
+      "add_track": { "name": "Dodaj do śledzenia" },
+      "remove_track": { "name": "Usuń ze śledzenia" },
+      "airport_track": { "name": "Śledzenie lotniska" }
     }
   }
 }

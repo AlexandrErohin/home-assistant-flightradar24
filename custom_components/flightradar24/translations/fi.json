@@ -54,7 +54,16 @@
       "airport_departures_canceled": { "name": "Perutut lähtevät" }
     },
     "button": {
-      "clear_tracked": { "name": "Tyhjennä seurantaluettelo" }
+      "clear_tracked": { "name": "Tyhjennä seurantaluettelo" },
+      "tracked_clear": { "name": "Tyhjennä lisäseuranta" }
+    },
+    "switch": {
+      "scanning": { "name": "API-tietojen nouto" }
+    },
+    "text": {
+      "add_track": { "name": "Lisää seurantaan" },
+      "remove_track": { "name": "Poista seurannasta" },
+      "airport_track": { "name": "Lentokentän seuranta" }
     }
   }
 }

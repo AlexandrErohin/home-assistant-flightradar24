@@ -21,8 +21,8 @@
           "latitude": "Latitude",
           "longitude": "Longitude",
           "scan_interval": "Intervalo de atualização em segundos",
-          "min_altitude": "Altitude mínima",
-          "max_altitude": "Altitude máxima",
+          "min_altitude": "Altitude mínima em pés",
+          "max_altitude": "Altitude máxima em pés",
           "most_tracked": "Ativar lista de voos mais rastreados",
           "enable_tracker": "Ativar device_tracker para voos adicionais",
           "auto_cleanup": "Ativar limpeza automática de voos rastreados que pousaram",
@@ -54,7 +54,16 @@
       "airport_departures_canceled": { "name": "Partidas canceladas" }
     },
     "button": {
-      "clear_tracked": { "name": "Limpar lista de rastreamento" }
+      "clear_tracked": { "name": "Limpar lista de rastreamento" },
+      "tracked_clear": { "name": "Limpar rastreamento adicional" }
+    },
+    "switch": {
+      "scanning": { "name": "Busca de dados via API" }
+    },
+    "text": {
+      "add_track": { "name": "Adicionar ao rastreamento" },
+      "remove_track": { "name": "Remover do rastreamento" },
+      "airport_track": { "name": "Rastreamento de aeroporto" }
     }
   }
 }

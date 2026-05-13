@@ -54,7 +54,16 @@
       "airport_departures_canceled": { "name": "取消出发" }
     },
     "button": {
-      "clear_tracked": { "name": "清除追踪列表" }
+      "clear_tracked": { "name": "清除追踪列表" },
+      "tracked_clear": { "name": "清除额外追踪" }
+    },
+    "switch": {
+      "scanning": { "name": "API 数据获取" }
+    },
+    "text": {
+      "add_track": { "name": "添加到追踪" },
+      "remove_track": { "name": "从追踪中移除" },
+      "airport_track": { "name": "机场追踪" }
     }
   }
 }

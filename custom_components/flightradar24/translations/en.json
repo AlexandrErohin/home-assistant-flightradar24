@@ -54,7 +54,16 @@
       "airport_departures_canceled": { "name": "Departures canceled" }
     },
     "button": {
-      "clear_tracked": { "name": "Clear tracked" }
+      "clear_tracked": { "name": "Clear tracked" },
+      "tracked_clear": { "name": "Clear Additional tracked" }
+    },
+    "switch": {
+      "scanning": { "name": "API data fetching" }
+    },
+    "text": {
+      "add_track": { "name": "Add to track" },
+      "remove_track": { "name": "Remove from track" },
+      "airport_track": { "name": "Airport track" }
     }
   }
 }

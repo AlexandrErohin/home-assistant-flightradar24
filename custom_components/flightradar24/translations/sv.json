@@ -21,10 +21,10 @@
           "latitude": "Latitud",
           "longitude": "Longitud",
           "scan_interval": "Uppdateringsintervall i sekunder",
-          "min_altitude": "Minsta höjd",
-          "max_altitude": "Högsta höjd",
+          "min_altitude": "Minsta höjd i fot",
+          "max_altitude": "Högsta höjd i fot",
           "most_tracked": "Aktivera lista över mest spårade flyg",
-          "enable_tracker": "Aktivera device_tracker för extra flygspårning",
+          "enable_tracker": "Aktivera device_tracker for extra flygspårning",
           "auto_cleanup": "Aktivera automatisk rensning av spårade landade flygningar",
           "username": "Användarnamn (Valfritt)",
           "password": "Lösenord (Valfritt)"
@@ -54,7 +54,16 @@
       "airport_departures_canceled": { "name": "Inställda avgångar" }
     },
     "button": {
-      "clear_tracked": { "name": "Rensa spårningslista" }
+      "clear_tracked": { "name": "Rensa spårningslista" },
+      "tracked_clear": { "name": "Rensa extra spårade" }
+    },
+    "switch": {
+      "scanning": { "name": "API-datahämtning" }
+    },
+    "text": {
+      "add_track": { "name": "Lägg till i spårning" },
+      "remove_track": { "name": "Ta bort från spårning" },
+      "airport_track": { "name": "Flygplats-spårning" }
     }
   }
 }

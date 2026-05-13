@@ -21,8 +21,8 @@
           "latitude": "Lintang",
           "longitude": "Bujur",
           "scan_interval": "Interval pembaruan dalam detik",
-          "min_altitude": "Ketinggian minimum",
-          "max_altitude": "Ketinggian maksimum",
+          "min_altitude": "Ketinggian minimum dalam kaki",
+          "max_altitude": "Ketinggian maksimum dalam kaki",
           "most_tracked": "Aktifkan daftar penerbangan paling banyak dilacak",
           "enable_tracker": "Aktifkan device_tracker untuk pelacakan tambahan",
           "auto_cleanup": "Aktifkan pembersihan otomatis untuk penerbangan terlacak yang telah mendarat",
@@ -54,7 +54,16 @@
       "airport_departures_canceled": { "name": "Keberangkatan dibatalkan" }
     },
     "button": {
-      "clear_tracked": { "name": "Hapus daftar pelacakan" }
+      "clear_tracked": { "name": "Hapus daftar pelacakan" },
+      "tracked_clear": { "name": "Hapus pelacakan tambahan" }
+    },
+    "switch": {
+      "scanning": { "name": "Pengambilan data API" }
+    },
+    "text": {
+      "add_track": { "name": "Tambah ke pelacakan" },
+      "remove_track": { "name": "Hapus dari pelacakan" },
+      "airport_track": { "name": "Pelacakan bandara" }
     }
   }
 }

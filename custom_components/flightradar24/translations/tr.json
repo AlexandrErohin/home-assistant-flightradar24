@@ -21,8 +21,8 @@
           "latitude": "Enlem",
           "longitude": "Boylam",
           "scan_interval": "Saniye cinsinden güncelleme aralığı",
-          "min_altitude": "Minimum irtifa",
-          "max_altitude": "Maksimum irtifa",
+          "min_altitude": "Ayak cinsinden minimum irtifa",
+          "max_altitude": "Ayak cinsinden maksimum irtifa",
           "most_tracked": "En çok izlenen uçuşlar listesini etkinleştir",
           "enable_tracker": "Ek izleme uçuşları için device_tracker'ı etkinleştir",
           "auto_cleanup": "İniş yapan takip edilen uçuşlar için otomatik temizlemeyi etkinleştir",
@@ -54,7 +54,16 @@
       "airport_departures_canceled": { "name": "İptal edilen kalkışlar" }
     },
     "button": {
-      "clear_tracked": { "name": "İzleme listesini temizle" }
+      "clear_tracked": { "name": "İzleme listesini temizle" },
+      "tracked_clear": { "name": "Ek izlenenleri temizle" }
+    },
+    "switch": {
+      "scanning": { "name": "API veri alımı" }
+    },
+    "text": {
+      "add_track": { "name": "İzlemeye ekle" },
+      "remove_track": { "name": "İzlenenlerden çıkar" },
+      "airport_track": { "name": "Havalimanı izleme" }
     }
   }
 }

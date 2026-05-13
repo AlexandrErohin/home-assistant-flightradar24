@@ -54,7 +54,16 @@
       "airport_departures_canceled": { "name": "Zrušené odlety" }
     },
     "button": {
-      "clear_tracked": { "name": "Vymazať zoznam sledovania" }
+      "clear_tracked": { "name": "Vymazať zoznam sledovania" },
+      "tracked_clear": { "name": "Vymazať ďalšie sledované" }
+    },
+    "switch": {
+      "scanning": { "name": "Získavanie údajov API" }
+    },
+    "text": {
+      "add_track": { "name": "Pridať k sledovaniu" },
+      "remove_track": { "name": "Odstrániť zo sledovania" },
+      "airport_track": { "name": "Sledovanie letiska" }
     }
   }
 }

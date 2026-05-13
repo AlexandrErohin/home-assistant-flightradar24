@@ -54,7 +54,16 @@
       "airport_departures_canceled": { "name": "Salidas canceladas" }
     },
     "button": {
-      "clear_tracked": { "name": "Borrar lista de rastreo" }
+      "clear_tracked": { "name": "Borrar lista de rastreo" },
+      "tracked_clear": { "name": "Borrar rastreados adicionales" }
+    },
+    "switch": {
+      "scanning": { "name": "Obtención de datos API" }
+    },
+    "text": {
+      "add_track": { "name": "Añadir al rastreo" },
+      "remove_track": { "name": "Eliminar del rastreo" },
+      "airport_track": { "name": "Rastreo de aeropuerto" }
     }
   }
 }
