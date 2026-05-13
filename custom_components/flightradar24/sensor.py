@@ -14,26 +14,9 @@ from .const import DOMAIN
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from .coordinator import FlightRadar24Coordinator
+from .api.flight import is_helicopter # --- IMPORTED FROM FLIGHT.PY ---
 import datetime
 import copy
-
-def is_helicopter(flight) -> bool:
-    """Check if a flight is a helicopter based on callsign, model or ICAO code."""
-    def get_val(key):
-        return str(flight.get(key, '') if isinstance(flight, dict) else getattr(flight, key, '') or '')
-
-    callsign = get_val('callsign')
-    model = get_val('aircraft_model')
-    code = get_val('aircraft_code')
-
-    if re.match(r"^(LIFELN|POLICE|MEDIC|LL|HELI|SAR|SGR|ZULU|SLAYR|CRNGE|VORTX|SHARK|REAPER|APACHE|FIRE|RESCUE|PNTHR|VICTR|CHX|NHC|UKP|NPAS|AAC|AMBUSH|BARON|ARCTIC|COAST|KUST|RAINBOW|SAMU|DRAG|PEGASO|HEMS)", callsign, re.IGNORECASE):
-        return True
-
-    if re.search(r'(HELICOPTER|EUROCOPTER|ROBINSON|AGUSTA|BELL\s|SIKORSKY|AEROSPATIALE|MD\sHELICOPTERS|GUIMBAL|KAMOV|LEONARDO|WESTLAND|APACHE|CHINOOK|GAZELLE|MERLIN|WILDCAT|LYNX|PUMA|BOEING\sAH|AH\-64)', model, re.IGNORECASE):
-        return True
-        
-    if re.match(r'^(R22|R44|R66|EC|AS[35]|H1[23467]|H6[045]|H47|AW|B[0245]|UH|CH|A1[0-9]|H500|MI[0-9]|NH90|SK[0-9]|EH10|LYNX|G2CA|S76|S92|EC45)', code, re.IGNORECASE):
-        return True
 
 @dataclass
 class FlightRadar24SensorRequiredKeysMixin:
