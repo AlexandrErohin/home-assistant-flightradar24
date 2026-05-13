@@ -14,8 +14,10 @@ from .const import (
     CONF_MAX_ALTITUDE,
     CONF_MOST_TRACKED,
     CONF_ENABLE_TRACKER,
+    CONF_AUTO_CLEANUP,
     CONF_MOST_TRACKED_DEFAULT,
     CONF_ENABLE_TRACKER_DEFAULT,
+    CONF_AUTO_CLEANUP_DEFAULT,
     MIN_ALTITUDE,
     MAX_ALTITUDE,
 )
@@ -103,6 +105,10 @@ class FlightRadarOptionsFlow(OptionsFlowWithConfigEntry):
                          description={
                              "suggested_value": data.get(CONF_ENABLE_TRACKER,
                                                          CONF_ENABLE_TRACKER_DEFAULT)}): cv.boolean,
+            vol.Optional(CONF_AUTO_CLEANUP,
+                         description={
+                             "suggested_value": data.get(CONF_AUTO_CLEANUP,
+                                                         CONF_AUTO_CLEANUP_DEFAULT)}): cv.boolean,
             vol.Optional(CONF_USERNAME, description={"suggested_value": data.get(CONF_USERNAME, '')}): cv.string,
             vol.Optional(CONF_PASSWORD, description={"suggested_value": data.get(CONF_PASSWORD, '')}): cv.string,
         })
