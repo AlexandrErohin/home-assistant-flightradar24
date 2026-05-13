@@ -6,8 +6,10 @@ CONF_MIN_ALTITUDE = "min_altitude"
 CONF_MAX_ALTITUDE = "max_altitude"
 CONF_MOST_TRACKED = "most_tracked"
 CONF_ENABLE_TRACKER = "enable_tracker"
+CONF_AUTO_CLEANUP = "auto_cleanup"
 CONF_MOST_TRACKED_DEFAULT = True
 CONF_ENABLE_TRACKER_DEFAULT = False
+CONF_AUTO_CLEANUP_DEFAULT = False
 
 EVENT_ENTRY = f"{DOMAIN}_entry"
 EVENT_EXIT = f"{DOMAIN}_exit"
