@@ -22,6 +22,7 @@ async def async_setup_entry(
 class FlightRadar24ScanEntity(
     CoordinatorEntity[FlightRadar24Coordinator], SwitchEntity
 ):
+    _attr_has_entity_name = True
     entity_description: SwitchEntityDescription
 
     def __init__(self, coordinator: FlightRadar24Coordinator) -> None:
@@ -30,7 +31,7 @@ class FlightRadar24ScanEntity(
         self._attr_device_info = coordinator.device_info
         self.entity_description = SwitchEntityDescription(
             key="scanning",
-            name="API data fetching",
+            translation_key="scanning",
             icon="mdi:connection",
             entity_category=EntityCategory.CONFIG,
         )
