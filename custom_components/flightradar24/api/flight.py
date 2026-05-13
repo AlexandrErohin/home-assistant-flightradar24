@@ -292,6 +292,7 @@ class FlightProcessor:
             flight['ground_speed'] = obj.ground_speed
             flight['squawk'] = obj.squawk
             flight['vertical_speed'] = obj.vertical_speed
+            flight['icao_24bit'] = getattr(obj, 'icao_24bit', '') # <--- ADDED ICAO 24-BIT HEX HERE
             new_distance = obj.get_distance_from(self._point)
             flight['distance'] = new_distance
             flight['closest_distance'] = min(new_distance, flight.get('closest_distance', new_distance))
