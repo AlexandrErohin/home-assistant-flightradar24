@@ -2,7 +2,7 @@
   "config": {
     "step": {
       "user": {
-        "description": "Preencha o local que você quer monitorar.",
+        "description": "Preencha a localização para rastrear.",
         "data": {
           "radius": "Raio em metros",
           "latitude": "Latitude",
@@ -15,20 +15,56 @@
   "options": {
     "step": {
       "init": {
-        "description": "Edite os parâmetros do local que você quer monitorar.",
+        "description": "Edite os parâmetros para a localização rastreada.",
         "data": {
           "radius": "Raio em metros",
           "latitude": "Latitude",
           "longitude": "Longitude",
           "scan_interval": "Intervalo de atualização em segundos",
-          "min_altitude": "A altitude mínima, em pés, acima da qual todos os aviões serão monitorados.",
-          "max_altitude": "A altitude máxima, em pés, abaixo da qual todos os aviões serão monitorados.",
-          "most_tracked": "Ativar lista de voos mais monitorados",
-          "enable_tracker": "Habilitar device_tracker para voos de rastreamento adicionais",
-          "username": "OPCIONAL! Nome de usuário do Flightradar24",
-          "password": "OPCIONAL! Senha do Flightradar24"
+          "min_altitude": "Altitude mínima em pés",
+          "max_altitude": "Altitude máxima em pés",
+          "most_tracked": "Ativar lista de voos mais rastreados",
+          "enable_tracker": "Ativar device_tracker para voos adicionais",
+          "auto_cleanup": "Ativar limpeza automática de voos rastreados que pousaram",
+          "tracker_name_style": "Estilo de nomenclatura do rastreador de mapa",
+          "username": "Nome de usuário (Opcional)",
+          "password": "Senha (Opcional)"
         }
       }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "in_area": { "name": "Voos na área" },
+      "entered": { "name": "Entrou na área" },
+      "exited": { "name": "Saiu da área" },
+      "most_tracked": { "name": "Mais rastreados" },
+      "additional_tracked": { "name": "Rastreamento adicional" },
+      "airport_arrivals": { "name": "Chegadas ao aeroporto" },
+      "airport_departures": { "name": "Partidas do aeroporto" },
+      "helicopters_in_area": { "name": "Helicópteros na área" },
+      "airport_arrivals_on_time": { "name": "Chegadas no horário" },
+      "airport_arrivals_delayed": { "name": "Chegadas atrasadas" },
+      "airport_arrivals_delay_average": { "name": "Atraso médio de chegadas" },
+      "airport_arrivals_delay_index": { "name": "Índice de atraso de chegadas" },
+      "airport_arrivals_canceled": { "name": "Chegadas canceladas" },
+      "airport_departures_on_time": { "name": "Partidas no horário" },
+      "airport_departures_delayed": { "name": "Partidas atrasadas" },
+      "airport_departures_delay_average": { "name": "Atraso médio de partidas" },
+      "airport_departures_delay_index": { "name": "Índice de atraso de partidas" },
+      "airport_departures_canceled": { "name": "Partidas canceladas" }
+    },
+    "button": {
+      "clear_tracked": { "name": "Limpar lista de rastreamento" },
+      "tracked_clear": { "name": "Limpar rastreamento adicional" }
+    },
+    "switch": {
+      "scanning": { "name": "Busca de datos via API" }
+    },
+    "text": {
+      "add_track": { "name": "Adicionar ao rastreamento" },
+      "remove_track": { "name": "Remover do rastreamento" },
+      "airport_track": { "name": "Rastreamento de aeroporto" }
     }
   }
 }
