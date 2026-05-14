@@ -107,7 +107,7 @@ SENSOR_TYPES: tuple[FlightRadar24SensorEntityDescription, ...] = (
         icon="mdi:airplane-landing",
         state_class=SensorStateClass.TOTAL,
         value=lambda coord: len(coord.airport.arrivals) if coord.airport.arrivals is not None else None,
-        attributes=lambda coord: {'flights': coord.airport.arrivals[:10]} if coord.airport.arrivals is not None else None,
+        attributes=lambda coord: {'flights': coord.airport.arrivals[:50]} if coord.airport.arrivals is not None else None,
     ),
     FlightRadar24SensorEntityDescription(
         key="airport_departures_on_time",
