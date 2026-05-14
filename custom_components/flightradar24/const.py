@@ -30,6 +30,7 @@ EVENT_AREA_TOOK_OFF = f"{DOMAIN}_area_took_off"
 EVENT_TRACKED_LANDED = f"{DOMAIN}_tracked_landed"
 EVENT_TRACKED_TOOK_OFF = f"{DOMAIN}_tracked_took_off"
 EVENT_MOST_TRACKED_NEW = f"{DOMAIN}_most_tracked_new"
+EVENT_TRACKED_ARRIVED_GATE = f"{DOMAIN}_tracked_arrived_gate"
 
 MIN_ALTITUDE = -1
 MAX_ALTITUDE = 100000

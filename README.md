@@ -32,6 +32,7 @@ It allows you:
  - flightradar24_area_took_off: Fired when a flight takes off in your area.
  - flightradar24_tracked_landed: Fired when a tracked flight lands.
  - flightradar24_tracked_took_off: Fired when a tracked flight takes off.
+ - flightradar24_tracked_arrived_gate: Fired when a tracked flight removed from the tracked list.
 
 ### Sensors
  - Current in area - Current flights in your area
@@ -51,6 +52,7 @@ It allows you:
  - Airport departures delay average - Average departures delay for the selected airport today
  - Airport departures delay index - Disruption departures index for the selected airport today
  - Airport departures canceled - Amount of canceled departures for the selected airport today
+ - Helicopters in area
 
 ### <a id="device-tracker">Device Tracker</a>
 You may be interested to add a live flight as device_tracker with the flight information to a person in HA.
@@ -108,7 +110,12 @@ You may edit configuration data like:
 4. The minimum and maximum altitudes in foots between which the aircraft will be tracked
 5. Enable/Disable [top 10 most tracked flights on FlightRadar24](#most-tracked)
 6. Enable/Disable [device_tracker for flights](#device-tracker)
-7. Username and password if you have FlightRadar24 subscription
+7. Optional: Username and password if you have FlightRadar24 subscription
+8. Enable/Disable Enable auto-cleanup of landed tracked flights. That automatically removes flights from the "Additional tracked" list once they arrive at the gate
+10. Map Tracker Naming Style.
+ - Callsign Only (e.g., KLM1412) - Default
+ - Callsign + Route (e.g., KLM1412 (CDG - AMS))
+ - Registration + Route (e.g., PH-BXE (CDG - AMS))
 
 To do that:
 
@@ -344,6 +351,7 @@ recorder:
 | aircraft_photo_large                | Aircraft large size photo url                                                                                                                                                                               |
 | aircraft_model                      | Aircraft model                                                                                                                                                                                              |
 | aircraft_code                       | Aircraft code                                                                                                                                                                                               |
+| aircraft_icao_24bit                 | Unique aircraft ID                                                                                                                                                                                          |
 | airline                             | Airline full name                                                                                                                                                                                           |
 | airline_short                       | Airline short name                                                                                                                                                                                          |
 | airline_iata                        | Airline IATA code                                                                                                                                                                                           |
@@ -356,20 +364,20 @@ recorder:
 | airport_origin_city                 | Origin airport city name                                                                                                                                                                                    |
 | airport_origin_timezone_offset      | Origin airport timezone offset (in seconds)                                                                                                                                                                 |
 | airport_origin_timezone_abbr        | Origin airport timezone abbreviation                                                                                                                                                                        |
-| airport_origin_terminal             | Origin airport terminal
-| airport_origin_latitude             | Origin airport latitude
-| airport_origin_longitude            | Origin airport longitude
+| airport_origin_terminal             | Origin airport terminal                                                                                                                                                                                     
+| airport_origin_latitude             | Origin airport latitude                                                                                                                                                                                     
+| airport_origin_longitude            | Origin airport longitude                                                                                                                                                                                    
 | airport_destination_name            | Destination airport name                                                                                                                                                                                    |
 | airport_destination_code_iata       | Destination airport IATA code                                                                                                                                                                               |
 | airport_destination_code_icao       | Destination airport ICAO code                                                                                                                                                                               |
 | airport_destination_country_name    | Destination airport country name                                                                                                                                                                            |
 | airport_destination_country_code    | Destination airport country code                                                                                                                                                                            |
 | airport_destination_city            | Destination airport city name                                                                                                                                                                               |
-| airport_destination_timezone_offset | Destination airport timezone offset (in seconds)                                                                                                                                                                 |
-| airport_destination_timezone_abbr   | Destination airport timezone abbreviation                                                                                                                                                                        |
-| airport_destination_terminal        | Destination airport terminal    
-| airport_destination_latitude        | Destination airport latitude
-| airport_destination_longitude       | Destination airport longitude
+| airport_destination_timezone_offset | Destination airport timezone offset (in seconds)                                                                                                                                                            |
+| airport_destination_timezone_abbr   | Destination airport timezone abbreviation                                                                                                                                                                   |
+| airport_destination_terminal        | Destination airport terminal                                                                                                                                                                                
+| airport_destination_latitude        | Destination airport latitude                                                                                                                                                                                
+| airport_destination_longitude       | Destination airport longitude                                                                                                                                                                               
 | time_scheduled_departure            | Scheduled departure time                                                                                                                                                                                    |
 | time_scheduled_arrival              | Scheduled arrival time                                                                                                                                                                                      |
 | time_real_departure                 | Real departure time                                                                                                                                                                                         |

@@ -12,29 +12,62 @@ from ..const import (
     EVENT_TRACKED_LANDED,
     EVENT_TRACKED_TOOK_OFF,
     EVENT_MOST_TRACKED_NEW,
+    EVENT_TRACKED_ARRIVED_GATE,
 )
 import pycountry
 
-# --- MOVED is_helicopter HERE ---
+
 def is_helicopter(flight) -> bool:
     """Check if a flight is a helicopter based on callsign, model or ICAO code."""
+
     def get_val(key):
-        return str(flight.get(key, '') if isinstance(flight, dict) else getattr(flight, key, '') or '')
+        return str(
+            flight.get(key, "")
+            if isinstance(flight, dict)
+            else getattr(flight, key, "") or ""
+        )
 
-    callsign = get_val('callsign')
-    model = get_val('aircraft_model')
-    code = get_val('aircraft_code')
+    callsign = get_val("callsign")
+    model = get_val("aircraft_model")
+    code = get_val("aircraft_code")
 
-    if re.match(r"^(LIFELN|POLICE|MEDIC|LL|HELI|SAR|SGR|ZULU|SLAYR|CRNGE|VORTX|SHARK|REAPER|APACHE|FIRE|RESCUE|PNTHR|VICTR|CHX|NHC|UKP|NPAS|AAC|AMBUSH|BARON|ARCTIC|COAST|KUST|RAINBOW|SAMU|DRAG|PEGASO|HEMS)", callsign, re.IGNORECASE):
+    if re.match(
+        (
+            r"^(LIFELN|POLICE|MEDIC|LL|HELI|SAR|SGR|ZULU|SLAYR|CRNGE|"
+            r"VORTX|SHARK|REAPER|APACHE|FIRE|RESCUE|PNTHR|VICTR|CHX|"
+            r"NHC|UKP|NPAS|AAC|AMBUSH|BARON|ARCTIC|COAST|KUST|RAINBOW|"
+            r"SAMU|DRAG|PEGASO|HEMS)"
+        ),
+        callsign,
+        re.IGNORECASE,
+    ):
         return True
 
-    if re.search(r'(HELICOPTER|EUROCOPTER|ROBINSON|AGUSTA|BELL\s|SIKORSKY|AEROSPATIALE|MD\sHELICOPTERS|GUIMBAL|KAMOV|LEONARDO|WESTLAND|APACHE|CHINOOK|GAZELLE|MERLIN|WILDCAT|LYNX|PUMA|BOEING\sAH|AH\-64)', model, re.IGNORECASE):
+    if re.search(
+        (
+            r"(HELICOPTER|EUROCOPTER|ROBINSON|AGUSTA|BELL\s|SIKORSKY|"
+            r"AEROSPATIALE|MD\sHELICOPTERS|GUIMBAL|KAMOV|LEONARDO|"
+            r"WESTLAND|APACHE|CHINOOK|GAZELLE|MERLIN|WILDCAT|LYNX|"
+            r"PUMA|BOEING\sAH|AH\-64)"
+        ),
+        model,
+        re.IGNORECASE,
+    ):
         return True
-        
-    if re.match(r'^(R22|R44|R66|EC|AS[35]|H1[23467]|H6[045]|H47|AW|B[0245]|UH|CH|A1[0-9]|H500|MI[0-9]|NH90|SK[0-9]|EH10|LYNX|G2CA|S76|S92|EC45)', code, re.IGNORECASE):
+
+    if re.match(
+        (
+            r"^(R22|R44|R66|EC|AS[35]|H1[23467]|H6[045]|H47|AW|"
+            r"B[0245]|UH|CH|A1[0-9]|H500|MI[0-9]|NH90|SK[0-9]|"
+            r"EH10|LYNX|G2CA|S76|S92|EC45)"
+        ),
+        code,
+        re.IGNORECASE,
+    ):
         return True
-        
+
     return False
+
 
 class FlightType(Enum):
     TRACKED = 1
@@ -42,7 +75,6 @@ class FlightType(Enum):
 
 
 class FlightProcessor:
-    # Added _auto_cleanup to slots
     __slots__ = ('_in_area', '_tracked', '_most_tracked', '_entered', '_exited', '_min_altitude', '_max_altitude',
                  '_point', '_client', '_bounds', '_event_manager', '_auto_cleanup')
 
@@ -54,7 +86,7 @@ class FlightProcessor:
             max_altitude: int,
             point: Entity,
             bounds: str,
-            auto_cleanup: bool = False, # Added toggle here
+            auto_cleanup: bool = False,
     ) -> None:
         self._min_altitude = min_altitude
         self._max_altitude = max_altitude
@@ -62,7 +94,7 @@ class FlightProcessor:
         self._client = client
         self._bounds = bounds
         self._event_manager = event_manager
-        self._auto_cleanup = auto_cleanup # Save it to the class
+        self._auto_cleanup = auto_cleanup
         self._in_area: dict[str, dict[str, Any]] | None = None
         self._tracked: dict[str, dict[str, Any]] = {}
         self._most_tracked: dict[str, dict[str, Any]] | None = None
@@ -187,17 +219,13 @@ class FlightProcessor:
             for fid, new_data in current.items():
                 if new_data.get('tracked_type') == 'schedule':
                     number = new_data.get('flight_number') or new_data.get('callsign')
-                    
                     # Check if this flight was 'live' in our previous update
                     for old_data in self._tracked.values():
                         old_number = old_data.get('flight_number') or old_data.get('callsign')
-                        
                         if old_number == number and old_data.get('tracked_type') == 'live':
                             keys_to_remove.append(fid)
-                            
                             # Fire an event to Home Assistant for automations!
-                            self._event_manager.add_events('flightradar24_tracked_arrived_gate', [old_data])
-                            
+                            self._event_manager.add_events(EVENT_TRACKED_ARRIVED_GATE, [old_data])
                             break
 
             # Remove the landed flights from the current tracking list
@@ -292,7 +320,7 @@ class FlightProcessor:
             flight['ground_speed'] = obj.ground_speed
             flight['squawk'] = obj.squawk
             flight['vertical_speed'] = obj.vertical_speed
-            flight['icao_24bit'] = getattr(obj, 'icao_24bit', '') # <--- ADDED ICAO 24-BIT HEX HERE
+            flight['aircraft_icao_24bit'] = getattr(obj, 'icao_24bit', '')
             new_distance = obj.get_distance_from(self._point)
             flight['distance'] = new_distance
             flight['closest_distance'] = min(new_distance, flight.get('closest_distance', new_distance))
