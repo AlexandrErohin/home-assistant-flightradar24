@@ -88,10 +88,10 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
         self.async_set_updated_data(self.data)
 
     async def _async_update_data(self):
-        if not self.scanning:
-            return
-            
-        self.flight._auto_cleanup = self.config_entry.data.get(CONF_AUTO_CLEANUP, CONF_AUTO_CLEANUP_DEFAULT)
+    if not self.scanning:
+        return
+
+    self.flight._auto_cleanup = self.config_entry.data.get(CONF_AUTO_CLEANUP, CONF_AUTO_CLEANUP_DEFAULT)
         
         try:
             await self.hass.async_add_executor_job(self.flight.update_flights_in_area)
