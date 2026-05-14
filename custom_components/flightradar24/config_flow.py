@@ -114,12 +114,12 @@ class FlightRadarOptionsFlow(OptionsFlowWithConfigEntry):
                              "suggested_value": data.get(CONF_AUTO_CLEANUP,
                                                          CONF_AUTO_CLEANUP_DEFAULT)}): cv.boolean,
             # --- NEW DROPDOWN MENU ADDED HERE ---
-            vol.Optional(CONF_TRACKER_NAME_STYLE, 
+            vol.Optional(CONF_TRACKER_NAME_STYLE,
                          default=data.get(CONF_TRACKER_NAME_STYLE, CONF_TRACKER_NAME_DEFAULT)): vol.In({
                 TRACKER_NAME_CALLSIGN: "Callsign Only (e.g., KLM1412)",
                 TRACKER_NAME_CALLSIGN_ROUTE: "Callsign + Route (e.g., KLM1412 (CDG - AMS))",
                 TRACKER_NAME_REG_ROUTE: "Registration + Route (e.g., PH-BXE (CDG - AMS))"
-            }),
+                }),
             # ------------------------------------
             vol.Optional(CONF_USERNAME, description={"suggested_value": data.get(CONF_USERNAME, '')}): cv.string,
             vol.Optional(CONF_PASSWORD, description={"suggested_value": data.get(CONF_PASSWORD, '')}): cv.string,
