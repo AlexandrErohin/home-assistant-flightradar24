@@ -75,7 +75,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
+    """Unload a config entry and clean up memory."""
+    unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
+    if unload_ok:
+        # This prevents ghosts from staying in memory during a reload
+        hass.data[DOMAIN].pop(entry.entry_id)
+    return unload_ok
 
 
 async def update_listener(hass: HomeAssistant, entry: ConfigEntry) -> None:
