@@ -37,7 +37,7 @@ async def clear_tracked_button(coordinator: FlightRadar24Coordinator) -> None:
 BUTTON_TYPES = (
     FlightRadar24ButtonEntityDescription(
         key="tracked_clear",
-        name="Clear Additional tracked",
+        translation_key="tracked_clear",
         device_class=ButtonDeviceClass.RESTART,
         entity_category=EntityCategory.CONFIG,
         method=clear_tracked_button,
@@ -60,6 +60,7 @@ async def async_setup_entry(
 
 
 class FlightRadar24ButtonEntity(CoordinatorEntity[FlightRadar24Coordinator], ButtonEntity):
+    _attr_has_entity_name = True
     entity_description: FlightRadar24ButtonEntityDescription
 
     def __init__(

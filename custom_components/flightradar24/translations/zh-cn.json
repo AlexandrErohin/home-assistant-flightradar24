@@ -2,12 +2,12 @@
   "config": {
     "step": {
       "user": {
-        "description": "填写要跟踪的位置信息.",
+        "description": "输入要追踪的位置。",
         "data": {
           "radius": "半径 (米)",
           "latitude": "纬度",
           "longitude": "经度",
-          "scan_interval": "扫描更新间隔 (秒)"
+          "scan_interval": "更新间隔 (秒)"
         }
       }
     }
@@ -15,20 +15,56 @@
   "options": {
     "step": {
       "init": {
-        "description": "编辑要跟踪位置的一些参数.",
+        "description": "编辑要追踪的位置参数。",
         "data": {
           "radius": "半径 (米)",
           "latitude": "纬度",
           "longitude": "经度",
-          "scan_interval": "扫描更新间隔 (秒)",
-          "min_altitude": "最低高度 (英尺)，将跟踪所有高于此高度的飞机.",
-          "max_altitude": "最高高度 (英尺)，将跟踪所有低于此高度的飞机.",
-          "most_tracked": "启用最受关注的跟踪航班列表",
-          "enable_tracker": "启用 device_tracker以跟踪其他航班",
-          "username": "可选,Flightradar24 用户名",
-          "password": "可选,Flightradar24 密码"
+          "scan_interval": "更新间隔 (秒)",
+          "min_altitude": "最小高度 (英尺)",
+          "max_altitude": "最大高度 (英尺)",
+          "most_tracked": "启用被追踪最多的航班列表",
+          "enable_tracker": "为额外追踪的航班启用 device_tracker",
+          "auto_cleanup": "启用已降落追踪航班的自动清理",
+          "tracker_name_style": "地图追踪器命名样式",
+          "username": "用户名 (可选)",
+          "password": "密码 (可选)"
         }
       }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "in_area": { "name": "区域内航班" },
+      "entered": { "name": "进入区域" },
+      "exited": { "name": "离开区域" },
+      "most_tracked": { "name": "被追踪最多" },
+      "additional_tracked": { "name": "额外追踪" },
+      "airport_arrivals": { "name": "机场到达" },
+      "airport_departures": { "name": "机场出发" },
+      "helicopters_in_area": { "name": "区域内直升机" },
+      "airport_arrivals_on_time": { "name": "准点到达" },
+      "airport_arrivals_delayed": { "name": "延误到达" },
+      "airport_arrivals_delay_average": { "name": "平均到达延误" },
+      "airport_arrivals_delay_index": { "name": "到达延误指数" },
+      "airport_arrivals_canceled": { "name": "取消到达" },
+      "airport_departures_on_time": { "name": "准点出发" },
+      "airport_departures_delayed": { "name": "延误出发" },
+      "airport_departures_delay_average": { "name": "平均出发延误" },
+      "airport_departures_delay_index": { "name": "出发延误指数" },
+      "airport_departures_canceled": { "name": "取消出发" }
+    },
+    "button": {
+      "clear_tracked": { "name": "清除追踪列表" },
+      "tracked_clear": { "name": "清除额外追踪" }
+    },
+    "switch": {
+      "scanning": { "name": "API 数据获取" }
+    },
+    "text": {
+      "add_track": { "name": "添加到追踪" },
+      "remove_track": { "name": "从追踪中移除" },
+      "airport_track": { "name": "机场追踪" }
     }
   }
 }

@@ -13,7 +13,7 @@ from .const import DOMAIN
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from .coordinator import FlightRadar24Coordinator
-from .api.flight import is_helicopter  # --- IMPORTED FROM FLIGHT.PY ---
+from .api.flight import is_helicopter
 import datetime
 import copy
 
@@ -172,6 +172,14 @@ SENSOR_TYPES: tuple[FlightRadar24SensorEntityDescription, ...] = (
         value=lambda coord: len([f for f in coord.flight.in_area_list if is_helicopter(f)]),
         attributes=lambda coord: {'flights': [f for f in coord.flight.in_area_list if is_helicopter(f)]},
     ),
+    FlightRadar24SensorEntityDescription(
+        key="helicopters_in_area",
+        translation_key="helicopters_in_area",
+        icon="mdi:helicopter",
+        state_class=SensorStateClass.TOTAL,
+        value=lambda coord: len([f for f in coord.flight.in_area_list if is_helicopter(f)]),
+        attributes=lambda coord: {'flights': [f for f in coord.flight.in_area_list if is_helicopter(f)]},
+    ),
 )
 
 RESTORE_SENSOR_TYPES: tuple[FlightRadar24SensorEntityDescription, ...] = (
@@ -215,9 +223,7 @@ class FlightRadar24Sensor(CoordinatorEntity[FlightRadar24Coordinator], SensorEnt
         self.entity_description = description
         super().__init__(coordinator)
         self._attr_device_info = coordinator.device_info
-        
-        # This guarantees the ID will NEVER change across HA restarts
-        self._attr_unique_id = f"{entry_id}_{DOMAIN}_{description.key}"
+        self._attr_unique_id = f"{coordinator.unique_id}_{DOMAIN}_{description.key}"
 
     @callback
     def _handle_coordinator_update(self) -> None:
