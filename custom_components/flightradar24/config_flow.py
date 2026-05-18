@@ -14,10 +14,17 @@ from .const import (
     CONF_MAX_ALTITUDE,
     CONF_MOST_TRACKED,
     CONF_ENABLE_TRACKER,
+    CONF_AUTO_CLEANUP,
     CONF_MOST_TRACKED_DEFAULT,
     CONF_ENABLE_TRACKER_DEFAULT,
+    CONF_AUTO_CLEANUP_DEFAULT,
     MIN_ALTITUDE,
     MAX_ALTITUDE,
+    CONF_TRACKER_NAME_STYLE,
+    CONF_TRACKER_NAME_DEFAULT,
+    TRACKER_NAME_CALLSIGN,
+    TRACKER_NAME_CALLSIGN_ROUTE,
+    TRACKER_NAME_REG_ROUTE,
 )
 from FlightRadar24 import FlightRadar24API
 import homeassistant.helpers.config_validation as cv
@@ -54,8 +61,7 @@ class FlightRadarConfigFlow(ConfigFlow, domain=DOMAIN):
                 CONF_LATITUDE: self.hass.config.latitude,
                 CONF_LONGITUDE: self.hass.config.longitude,
             },
-        )
-                                    )
+        ))
 
     @staticmethod
     @callback
@@ -103,6 +109,27 @@ class FlightRadarOptionsFlow(OptionsFlowWithConfigEntry):
                          description={
                              "suggested_value": data.get(CONF_ENABLE_TRACKER,
                                                          CONF_ENABLE_TRACKER_DEFAULT)}): cv.boolean,
+            vol.Optional(CONF_AUTO_CLEANUP,
+                         description={
+                             "suggested_value": data.get(CONF_AUTO_CLEANUP,
+                                                         CONF_AUTO_CLEANUP_DEFAULT)}): cv.boolean,
+            vol.Optional(
+                CONF_TRACKER_NAME_STYLE,
+                default=data.get(
+                    CONF_TRACKER_NAME_STYLE,
+                    CONF_TRACKER_NAME_DEFAULT,
+                ),
+            ): vol.In(
+                {
+                    TRACKER_NAME_CALLSIGN: "Callsign Only (e.g., KLM1412)",
+                    TRACKER_NAME_CALLSIGN_ROUTE: (
+                        "Callsign + Route (e.g., KLM1412 (CDG - AMS))"
+                    ),
+                    TRACKER_NAME_REG_ROUTE: (
+                        "Registration + Route (e.g., PH-BXE (CDG - AMS))"
+                    ),
+                }
+            ),
             vol.Optional(CONF_USERNAME, description={"suggested_value": data.get(CONF_USERNAME, '')}): cv.string,
             vol.Optional(CONF_PASSWORD, description={"suggested_value": data.get(CONF_PASSWORD, '')}): cv.string,
         })

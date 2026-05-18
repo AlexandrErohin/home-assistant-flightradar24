@@ -27,14 +27,14 @@ class FlightRadar24TextEntityDescription(TextEntityDescription, FlightRadar24Tex
 FLIGHT_SENSOR_TYPES: tuple[FlightRadar24TextEntityDescription, ...] = (
     FlightRadar24TextEntityDescription(
         key="add_track",
-        name="Add to track",
+        translation_key="add_track",
         icon="mdi:airplane-plus",
         entity_category=EntityCategory.CONFIG,
         method=lambda coordinator, value: coordinator.add_flight_track(value),
     ),
     FlightRadar24TextEntityDescription(
         key="remove_track",
-        name="Remove from track",
+        translation_key="remove_track",
         icon="mdi:airplane-minus",
         entity_category=EntityCategory.CONFIG,
         method=lambda coordinator, value: coordinator.remove_flight_track(value),
@@ -45,7 +45,7 @@ FLIGHT_SENSOR_TYPES: tuple[FlightRadar24TextEntityDescription, ...] = (
 AIRPORT_SENSOR_TYPES: tuple[FlightRadar24TextEntityDescription, ...] = (
     FlightRadar24TextEntityDescription(
         key="airport_track",
-        name="Airport track",
+        translation_key="airport_track",
         icon="mdi:airport",
         entity_category=EntityCategory.CONFIG,
         method=lambda coordinator, value: coordinator.update_airport_track(value),

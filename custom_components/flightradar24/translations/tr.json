@@ -1,0 +1,70 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "description": "İzlenecek konumu doldurun.",
+        "data": {
+          "radius": "Metre cinsinden yarıçap",
+          "latitude": "Enlem",
+          "longitude": "Boylam",
+          "scan_interval": "Saniye cinsinden güncelleme aralığı"
+        }
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "description": "İzlenecek konum parametrelerini düzenleyin.",
+        "data": {
+          "radius": "Metre cinsinden yarıçap",
+          "latitude": "Enlem",
+          "longitude": "Boylam",
+          "scan_interval": "Saniye cinsinden güncelleme aralığı",
+          "min_altitude": "Ayak cinsinden minimum irtifa",
+          "max_altitude": "Ayak cinsinden maksimum irtifa",
+          "most_tracked": "En çok izlenen uçuşlar listesini etkinleştir",
+          "enable_tracker": "Ek izleme uçuşları için device_tracker'ı etkinleştir",
+          "auto_cleanup": "İniş yapan takip edilen uçuşlar için otomatik temizlemeyi etkinleştir",
+          "tracker_name_style": "Harita Takipçisi Adlandırma Stili",
+          "username": "Kullanıcı adı (İsteğe bağlı)",
+          "password": "Şifre (İsteğe bağlı)"
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "in_area": { "name": "Bölgedeki uçuşlar" },
+      "entered": { "name": "Bölgeye giren" },
+      "exited": { "name": "Bölgeden çıkan" },
+      "most_tracked": { "name": "En çok izlenen" },
+      "additional_tracked": { "name": "Ek izlenenler" },
+      "airport_arrivals": { "name": "Havalimanı varışları" },
+      "airport_departures": { "name": "Havalimanı kalkışları" },
+      "helicopters_in_area": { "name": "Bölgedeki helikopterler" },
+      "airport_arrivals_on_time": { "name": "Zamanında varışlar" },
+      "airport_arrivals_delayed": { "name": "Gecikmeli varışlar" },
+      "airport_arrivals_delay_average": { "name": "Varış ortalama gecikme" },
+      "airport_arrivals_delay_index": { "name": "Varış gecikme indeksi" },
+      "airport_arrivals_canceled": { "name": "İptal edilen varışlar" },
+      "airport_departures_on_time": { "name": "Zamanında kalkışlar" },
+      "airport_departures_delayed": { "name": "Gecikmeli kalkışlar" },
+      "airport_departures_delay_average": { "name": "Kalkış ortalama gecikme" },
+      "airport_departures_delay_index": { "name": "Kalkış gecikme indeksi" },
+      "airport_departures_canceled": { "name": "İptal edilen kalkışlar" }
+    },
+    "button": {
+      "clear_tracked": { "name": "İzleme listesini temizle" },
+      "tracked_clear": { "name": "Ek izlenenleri temizle" }
+    },
+    "switch": {
+      "scanning": { "name": "API veri alımı" }
+    },
+    "text": {
+      "add_track": { "name": "Takibe ekle" },
+      "remove_track": { "name": "Takipten çıkar" },
+      "airport_track": { "name": "Havalimanı takibi" }
+    }
+  }
+}

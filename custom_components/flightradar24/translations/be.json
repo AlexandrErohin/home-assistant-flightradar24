@@ -2,12 +2,12 @@
   "config": {
     "step": {
       "user": {
-        "description": "Запоўніце месцазнаходжанне для адсочвання.",
+        "description": "Увядзіце месцазнаходжанне для адсочвання.",
         "data": {
           "radius": "Радыус у метрах",
           "latitude": "Шырата",
           "longitude": "Даўгата",
-          "scan_interval": "Інтэрвал сканавання для абнаўленняў у секундах"
+          "scan_interval": "Інтэрвал абнаўлення ў секундах"
         }
       }
     }
@@ -15,20 +15,56 @@
   "options": {
     "step": {
       "init": {
-        "description": "Адрэдагуйце параметры для адсочвання месцазнаходжання.",
+        "description": "Змяніце параметры для месцазнаходжання.",
         "data": {
           "radius": "Радыус у метрах",
           "latitude": "Шырата",
           "longitude": "Даўгата",
-          "scan_interval": "Інтэрвал сканавання для абнаўленняў у секундах",
-          "min_altitude": "Мінімальная вышыня ў футах, вышэй за якую будуць адсочвацца ўсе самалёты.",
-          "max_altitude": "Максімальная вышыня ў футах, ніжэй за якую будуць адсочвацца ўсе самалёты.",
-          "most_tracked": "Уключыць спіс найбольш адсочваемых рэйсаў",
-          "enable_tracker": "Уключыце device_tracker для дадатковага адсочвання рэйсаў",
-          "username": "НЕАБАВЯЗКОВА! Імя карыстальніка Flightradar24",
-          "password": "НЕАБАВЯЗКОВА! Пароль Flightradar24"
+          "scan_interval": "Інтэрвал абнаўлення ў секундах",
+          "min_altitude": "Мінімальная вышыня ў футах",
+          "max_altitude": "Максімальная вышыня ў футах",
+          "most_tracked": "Уключыць спіс самых адсочваемых рэйсаў",
+          "enable_tracker": "Уключыць device_tracker для дадаткова адсочваемых рэйсаў",
+          "auto_cleanup": "Уключыць аўтаматычную ачыстку адсочваемых рэйсаў, якія прызямліліся",
+          "tracker_name_style": "Стыль наймення трэкера карты",
+          "username": "Імя карыстальніка (Неабавязкова)",
+          "password": "Пароль (Неабавязкова)"
         }
       }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "in_area": { "name": "Рэйсы ў зоне" },
+      "entered": { "name": "Увайшлі ў зону" },
+      "exited": { "name": "Пакінулі зону" },
+      "most_tracked": { "name": "Самыя адсочваемыя" },
+      "additional_tracked": { "name": "Дадаткова адсочваемыя" },
+      "airport_arrivals": { "name": "Прыбыццё ў аэрапорт" },
+      "airport_departures": { "name": "Вылет з аэрапорта" },
+      "helicopters_in_area": { "name": "Верталёты ў зоне" },
+      "airport_arrivals_on_time": { "name": "Прыбыццё па раскладзе" },
+      "airport_arrivals_delayed": { "name": "Прыбыццё з затрымкай" },
+      "airport_arrivals_delay_average": { "name": "Сярэдняя затрымка прыбыцця" },
+      "airport_arrivals_delay_index": { "name": "Індэкс затрымкі прыбыцця" },
+      "airport_arrivals_canceled": { "name": "Адмененыя прыбыцці" },
+      "airport_departures_on_time": { "name": "Вылет па раскладзе" },
+      "airport_departures_delayed": { "name": "Вылет з затрымкай" },
+      "airport_departures_delay_average": { "name": "Сярэдняя затрымка вылету" },
+      "airport_departures_delay_index": { "name": "Індэкс затрымкі вылету" },
+      "airport_departures_canceled": { "name": "Адмененыя вылеты" }
+    },
+    "button": {
+      "clear_tracked": { "name": "Ачысціць спіс адсочвання" },
+      "tracked_clear": { "name": "Ачысціць дадаткова адсочваемыя" }
+    },
+    "switch": {
+      "scanning": { "name": "Атрыманне даных API" }
+    },
+    "text": {
+      "add_track": { "name": "Дадаць у адсочванне" },
+      "remove_track": { "name": "Выдаліць з адсочвання" },
+      "airport_track": { "name": "Адсочванне аэрапорта" }
     }
   }
 }

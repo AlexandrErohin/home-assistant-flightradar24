@@ -6,7 +6,13 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from .coordinator import FlightRadar24Coordinator
-from .const import DOMAIN
+from .const import (
+    DOMAIN,
+    CONF_TRACKER_NAME_STYLE,
+    CONF_TRACKER_NAME_DEFAULT,
+    TRACKER_NAME_CALLSIGN_ROUTE,
+    TRACKER_NAME_REG_ROUTE,
+)
 
 
 async def async_setup_entry(
@@ -78,5 +84,32 @@ class FlightRadar24Tracker(CoordinatorEntity, TrackerEntity):
         return "mdi:airplane"
 
     @property
+    def entity_picture(self) -> str | None:
+        # This tells the map to show the actual photo of the plane!
+        return self.info.get('aircraft_photo_small')
+
+    @property
     def name(self) -> str:
-        return DOMAIN
+        # If no flight is currently tracked, return the default domain name
+        if not self.info:
+            return DOMAIN
+
+        # Check what the user selected in the Integration Options
+        style = self.coordinator.config_entry.data.get(
+            CONF_TRACKER_NAME_STYLE, CONF_TRACKER_NAME_DEFAULT
+        )
+
+        # Safely grab the flight data, falling back to 'N/A' if it's missing
+        callsign = self.info.get('callsign') or self.info.get('flight_number') or "Unknown"
+        reg = self.info.get('aircraft_registration') or callsign
+        origin = self.info.get('airport_origin_code_iata') or "N/A"
+        dest = self.info.get('airport_destination_code_iata') or "N/A"
+
+        # Piece the string together based on their preference!
+        if style == TRACKER_NAME_CALLSIGN_ROUTE:
+            return f"{callsign} ({origin} - {dest})"
+        elif style == TRACKER_NAME_REG_ROUTE:
+            return f"{reg} ({origin} - {dest})"
+
+        # Default fallback (Callsign only)
+        return callsign
