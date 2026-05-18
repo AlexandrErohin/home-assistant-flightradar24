@@ -36,7 +36,7 @@ class FlightRadar24ScanEntity(
             icon="mdi:connection",
             entity_category=EntityCategory.CONFIG,
         )
-        
+
         # FIXED: Lock down the unique ID using the entry_id
         self._attr_unique_id = f"{entry_id}_{DOMAIN}_{self.entity_description.key}"
 
@@ -53,7 +53,7 @@ class FlightRadar24ScanEntity(
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn the entity off."""
         self.coordinator.scanning = False
-        
+
         # --- THE PHANTOM PLANE FIX ---
         # 1. Manually empty the data lists in the flight processor
         if hasattr(self.coordinator, 'flight') and self.coordinator.flight is not None:
@@ -61,9 +61,9 @@ class FlightRadar24ScanEntity(
             self.coordinator.flight._entered = []
             self.coordinator.flight._exited = []
             self.coordinator.flight.clear_tracked()
-            
+
         # 2. Force the coordinator to broadcast this empty data to all sensors immediately
         self.coordinator.async_set_updated_data(None)
         # -----------------------------
-        
+
         self.async_write_ha_state()
