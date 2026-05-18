@@ -304,7 +304,11 @@ class FlightProcessor:
                              tracked: dict[str, dict[str, Any]],
                              sensor_type: FlightType | None = None,
                              ) -> None:
-        last_position = tracked[obj.id].get('on_ground') if tracked is not None and obj.id in tracked else None
+        previous_flight = tracked.get(obj.id) if tracked is not None else None
+        last_position = previous_flight.get('on_ground') if previous_flight is not None else None
+        previous_closest_distance = (
+            previous_flight.get('closest_distance') if previous_flight is not None else None
+        )
         if (tracked is not None and obj.id in tracked and self._is_valid(tracked[obj.id])
                 and to_int(last_position) == obj.on_ground):
             flight = tracked[obj.id]
@@ -323,7 +327,10 @@ class FlightProcessor:
             flight['aircraft_icao_24bit'] = getattr(obj, 'icao_24bit', '')
             new_distance = obj.get_distance_from(self._point)
             flight['distance'] = new_distance
-            flight['closest_distance'] = min(new_distance, flight.get('closest_distance', new_distance))
+            flight['closest_distance'] = min(
+                new_distance,
+                previous_closest_distance if previous_closest_distance is not None else new_distance,
+            )
             flight['on_ground'] = obj.on_ground
             self._takeoff_and_landing(flight, last_position, obj.on_ground, sensor_type)
 
