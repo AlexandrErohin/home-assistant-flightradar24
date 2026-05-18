@@ -37,6 +37,9 @@ _LOGGER = getLogger(__name__)
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    import logging
+    logging.getLogger("FlightRadarAPI").setLevel(logging.ERROR)
+    
     username = entry.data.get(CONF_USERNAME)
     password = entry.data.get(CONF_PASSWORD)
 
