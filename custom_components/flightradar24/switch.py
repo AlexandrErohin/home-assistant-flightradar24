@@ -5,6 +5,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers import entity_registry as er
 from .const import DOMAIN
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from .coordinator import FlightRadar24Coordinator
@@ -16,6 +17,16 @@ async def async_setup_entry(
         async_add_entities: AddEntitiesCallback,
 ) -> None:
     coordinator = hass.data[DOMAIN][entry.entry_id]
+
+    # --- DYNAMIC MIGRATION LOGIC FOR THE SWITCH ---
+    ent_reg = er.async_get(hass)
+    old_unique_id = f"{coordinator.unique_id}_{DOMAIN}_scanning"
+    new_unique_id = f"{entry.entry_id}_{DOMAIN}_scanning"
+    
+    if entity_id := ent_reg.async_get_entity_id("switch", DOMAIN, old_unique_id):
+        ent_reg.async_update_entity(entity_id, new_unique_id=new_unique_id)
+    # ----------------------------------------------
+
     # Pass the static entry_id into the switch to prevent duplicates!
     async_add_entities([FlightRadar24ScanEntity(coordinator, entry.entry_id)], False)
 
@@ -62,7 +73,13 @@ class FlightRadar24ScanEntity(
             self.coordinator.flight._exited = []
             self.coordinator.flight.clear_tracked()
 
-        # 2. Force the coordinator to broadcast this empty data to all sensors immediately
+        # 2. Empty the airport lists
+        if hasattr(self.coordinator, 'airport') and self.coordinator.airport is not None:
+            self.coordinator.airport.arrivals = []
+            self.coordinator.airport.departures = []
+            self.coordinator.airport.stats = None
+
+        # 3. Force the coordinator to broadcast this empty data immediately
         self.coordinator.async_set_updated_data(None)
         # -----------------------------
 
