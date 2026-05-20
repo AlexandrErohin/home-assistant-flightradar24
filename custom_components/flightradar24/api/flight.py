@@ -235,7 +235,8 @@ class FlightProcessor:
         # -------------------------------------------------------------------
 
         # --- LEFT GATE LOGIC ---
-        # Fire an event when a flight changes from 'schedule' to 'live' as per request https://github.com/AlexandrErohin/home-assistant-flightradar24/issues/171#issuecomment-4500639754
+        # Fire an event when a flight changes from 'schedule' to 'live'
+        # Issue context: https://github.com/AlexandrErohin/home-assistant-flightradar24/issues/171
         for fid, new_data in current.items():
             if new_data.get('tracked_type') == 'live':
                 number = new_data.get('flight_number') or new_data.get('callsign')
@@ -425,7 +426,7 @@ class FlightProcessor:
             'time_estimated_arrival': get_value(flight, ['time', 'estimated', 'arrival']),
         }
 
-    # --- IMPLEMENTED ALEXANDR'S FIX HERE ---
+    # --- IMPLEMENTED ALEXANDR'S FIX HERE SO I DONT FORGET ---
     def _is_valid(self, flight: dict) -> bool:
         if is_helicopter(flight):
             return flight.get("id") is not None
