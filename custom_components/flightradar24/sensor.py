@@ -110,9 +110,7 @@ SENSOR_TYPES: tuple[FlightRadar24SensorEntityDescription, ...] = (
         icon="mdi:airplane-landing",
         state_class=SensorStateClass.TOTAL,
         value=lambda coord: len(coord.airport.arrivals) if coord.airport.arrivals is not None else None,
-        attributes=lambda coord: (
-            {'flights': coord.airport.arrivals[:50]} if coord.airport.arrivals is not None else None
-        ),
+        attributes=lambda coord: {'flights': coord.airport.arrivals} if coord.airport.arrivals is not None else None,
     ),
     FlightRadar24SensorEntityDescription(
         key="airport_departures_on_time",
@@ -164,14 +162,6 @@ SENSOR_TYPES: tuple[FlightRadar24SensorEntityDescription, ...] = (
         attributes=lambda coord: (
             {'flights': coord.airport.departures[:50]} if coord.airport.departures is not None else None
         ),
-    ),
-    FlightRadar24SensorEntityDescription(
-        key="helicopters_in_area",
-        translation_key="helicopters_in_area",
-        icon="mdi:helicopter",
-        state_class=SensorStateClass.TOTAL,
-        value=lambda coord: len([f for f in coord.flight.in_area_list if is_helicopter(f)]),
-        attributes=lambda coord: {'flights': [f for f in coord.flight.in_area_list if is_helicopter(f)]},
     ),
     FlightRadar24SensorEntityDescription(
         key="helicopters_in_area",
