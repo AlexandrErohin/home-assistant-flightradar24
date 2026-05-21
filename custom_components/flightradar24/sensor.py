@@ -12,6 +12,7 @@ from homeassistant.core import HomeAssistant, callback
 from .const import DOMAIN
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
+from homeassistant.helpers import entity_registry as er  # Imported for migration
 from .coordinator import FlightRadar24Coordinator
 import datetime
 import copy
@@ -157,8 +158,9 @@ SENSOR_TYPES: tuple[FlightRadar24SensorEntityDescription, ...] = (
         icon="mdi:airplane-takeoff",
         state_class=SensorStateClass.TOTAL,
         value=lambda coord: len(coord.airport.departures) if coord.airport.departures is not None else None,
-        attributes=lambda coord: ({'flights': coord.airport.departures}
-                                  if coord.airport.departures is not None else None),
+        attributes=lambda coord: (
+            {'flights': coord.airport.departures[:50]} if coord.airport.departures is not None else None
+        ),
     ),
 )
 
@@ -177,12 +179,20 @@ RESTORE_SENSOR_TYPES: tuple[FlightRadar24SensorEntityDescription, ...] = (
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback) -> None:
     coordinator = hass.data[DOMAIN][entry.entry_id]
 
-    sensors = []
+    # --- DYNAMIC MIGRATION LOGIC TO PREVENT BREAKING CHANGES ---
+    ent_reg = er.async_get(hass)
+    for description in SENSOR_TYPES + RESTORE_SENSOR_TYPES:
+        old_unique_id = f"{coordinator.unique_id}_{DOMAIN}_{description.key}"
+        new_unique_id = f"{entry.entry_id}_{DOMAIN}_{description.key}"
+        # If an existing entity is found under the old coordinate-based ID, migrate it to the entry_id format!
+        if entity_id := ent_reg.async_get_entity_id("sensor", DOMAIN, old_unique_id):
+            ent_reg.async_update_entity(entity_id, new_unique_id=new_unique_id)
 
+    sensors = []
     for description in SENSOR_TYPES:
-        sensors.append(FlightRadar24Sensor(coordinator, description))
+        sensors.append(FlightRadar24Sensor(coordinator, description, entry.entry_id))
     for description in RESTORE_SENSOR_TYPES:
-        sensors.append(FlightRadar24RestoreSensor(coordinator, description))
+        sensors.append(FlightRadar24RestoreSensor(coordinator, description, entry.entry_id))
     async_add_entities(sensors, False)
 
 
@@ -194,13 +204,13 @@ class FlightRadar24Sensor(CoordinatorEntity[FlightRadar24Coordinator], SensorEnt
             self,
             coordinator: FlightRadar24Coordinator,
             description: FlightRadar24SensorEntityDescription,
+            entry_id: str,
     ) -> None:
         """Initialize."""
-        # Assign the description before initializing the base classes
         self.entity_description = description
         super().__init__(coordinator)
         self._attr_device_info = coordinator.device_info
-        self._attr_unique_id = f"{coordinator.unique_id}_{DOMAIN}_{description.key}"
+        self._attr_unique_id = f"{entry_id}_{DOMAIN}_{description.key}"
 
     @callback
     def _handle_coordinator_update(self) -> None:
