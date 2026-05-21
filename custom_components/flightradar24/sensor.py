@@ -158,9 +158,8 @@ SENSOR_TYPES: tuple[FlightRadar24SensorEntityDescription, ...] = (
         icon="mdi:airplane-takeoff",
         state_class=SensorStateClass.TOTAL,
         value=lambda coord: len(coord.airport.departures) if coord.airport.departures is not None else None,
-        attributes=lambda coord: (
-            {'flights': coord.airport.departures[:50]} if coord.airport.departures is not None else None
-        ),
+        attributes=lambda coord: ({'flights': coord.airport.departures}
+                                  if coord.airport.departures is not None else None),
     ),
 )
 

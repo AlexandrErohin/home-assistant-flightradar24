@@ -22,7 +22,7 @@ async def async_setup_entry(
     ent_reg = er.async_get(hass)
     old_unique_id = f"{coordinator.unique_id}_{DOMAIN}_scanning"
     new_unique_id = f"{entry.entry_id}_{DOMAIN}_scanning"
-    
+
     if entity_id := ent_reg.async_get_entity_id("switch", DOMAIN, old_unique_id):
         ent_reg.async_update_entity(entity_id, new_unique_id=new_unique_id)
     # ----------------------------------------------

@@ -10,7 +10,7 @@ Flightradar24 integration allows one to track overhead flights in a given region
 It allows you:
 1. Know how many flights in your area right now, or just have entered or exited it. And get list of flights with [full information](#flight) by every relevant flight for the sensor 
 2. Track a particular plane or planes no matter where it currently is, even if it is a scheduled flight
-3. Monitor daily statistics (like on time/delayed/canceled flights) of the selected airport
+3. Monitor daily statistics (like on time/delayed/canceled flights) of the [selected airport](https://github.com/AlexandrErohin/home-assistant-flightradar24#configuration)
 4. Get [top 10 most tracked flights on FlightRadar24](#most-tracked) 
 5. Create notifications (example - [Get a notification when a flight enters or exits your area](#notification-enters), [Get a notification when a tracked scheduled flight takes off](#notification-scheduled))
 6. Create automations (example - [Automatically track a flight by your needs](#automation))
@@ -33,6 +33,7 @@ It allows you:
  - flightradar24_tracked_landed: Fired when a tracked flight lands.
  - flightradar24_tracked_took_off: Fired when a tracked flight takes off.
  - flightradar24_tracked_arrived_gate: Fired when a tracked flight removed from the tracked list.
+ - flightradar24_tracked_left_gate: Fired when a tracked flight left gate.
 
 ### Sensors
  - Current in area - Current flights in your area
@@ -52,7 +53,6 @@ It allows you:
  - Airport departures delay average - Average departures delay for the selected airport today
  - Airport departures delay index - Disruption departures index for the selected airport today
  - Airport departures canceled - Amount of canceled departures for the selected airport today
- - Helicopters in area
 
 ### <a id="device-tracker">Device Tracker</a>
 You may be interested to add a live flight as device_tracker with the flight information to a person in HA.
@@ -352,6 +352,7 @@ recorder:
 | aircraft_model                      | Aircraft model                                                                                                                                                                                              |
 | aircraft_code                       | Aircraft code                                                                                                                                                                                               |
 | aircraft_icao_24bit                 | Unique aircraft ID                                                                                                                                                                                          |
+| aircraft_category                   | Aircraft category (example: Helicopter or Airplane)                                                                                                                                                         |
 | airline                             | Airline full name                                                                                                                                                                                           |
 | airline_short                       | Airline short name                                                                                                                                                                                          |
 | airline_iata                        | Airline IATA code                                                                                                                                                                                           |
