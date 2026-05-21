@@ -332,6 +332,7 @@ class FlightProcessor:
                 previous_closest_distance if previous_closest_distance is not None else new_distance,
             )
             flight['on_ground'] = obj.on_ground
+            flight['aircraft_category'] = "Helicopter" if is_helicopter(flight) else "Airplane"
             self._takeoff_and_landing(flight, last_position, obj.on_ground, sensor_type)
 
     def _takeoff_and_landing(self,
