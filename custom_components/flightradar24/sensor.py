@@ -13,7 +13,6 @@ from .const import DOMAIN
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from .coordinator import FlightRadar24Coordinator
-from .api.flight import is_helicopter
 import datetime
 import copy
 
@@ -160,14 +159,6 @@ SENSOR_TYPES: tuple[FlightRadar24SensorEntityDescription, ...] = (
         value=lambda coord: len(coord.airport.departures) if coord.airport.departures is not None else None,
         attributes=lambda coord: ({'flights': coord.airport.departures}
                                   if coord.airport.departures is not None else None),
-    ),
-    FlightRadar24SensorEntityDescription(
-        key="helicopters_in_area",
-        translation_key="helicopters_in_area",
-        icon="mdi:helicopter",
-        state_class=SensorStateClass.TOTAL,
-        value=lambda coord: len([f for f in coord.flight.in_area_list if is_helicopter(f)]),
-        attributes=lambda coord: {'flights': [f for f in coord.flight.in_area_list if is_helicopter(f)]},
     ),
 )
 
