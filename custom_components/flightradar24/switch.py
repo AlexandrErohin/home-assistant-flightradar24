@@ -10,7 +10,6 @@ from .const import DOMAIN
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from .coordinator import FlightRadar24Coordinator
 
-
 async def async_setup_entry(
         hass: HomeAssistant,
         entry: ConfigEntry,
@@ -22,14 +21,17 @@ async def async_setup_entry(
     ent_reg = er.async_get(hass)
     old_unique_id = f"{coordinator.unique_id}_{DOMAIN}_scanning"
     new_unique_id = f"{entry.entry_id}_{DOMAIN}_scanning"
-
+    
     if entity_id := ent_reg.async_get_entity_id("switch", DOMAIN, old_unique_id):
-        ent_reg.async_update_entity(entity_id, new_unique_id=new_unique_id)
+        # Bulletproof check: Only migrate if the new ID isn't already taken!
+        if not ent_reg.async_get_entity_id("switch", DOMAIN, new_unique_id):
+            try:
+                ent_reg.async_update_entity(entity_id, new_unique_id=new_unique_id)
+            except ValueError:
+                pass
     # ----------------------------------------------
 
-    # Pass the static entry_id into the switch to prevent duplicates!
     async_add_entities([FlightRadar24ScanEntity(coordinator, entry.entry_id)], False)
-
 
 class FlightRadar24ScanEntity(
     CoordinatorEntity[FlightRadar24Coordinator], SwitchEntity
@@ -66,20 +68,17 @@ class FlightRadar24ScanEntity(
         self.coordinator.scanning = False
 
         # --- THE PHANTOM PLANE FIX ---
-        # 1. Manually empty the data lists in the flight processor
         if hasattr(self.coordinator, 'flight') and self.coordinator.flight is not None:
             self.coordinator.flight._in_area = {}
             self.coordinator.flight._entered = []
             self.coordinator.flight._exited = []
             self.coordinator.flight.clear_tracked()
 
-        # 2. Empty the airport lists
         if hasattr(self.coordinator, 'airport') and self.coordinator.airport is not None:
             self.coordinator.airport.arrivals = []
             self.coordinator.airport.departures = []
             self.coordinator.airport.stats = None
 
-        # 3. Force the coordinator to broadcast this empty data immediately
         self.coordinator.async_set_updated_data(None)
         # -----------------------------
 
