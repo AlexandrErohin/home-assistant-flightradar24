@@ -185,7 +185,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
         new_unique_id = f"{entry.entry_id}_{DOMAIN}_{description.key}"
         
         if entity_id := ent_reg.async_get_entity_id("sensor", DOMAIN, old_unique_id):
-            # Bulletproof check: Only migrate if the new ID isn't already taken!
             if not ent_reg.async_get_entity_id("sensor", DOMAIN, new_unique_id):
                 try:
                     ent_reg.async_update_entity(entity_id, new_unique_id=new_unique_id)
