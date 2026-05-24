@@ -183,9 +183,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
     for description in SENSOR_TYPES + RESTORE_SENSOR_TYPES:
         old_unique_id = f"{coordinator.unique_id}_{DOMAIN}_{description.key}"
         new_unique_id = f"{entry.entry_id}_{DOMAIN}_{description.key}"
-        # If an existing entity is found under the old coordinate-based ID, migrate it to the entry_id format!
         if entity_id := ent_reg.async_get_entity_id("sensor", DOMAIN, old_unique_id):
-            ent_reg.async_update_entity(entity_id, new_unique_id=new_unique_id)
+            # Bulletproof check: Only migrate if the new ID isn't already taken!
+            if not ent_reg.async_get_entity_id("sensor", DOMAIN, new_unique_id):
+                try:
+                    ent_reg.async_update_entity(entity_id, new_unique_id=new_unique_id)
+                except ValueError:
+                    pass
+    # -----------------------------------------------------------
 
     sensors = []
     for description in SENSOR_TYPES:
