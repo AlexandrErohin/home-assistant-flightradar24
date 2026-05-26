@@ -1,0 +1,39 @@
+name: Community Greeter
+
+on:
+  issues:
+    types: [opened]
+  pull_request_target:
+    types: [opened]
+
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  welcome:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Welcome New Issues
+        if: github.event_name == 'issues' && github.event.action == 'opened'
+        uses: actions/github-script@v9
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: "👋 Thanks for opening this issue! I am an automated bot. Please make sure you have included your Home Assistant logs and the version of the integration you are using. The maintainer will take a look shortly!"
+            })
+
+      - name: Welcome Pull Requests
+        if: github.event_name == 'pull_request_target' && github.event.action == 'opened'
+        uses: actions/github-script@v9
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: "🎉 Thank you for contributing to Airplanes Live! Your Pull Request has been received. Our automated tests (Hassfest, Ruff, etc.) will run shortly. If anything fails, don't worry—just check the logs and update your branch!"
+            })

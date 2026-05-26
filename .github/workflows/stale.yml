@@ -1,0 +1,37 @@
+name: Housekeeping - Mark Stale Issues
+
+on:
+  schedule:
+    # Runs automatically every day at midnight UTC
+    - cron: "0 0 * * *"
+  # Allows you to trigger it manually from the GitHub Actions tab just in case
+  workflow_dispatch: 
+
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/stale@v10
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          
+          # The message the bot leaves on old issues
+          stale-issue-message: "This issue has been automatically marked as stale because it has not had recent activity. It will be closed in 7 days if no further activity occurs. Thank you for your bug reports!"
+          
+          # The message the bot leaves on old Pull Requests
+          stale-pr-message: "This pull request has been automatically marked as stale because it has not had recent activity. It will be closed in 7 days if no further activity occurs."
+          
+          # The label it applies
+          stale-issue-label: "stale"
+          stale-pr-label: "stale"
+          
+          # The timeline
+          days-before-stale: 60
+          days-before-close: 7
+          
+          # Issues with these labels will never be marked stale (great for confirmed bugs or feature requests you want to keep tracking)
+          exempt-issue-labels: "bug,enhancement,pinned"

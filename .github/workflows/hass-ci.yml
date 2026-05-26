@@ -1,0 +1,45 @@
+#CREATED BY DONTRANQUIL 
+name: Home Assistant CI
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - "custom_components/**"
+      - "tests/**"
+      - "requirements_test.txt"
+      - ".github/workflows/hass-ci.yml"
+  pull_request:
+    branches: [ main ]
+    paths:
+      - "custom_components/**"
+      - "tests/**"
+      - "requirements_test.txt"
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements_test.txt ]; then pip install -r requirements_test.txt; fi
+          pip install pytest pytest-asyncio pytest-homeassistant-custom-component pytest-cov respx
+
+      - name: Run tests
+        run: |
+          pytest -v tests/ --cov=custom_components/flightradar24/ --cov-report=xml
