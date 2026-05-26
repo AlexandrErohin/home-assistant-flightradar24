@@ -29,6 +29,21 @@ class FlightRadar24SensorEntityDescription(SensorEntityDescription, FlightRadar2
     """A class that describes sensor entities."""
 
 
+def _get_slim_timetable(flights: list[dict[str, Any]] | None) -> list[dict[str, Any]] | None:
+    """Filter flight keys to reduce payload size under 16KB for the recorder."""
+    if not flights:
+        return None
+    keys = {
+        "id", "flight_number", "callsign", "aircraft_registration", "aircraft_model",
+        "aircraft_code", "airline", "airline_short", "airline_iata", "airline_icao",
+        "airport_origin_code_iata", "airport_origin_city", "airport_destination_code_iata",
+        "airport_destination_city", "time_scheduled_departure", "time_scheduled_arrival",
+        "time_estimated_departure", "time_estimated_arrival", "time_real_departure", "time_real_arrival"
+    }
+    # Limit to 40 flights: Keeps users happy with a large timetable, but guarantees <16KB
+    return [{k: v for k, v in flight.items() if k in keys} for flight in flights][:40]
+
+
 SENSOR_TYPES: tuple[FlightRadar24SensorEntityDescription, ...] = (
     FlightRadar24SensorEntityDescription(
         key="in_area",
@@ -109,7 +124,10 @@ SENSOR_TYPES: tuple[FlightRadar24SensorEntityDescription, ...] = (
         icon="mdi:airplane-landing",
         state_class=SensorStateClass.TOTAL,
         value=lambda coord: len(coord.airport.arrivals) if coord.airport.arrivals is not None else None,
-        attributes=lambda coord: {'flights': coord.airport.arrivals} if coord.airport.arrivals is not None else None,
+        attributes=lambda coord: (
+            {'flights': _get_slim_timetable(coord.airport.arrivals)}
+            if coord.airport.arrivals is not None else None
+        ),
     ),
     FlightRadar24SensorEntityDescription(
         key="airport_departures_on_time",
@@ -158,8 +176,10 @@ SENSOR_TYPES: tuple[FlightRadar24SensorEntityDescription, ...] = (
         icon="mdi:airplane-takeoff",
         state_class=SensorStateClass.TOTAL,
         value=lambda coord: len(coord.airport.departures) if coord.airport.departures is not None else None,
-        attributes=lambda coord: ({'flights': coord.airport.departures}
-                                  if coord.airport.departures is not None else None),
+        attributes=lambda coord: (
+            {'flights': _get_slim_timetable(coord.airport.departures)}
+            if coord.airport.departures is not None else None
+        ),
     ),
 )
 
@@ -215,6 +235,9 @@ class FlightRadar24Sensor(CoordinatorEntity[FlightRadar24Coordinator], SensorEnt
         super().__init__(coordinator)
         self._attr_device_info = coordinator.device_info
         self._attr_unique_id = f"{entry_id}_{DOMAIN}_{description.key}"
+        
+        # FORCE STATIC ENTITY ID TO PREVENT TRANSLATION ISSUES BREAKING TEMPLATES
+        self.entity_id = f"sensor.{DOMAIN}_{description.key}"
 
     @callback
     def _handle_coordinator_update(self) -> None:
