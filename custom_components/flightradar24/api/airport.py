@@ -63,6 +63,11 @@ class AirportProcessor:
         self._arrivals = None
         self._departures = None
 
+    def clear_live_data(self) -> None:
+        self._stats = None
+        self._arrivals = None
+        self._departures = None
+
     def update_airport_info(self, code: str = None) -> None:
         if not self._code and not code:
             return

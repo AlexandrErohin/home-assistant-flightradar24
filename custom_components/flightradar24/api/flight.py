@@ -126,6 +126,17 @@ class FlightProcessor:
     def exited_list(self) -> list[dict[str, Any]]:
         return self._exited
 
+    def clear_live_data(self) -> None:
+        self._in_area = {}
+        self._most_tracked = {}
+        self._entered = []
+        self._exited = []
+        self._tracked = {key: {
+            'aircraft_registration': value.get('aircraft_registration'),
+            'flight_number': value.get('flight_number'),
+            'callsign': value.get('callsign'),
+        } for key, value in self._tracked.items()}
+
     def clear_tracked(self) -> None:
         self._tracked = {}
 

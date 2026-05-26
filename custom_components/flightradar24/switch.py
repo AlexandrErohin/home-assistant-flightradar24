@@ -97,26 +97,9 @@ class FlightRadar24ScanEntity(
         """Turn the entity off."""
         self.coordinator.scanning = False
 
-        # --- THE PHANTOM PLANE FIX ---
-        if (
-            hasattr(self.coordinator, "flight")
-            and self.coordinator.flight is not None
-        ):
-            self.coordinator.flight._in_area = {}
-            self.coordinator.flight._entered = []
-            self.coordinator.flight._exited = []
-            self.coordinator.flight.clear_tracked()
-
-        if (
-            hasattr(self.coordinator, "airport")
-            and self.coordinator.airport is not None
-        ):
-            self.coordinator.airport.arrivals = []
-            self.coordinator.airport.departures = []
-            self.coordinator.airport.stats = None
+        self.coordinator.flight.clear_live_data()
+        self.coordinator.airport.clear_live_data()
 
         self.coordinator.async_set_updated_data(None)
-
-        # -----------------------------
 
         self.async_write_ha_state()
