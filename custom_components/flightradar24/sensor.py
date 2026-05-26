@@ -236,7 +236,7 @@ class FlightRadar24Sensor(CoordinatorEntity[FlightRadar24Coordinator], SensorEnt
         self._attr_device_info = coordinator.device_info
         self._attr_unique_id = f"{entry_id}_{DOMAIN}_{description.key}"
         
-        # FORCE STATIC ENTITY ID TO PREVENT TRANSLATION ISSUES BREAKING TEMPLATES
+        # FORCE STATIC ENTITY ID TO PREVENT TRANSLATION ISSUES
         self.entity_id = f"sensor.{DOMAIN}_{description.key}"
 
     @callback
