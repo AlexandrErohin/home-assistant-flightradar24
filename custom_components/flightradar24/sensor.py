@@ -253,10 +253,10 @@ class FlightRadar24Sensor(CoordinatorEntity[FlightRadar24Coordinator], SensorEnt
 
 
 class FlightRadar24RestoreSensor(FlightRadar24Sensor, RestoreSensor):
-    
+
     # WE MUST RECORD THIS SPECIFIC SENSOR TO RESTORE TRACKED FLIGHTS ON REBOOT
     _unrecorded_attributes = frozenset()
-    
+
     async def async_added_to_hass(self):
         """Restore state on startup."""
         await super().async_added_to_hass()
