@@ -1,35 +1,66 @@
-name: "Release"
+name: Release
 
 on:
   release:
     types:
-      - "published"
+      - published
 
-permissions: {}
+permissions:
+  contents: write
 
 jobs:
   release:
-    name: "Release"
-    runs-on: "ubuntu-latest"
-    permissions:
-      contents: write
+    runs-on: ubuntu-latest
+
     steps:
-      - name: "Checkout the repository"
-        uses: "actions/checkout@v4"
-
-      - name: "Adjust version number"
-        shell: "bash"
-        run: |
-          yq -i -o json '.version="${{ github.event.release.tag_name }}"' \
-            "${{ github.workspace }}/custom_components/flightradar24/manifest.json"
-
-      - name: "ZIP the integration directory"
-        shell: "bash"
-        run: |
-          cd "${{ github.workspace }}/custom_components/flightradar24"
-          zip flightradar24.zip -r ./
-
-      - name: "Upload the ZIP file to the release"
-        uses: softprops/action-gh-release@v2
+      - name: Checkout repository
+        uses: actions/checkout@v6
         with:
-          files: ${{ github.workspace }}/custom_components/flightradar24/flightradar24.zip
+          fetch-depth: 0
+
+      - name: Detect integration
+        id: integration
+        run: |
+          INTEGRATION=$(find custom_components -mindepth 1 -maxdepth 1 -type d | head -n 1 | xargs basename)
+
+          echo "integration=$INTEGRATION" >> $GITHUB_OUTPUT
+
+          echo "Detected integration: $INTEGRATION"
+
+      - name: Update manifest version
+        run: |
+          VERSION=${GITHUB_REF_NAME#v}
+          INTEGRATION=${{ steps.integration.outputs.integration }}
+
+          sudo apt-get update
+          sudo apt-get install -y jq
+
+          MANIFEST="custom_components/$INTEGRATION/manifest.json"
+
+          tmp=$(mktemp)
+
+          jq --arg version "$VERSION" \
+            '.version = $version' \
+            "$MANIFEST" > "$tmp"
+
+          mv "$tmp" "$MANIFEST"
+
+      - name: Commit and push changes
+        uses: stefanzweifel/git-auto-commit-action@v7
+        with:
+          commit_message: "Bump manifest version to ${{ github.ref_name }} [skip ci]"
+          file_pattern: "custom_components/**/manifest.json"
+          branch: main
+
+      - name: Create ZIP
+        run: |
+          INTEGRATION=${{ steps.integration.outputs.integration }}
+
+          cd custom_components/$INTEGRATION
+
+          zip -r "$INTEGRATION.zip" ./*
+
+      - name: Upload release asset
+        uses: softprops/action-gh-release@v3
+        with:
+          files: custom_components/${{ steps.integration.outputs.integration }}/${{ steps.integration.outputs.integration }}.zip

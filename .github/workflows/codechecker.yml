@@ -1,11 +1,39 @@
 name: Code Checker
+
 on:
   push:
   pull_request:
+
+# We need write permissions so the bot can commit the fixes back to your repo
+permissions:
+  contents: write
+
 jobs:
-  ci:
+  lint:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
-      - name: Run flake8
-        uses: py-actions/flake8@v2
+      - uses: actions/checkout@v6
+        with:
+          # Required so the bot can push changes back
+          fetch-depth: 0 
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install ruff
+        run: pip install ruff
+
+      - name: Auto-fix and format Python code
+        run: |
+          # The --fix flag tells Ruff to resolve safe errors (like unused imports)
+          ruff check --fix .
+          # This formats the code to ensure spacing and line lengths are perfect
+          ruff format .
+
+      - name: Commit changes back to branch
+        uses: stefanzweifel/git-auto-commit-action@v7
+        with:
+          # Automatically commits the fixes. [skip ci] prevents an infinite loop of checks.
+          commit_message: "style: auto-fix ruff linting and formatting [skip ci]"
