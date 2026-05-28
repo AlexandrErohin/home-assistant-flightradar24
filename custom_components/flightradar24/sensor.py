@@ -14,7 +14,6 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.helpers import entity_registry as er  # Imported for migration
 from .coordinator import FlightRadar24Coordinator
-import datetime
 import copy
 
 
@@ -157,9 +156,16 @@ SENSOR_TYPES: tuple[FlightRadar24SensorEntityDescription, ...] = (
         translation_key="airport_departures",
         icon="mdi:airplane-takeoff",
         state_class=SensorStateClass.TOTAL,
-        value=lambda coord: len(coord.airport.departures) if coord.airport.departures is not None else None,
-        attributes=lambda coord: ({'flights': coord.airport.departures}
-                                  if coord.airport.departures is not None else None),
+        value=lambda coord: (
+            len(coord.airport.departures)
+            if coord.airport.departures is not None
+            else None
+        ),
+        attributes=lambda coord: (
+            {"flights": coord.airport.departures}
+            if coord.airport.departures is not None
+            else None
+        ),
     ),
 )
 
@@ -170,7 +176,7 @@ RESTORE_SENSOR_TYPES: tuple[FlightRadar24SensorEntityDescription, ...] = (
         icon="mdi:airplane",
         state_class=SensorStateClass.TOTAL,
         value=lambda coord: len(coord.flight.tracked_list),
-        attributes=lambda coord: {'flights': coord.flight.tracked_list},
+        attributes=lambda coord: {"flights": coord.flight.tracked_list},
     ),
 )
 
@@ -204,6 +210,9 @@ class FlightRadar24Sensor(CoordinatorEntity[FlightRadar24Coordinator], SensorEnt
     _attr_has_entity_name = True
     entity_description: FlightRadar24SensorEntityDescription
 
+    # TELL THE RECORDER TO IGNORE THE MASSIVE FLIGHTS ARRAY
+    _unrecorded_attributes = frozenset({"flights"})
+
     def __init__(
             self,
             coordinator: FlightRadar24Coordinator,
@@ -221,9 +230,7 @@ class FlightRadar24Sensor(CoordinatorEntity[FlightRadar24Coordinator], SensorEnt
         """Handle updated data from the coordinator."""
         self._attr_native_value = self.entity_description.value(self.coordinator)
         if self.entity_description.attributes and self.entity_description.attributes(self.coordinator) is not None:
-            new_attributes = copy.deepcopy(self.entity_description.attributes(self.coordinator))
-            new_attributes["last_updated"] = datetime.datetime.now().isoformat()
-            self._attr_extra_state_attributes = new_attributes
+            self._attr_extra_state_attributes = copy.deepcopy(self.entity_description.attributes(self.coordinator))
         self.async_write_ha_state()
 
     @property
@@ -233,6 +240,10 @@ class FlightRadar24Sensor(CoordinatorEntity[FlightRadar24Coordinator], SensorEnt
 
 
 class FlightRadar24RestoreSensor(FlightRadar24Sensor, RestoreSensor):
+
+    # WE MUST RECORD THIS SPECIFIC SENSOR TO RESTORE TRACKED FLIGHTS ON REBOOT
+    _unrecorded_attributes = frozenset()
+
     async def async_added_to_hass(self):
         """Restore state on startup."""
         await super().async_added_to_hass()
