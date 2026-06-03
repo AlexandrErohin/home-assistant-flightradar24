@@ -45,7 +45,6 @@ Track flights above your location, monitor airports, follow specific aircraft wo
 - 📊 View airport delay and cancellation statistics
 - 🗺️ Add live flight maps to Home Assistant dashboards
 - 📱 Track flights as Home Assistant `device_tracker`
-- 📈 View historical flight activity
 - 🔥 Monitor the top 10 most tracked flights on Flightradar24
 
 ---
@@ -230,7 +229,6 @@ You can configure:
 | Other tracking | Description |
 |---|---|
 | `Most tracked flights` | The most tracked flights |
-| `Historical flights` |  Historical flights |
 
 
 <br>
