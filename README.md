@@ -267,9 +267,8 @@ before copying YAML examples.
 ### <a id="device-tracker">Device Tracker</a>
 You may be interested to add a live flight as device_tracker with the flight information to a person in HA.
 To use it - you need to activate this feature in [Edit Configuration](#edit-configuration).
-When it is enabled - this integration creates device_tracker with static name `device_tracker.flightradar24` and
-this device_tracker updates when there is a live flight in the additional tracked list.
-It works ONLY with one live flight from the additional tracked list at a time!
+When it is enabled, this integration creates a separate `device_tracker` for each live flight in the additional tracked list.
+Each tracker uses the configured map tracker naming style and updates independently while that flight remains live.
 
 ### Configuration
  - Add to track - Pass flight number or call sign or aircraft registration number to track flight outside your area. It adds flight to Additional tracked sensor

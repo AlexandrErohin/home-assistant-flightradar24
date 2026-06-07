@@ -1,4 +1,6 @@
 from __future__ import annotations
+from typing import Any
+
 from homeassistant.components.device_tracker.config_entry import TrackerEntity
 from homeassistant.components.device_tracker.const import SourceType
 from homeassistant.config_entries import ConfigEntry
@@ -15,6 +17,14 @@ from .const import (
 )
 
 
+def _live_tracked_flights(coordinator: FlightRadar24Coordinator) -> dict[str, dict[str, Any]]:
+    return {
+        flight_id: flight
+        for flight_id, flight in coordinator.flight.tracked.items()
+        if flight.get('tracked_type') == 'live'
+    }
+
+
 async def async_setup_entry(
         hass: HomeAssistant,
         entry: ConfigEntry,
@@ -24,51 +34,54 @@ async def async_setup_entry(
     if not coordinator.enable_tracker:
         return
 
-    tracked = FlightRadar24Tracker(coordinator)
-    async_add_entities([tracked])
+    tracked: dict[str, FlightRadar24Tracker] = {}
 
     @callback
-    def coordinator_updated():
-        """Update the status of the device."""
-        update_items(coordinator, tracked)
+    def add_new_trackers() -> None:
+        """Add a device tracker for each live tracked flight."""
+        if not coordinator.enable_tracker:
+            return
 
-    entry.async_on_unload(coordinator.async_add_listener(coordinator_updated))
-    coordinator_updated()
+        new_entities: list[FlightRadar24Tracker] = []
+        for flight_id in _live_tracked_flights(coordinator):
+            if flight_id in tracked:
+                continue
 
+            tracker = FlightRadar24Tracker(coordinator, entry.entry_id, flight_id)
+            tracked[flight_id] = tracker
+            new_entities.append(tracker)
 
-@callback
-def update_items(coordinator: FlightRadar24Coordinator, tracked: FlightRadar24Tracker) -> None:
-    if not coordinator.enable_tracker:
-        return
+        if new_entities:
+            async_add_entities(new_entities)
 
-    if not tracked.info:
-        for flight in coordinator.flight.tracked.values():
-            if flight.get('tracked_type') == 'live':
-                tracked.info = flight
-                break
-    else:
-        flight = coordinator.flight.tracked.get(tracked.info['id'])
-        if flight and flight.get('tracked_type') == 'live':
-            tracked.info = coordinator.flight.tracked.get(tracked.info['id'])
-        else:
-            tracked.info = {}
+    entry.async_on_unload(coordinator.async_add_listener(add_new_trackers))
+    add_new_trackers()
 
 
 class FlightRadar24Tracker(CoordinatorEntity, TrackerEntity):
-    def __init__(self, coordinator: FlightRadar24Coordinator) -> None:
-        self.info = {}
+    def __init__(self, coordinator: FlightRadar24Coordinator, entry_id: str, flight_id: str) -> None:
+        self.flight_id = flight_id
         super().__init__(coordinator)
+        self._attr_device_info = coordinator.device_info
+        self._attr_unique_id = f"{entry_id}_{DOMAIN}_{flight_id}"
+
+    @property
+    def info(self) -> dict[str, Any]:
+        flight = self.coordinator.flight.tracked.get(self.flight_id)
+        if flight and flight.get('tracked_type') == 'live':
+            return flight
+        return {}
+
+    @property
+    def available(self) -> bool:
+        return bool(self.info)
 
     @property
     def source_type(self) -> SourceType:
         return SourceType.GPS
 
     @property
-    def unique_id(self) -> str:
-        return f"{self.coordinator.unique_id}_{DOMAIN}"
-
-    @property
-    def extra_state_attributes(self) -> dict[str, str]:
+    def extra_state_attributes(self) -> dict[str, Any]:
         return self.info
 
     @property
