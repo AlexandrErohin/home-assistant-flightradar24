@@ -27,6 +27,18 @@ def _live_tracked_flights(coordinator: FlightRadar24Coordinator) -> list[dict[st
     ]
 
 
+@callback
+def _remove_bad_registry_entries(ent_reg: er.EntityRegistry) -> None:
+    """Remove entities created with a non-serializable unique ID."""
+    for entity_entry in list(ent_reg.entities.values()):
+        if (
+                entity_entry.domain == "device_tracker"
+                and entity_entry.platform == DOMAIN
+                and not isinstance(entity_entry.unique_id, str)
+        ):
+            ent_reg.async_remove(entity_entry.entity_id)
+
+
 async def async_setup_entry(
         hass: HomeAssistant,
         entry: ConfigEntry,
@@ -35,6 +47,7 @@ async def async_setup_entry(
     coordinator = hass.data[DOMAIN][entry.entry_id]
 
     ent_reg = er.async_get(hass)
+    _remove_bad_registry_entries(ent_reg)
     old_unique_id = f"{coordinator.unique_id}_{DOMAIN}"
     if entity_id := ent_reg.async_get_entity_id("device_tracker", DOMAIN, old_unique_id):
         ent_reg.async_remove(entity_id)
@@ -57,10 +70,11 @@ async def async_setup_entry(
             if entity_id := ent_reg.async_get_entity_id(
                     "device_tracker",
                     DOMAIN,
-                    FlightRadar24Tracker.unique_id(entry.entry_id, tracker_key),
+                    FlightRadar24Tracker.make_unique_id(entry.entry_id, tracker_key),
             ):
                 ent_reg.async_remove(entity_id)
-            hass.async_create_task(tracker.async_remove())
+            if tracker.hass is not None:
+                hass.async_create_task(tracker.async_remove())
 
         if not coordinator.enable_tracker:
             return
@@ -88,10 +102,10 @@ class FlightRadar24Tracker(CoordinatorEntity, TrackerEntity):
         super().__init__(coordinator)
         self._info = self._find_info()
         self._attr_device_info = coordinator.device_info
-        self._attr_unique_id = self.unique_id(entry_id, tracker_key)
+        self._attr_unique_id = self.make_unique_id(entry_id, tracker_key)
 
     @staticmethod
-    def unique_id(entry_id: str, tracker_key: str) -> str:
+    def make_unique_id(entry_id: str, tracker_key: str) -> str:
         return f"{entry_id}_{DOMAIN}_{tracker_key}"
 
     def _find_info(self) -> dict[str, Any]:

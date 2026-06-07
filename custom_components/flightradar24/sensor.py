@@ -183,11 +183,24 @@ RESTORE_SENSOR_TYPES: tuple[FlightRadar24SensorEntityDescription, ...] = (
 )
 
 
+@callback
+def _remove_bad_registry_entries(ent_reg: er.EntityRegistry) -> None:
+    """Remove entities created with a non-serializable unique ID."""
+    for entity_entry in list(ent_reg.entities.values()):
+        if (
+                entity_entry.domain == "sensor"
+                and entity_entry.platform == DOMAIN
+                and not isinstance(entity_entry.unique_id, str)
+        ):
+            ent_reg.async_remove(entity_entry.entity_id)
+
+
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback) -> None:
     coordinator = hass.data[DOMAIN][entry.entry_id]
 
     # --- DYNAMIC MIGRATION LOGIC TO PREVENT BREAKING CHANGES ---
     ent_reg = er.async_get(hass)
+    _remove_bad_registry_entries(ent_reg)
     for description in SENSOR_TYPES + RESTORE_SENSOR_TYPES:
         old_unique_id = f"{coordinator.unique_id}_{DOMAIN}_{description.key}"
         new_unique_id = f"{entry.entry_id}_{DOMAIN}_{description.key}"
@@ -222,10 +235,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
             if entity_id := ent_reg.async_get_entity_id(
                     "sensor",
                     DOMAIN,
-                    FlightRadar24TrackedFlightSensor.unique_id(entry.entry_id, tracker_key),
+                    FlightRadar24TrackedFlightSensor.make_unique_id(entry.entry_id, tracker_key),
             ):
                 ent_reg.async_remove(entity_id)
-            hass.async_create_task(sensor.async_remove())
+            if sensor.hass is not None:
+                hass.async_create_task(sensor.async_remove())
 
         new_entities: list[FlightRadar24TrackedFlightSensor] = []
         for flight in coordinator.flight.tracked_list:
@@ -311,10 +325,10 @@ class FlightRadar24TrackedFlightSensor(CoordinatorEntity[FlightRadar24Coordinato
         self.tracker_key = tracker_key
         super().__init__(coordinator)
         self._attr_device_info = coordinator.device_info
-        self._attr_unique_id = self.unique_id(entry_id, tracker_key)
+        self._attr_unique_id = self.make_unique_id(entry_id, tracker_key)
 
     @staticmethod
-    def unique_id(entry_id: str, tracker_key: str) -> str:
+    def make_unique_id(entry_id: str, tracker_key: str) -> str:
         return f"{entry_id}_{DOMAIN}_tracked_flight_{tracker_key}"
 
     @property
