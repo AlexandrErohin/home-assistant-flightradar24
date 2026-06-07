@@ -335,6 +335,7 @@ class FlightRadar24RestoreSensor(FlightRadar24Sensor, RestoreSensor):
 class FlightRadar24TrackedFlightSensor(CoordinatorEntity[FlightRadar24Coordinator], SensorEntity):
     _attr_has_entity_name = True
     _attr_icon = "mdi:airplane"
+    _attr_state_class = SensorStateClass.TOTAL
     _unrecorded_attributes = frozenset({"flights", "flight"})
 
     def __init__(
@@ -367,11 +368,11 @@ class FlightRadar24TrackedFlightSensor(CoordinatorEntity[FlightRadar24Coordinato
         return "Tracked flight"
 
     @property
-    def native_value(self) -> str | None:
+    def native_value(self) -> int | None:
         flight = self.flight
         if not flight:
             return None
-        return flight.get("tracked_type") or "tracked"
+        return 1
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
@@ -381,6 +382,7 @@ class FlightRadar24TrackedFlightSensor(CoordinatorEntity[FlightRadar24Coordinato
         return {
             "flights": [flight],
             "flight": flight,
+            "tracked_type": flight.get("tracked_type"),
             "last_updated": datetime.datetime.now().isoformat(),
         }
 
