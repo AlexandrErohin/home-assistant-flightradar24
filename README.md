@@ -270,6 +270,17 @@ To use it - you need to activate this feature in [Edit Configuration](#edit-conf
 When it is enabled, this integration creates a separate `device_tracker` for each live flight in the additional tracked list.
 Each tracker uses the configured map tracker naming style and updates independently while that flight remains live.
 
+### Tracked Flight Card Sensors
+For each flight in the Additional tracked list, the integration also creates a separate sensor named like `sensor.flightradar24_tracked_flight_<flight>`.
+Each of these sensors exposes a single flight in its `flights` attribute, so it can be used directly with cards that expect a Flightradar24 sensor, such as [flightradar-flight-card](https://github.com/plckr/flightradar-flight-card).
+
+```yaml
+type: custom:flightradar-flight-card
+entities:
+  - entity_id: sensor.flightradar24_tracked_flight_ba123
+    title: BA123
+```
+
 ### Configuration
  - Add to track - Pass flight number or call sign or aircraft registration number to track flight outside your area. It adds flight to Additional tracked sensor
  - Remove from track - Pass flight number or call sign or aircraft registration number to remove a flight from Additional tracked sensor

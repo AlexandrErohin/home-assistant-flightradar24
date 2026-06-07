@@ -14,6 +14,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.helpers import entity_registry as er  # Imported for migration
 from .coordinator import FlightRadar24Coordinator
+from .flight_key import flight_display_name, flight_tracker_key
 import datetime
 import copy
 
@@ -206,6 +207,27 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
         sensors.append(FlightRadar24RestoreSensor(coordinator, description, entry.entry_id))
     async_add_entities(sensors, False)
 
+    tracked_sensors: dict[str, FlightRadar24TrackedFlightSensor] = {}
+
+    @callback
+    def add_tracked_flight_sensors() -> None:
+        """Add one sensor per additional tracked flight."""
+        new_entities: list[FlightRadar24TrackedFlightSensor] = []
+        for flight in coordinator.flight.tracked_list:
+            tracker_key = flight_tracker_key(flight)
+            if not tracker_key or tracker_key in tracked_sensors:
+                continue
+
+            sensor = FlightRadar24TrackedFlightSensor(coordinator, entry.entry_id, tracker_key)
+            tracked_sensors[tracker_key] = sensor
+            new_entities.append(sensor)
+
+        if new_entities:
+            async_add_entities(new_entities)
+
+    entry.async_on_unload(coordinator.async_add_listener(add_tracked_flight_sensors))
+    add_tracked_flight_sensors()
+
 
 class FlightRadar24Sensor(CoordinatorEntity[FlightRadar24Coordinator], SensorEntity):
     _attr_has_entity_name = True
@@ -257,3 +279,57 @@ class FlightRadar24RestoreSensor(FlightRadar24Sensor, RestoreSensor):
             for flight in last_state.attributes.get('flights', {}):
                 tracked[flight.get('id') or flight.get('flight_number') or flight.get('callsign')] = flight
             self.coordinator.flight.set_tracked(tracked)
+            self.coordinator.async_set_updated_data(self.coordinator.data)
+
+
+class FlightRadar24TrackedFlightSensor(CoordinatorEntity[FlightRadar24Coordinator], SensorEntity):
+    _attr_has_entity_name = True
+    _attr_icon = "mdi:airplane"
+    _unrecorded_attributes = frozenset({"flights", "flight"})
+
+    def __init__(
+            self,
+            coordinator: FlightRadar24Coordinator,
+            entry_id: str,
+            tracker_key: str,
+    ) -> None:
+        self.tracker_key = tracker_key
+        super().__init__(coordinator)
+        self._attr_device_info = coordinator.device_info
+        self._attr_unique_id = f"{entry_id}_{DOMAIN}_tracked_flight_{tracker_key}"
+
+    @property
+    def flight(self) -> dict[str, Any]:
+        for flight in self.coordinator.flight.tracked_list:
+            if flight_tracker_key(flight) == self.tracker_key:
+                return flight
+        return {}
+
+    @property
+    def name(self) -> str:
+        flight = self.flight
+        if flight:
+            return f"Tracked flight {flight_display_name(flight)}"
+        return "Tracked flight"
+
+    @property
+    def native_value(self) -> str | None:
+        flight = self.flight
+        if not flight:
+            return None
+        return flight.get("tracked_type") or "tracked"
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        flight = copy.deepcopy(self.flight)
+        if not flight:
+            return {"flights": [], "last_updated": datetime.datetime.now().isoformat()}
+        return {
+            "flights": [flight],
+            "flight": flight,
+            "last_updated": datetime.datetime.now().isoformat(),
+        }
+
+    @property
+    def available(self) -> bool:
+        return bool(self.flight)

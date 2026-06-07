@@ -1,5 +1,4 @@
 from __future__ import annotations
-import re
 from typing import Any
 
 from homeassistant.components.device_tracker.config_entry import TrackerEntity
@@ -9,6 +8,7 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from .coordinator import FlightRadar24Coordinator
+from .flight_key import flight_tracker_key
 from .const import (
     DOMAIN,
     CONF_TRACKER_NAME_STYLE,
@@ -16,20 +16,6 @@ from .const import (
     TRACKER_NAME_CALLSIGN_ROUTE,
     TRACKER_NAME_REG_ROUTE,
 )
-
-
-def _normalize_tracker_key(value: Any) -> str:
-    """Normalize a flight identifier for use in stable tracker unique IDs."""
-    return re.sub(r"[^a-z0-9_]+", "_", str(value).strip().lower()).strip("_")
-
-
-def _flight_tracker_key(flight: dict[str, Any]) -> str | None:
-    """Return a stable tracker key for a recurring tracked flight."""
-    for field in ("flight_number", "callsign", "aircraft_registration", "id"):
-        if value := flight.get(field):
-            if normalized := _normalize_tracker_key(value):
-                return f"{field}_{normalized}"
-    return None
 
 
 def _live_tracked_flights(coordinator: FlightRadar24Coordinator) -> list[dict[str, Any]]:
@@ -59,7 +45,7 @@ async def async_setup_entry(
 
         new_entities: list[FlightRadar24Tracker] = []
         for flight in _live_tracked_flights(coordinator):
-            tracker_key = _flight_tracker_key(flight)
+            tracker_key = flight_tracker_key(flight)
             if not tracker_key or tracker_key in tracked:
                 continue
 
@@ -84,7 +70,7 @@ class FlightRadar24Tracker(CoordinatorEntity, TrackerEntity):
     @property
     def info(self) -> dict[str, Any]:
         for flight in _live_tracked_flights(self.coordinator):
-            if _flight_tracker_key(flight) == self.tracker_key:
+            if flight_tracker_key(flight) == self.tracker_key:
                 return flight
         return {}
 
