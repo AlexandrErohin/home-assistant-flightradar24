@@ -32,6 +32,7 @@ class FlightRadar24ButtonEntityDescription(
 async def clear_tracked_button(coordinator: FlightRadar24Coordinator) -> None:
     """Async wrapper to clear tracked flights (sync method)."""
     coordinator.flight.clear_tracked()
+    coordinator.async_set_updated_data(coordinator.data)
 
 
 BUTTON_TYPES = (

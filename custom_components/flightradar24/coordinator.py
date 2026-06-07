@@ -59,6 +59,8 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
             found = await self.hass.async_add_executor_job(self.flight.add_track, number)
             if not found:
                 self.logger.error('FlightRadar24: Add Track - No flight found by - {}'.format(number))
+            else:
+                self.async_set_updated_data(self.data)
         except Exception as e:
             self.logger.error("FlightRadar24: %s", e)
 
@@ -70,6 +72,8 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
         remove = await self.hass.async_add_executor_job(self.flight.remove_track, number)
         if not remove:
             self.logger.error('FlightRadar24: Remove Track - No flight found by - {}'.format(number))
+        else:
+            self.async_set_updated_data(self.data)
 
     async def update_airport_track(self, code: str) -> None:
         if not self.scanning:

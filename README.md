@@ -267,9 +267,19 @@ before copying YAML examples.
 ### <a id="device-tracker">Device Tracker</a>
 You may be interested to add a live flight as device_tracker with the flight information to a person in HA.
 To use it - you need to activate this feature in [Edit Configuration](#edit-configuration).
-When it is enabled - this integration creates device_tracker with static name `device_tracker.flightradar24` and
-this device_tracker updates when there is a live flight in the additional tracked list.
-It works ONLY with one live flight from the additional tracked list at a time!
+When it is enabled, this integration creates a separate `device_tracker` for each flight in the additional tracked list.
+Each tracker uses the configured map tracker naming style and updates independently while that flight remains additional tracked.
+
+### Tracked Flight Card Sensors
+For each flight in the Additional tracked list, the integration also creates a separate sensor named like `sensor.flightradar24_tracked_flight_<flight>`.
+Each of these sensors exposes a single flight in its `flights` attribute, so it can be used directly with cards that expect a Flightradar24 sensor, such as [flightradar-flight-card](https://github.com/plckr/flightradar-flight-card).
+
+```yaml
+type: custom:flightradar-flight-card
+entities:
+  - entity_id: sensor.flightradar24_tracked_flight_ba123
+    title: BA123
+```
 
 ### Configuration
  - Add to track - Pass flight number or call sign or aircraft registration number to track flight outside your area. It adds flight to Additional tracked sensor
