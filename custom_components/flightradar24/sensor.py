@@ -195,6 +195,26 @@ def _remove_bad_registry_entries(ent_reg: er.EntityRegistry) -> None:
             ent_reg.async_remove(entity_entry.entity_id)
 
 
+@callback
+def _remove_stale_tracked_flight_entries(
+        ent_reg: er.EntityRegistry,
+        entry_id: str,
+        current_keys: set[str],
+) -> None:
+    """Remove tracked-flight sensor registry entries no longer tracked."""
+    prefix = f"{entry_id}_{DOMAIN}_tracked_flight_"
+    for entity_entry in list(ent_reg.entities.values()):
+        unique_id = entity_entry.unique_id
+        if (
+                entity_entry.domain == "sensor"
+                and entity_entry.platform == DOMAIN
+                and isinstance(unique_id, str)
+                and unique_id.startswith(prefix)
+                and unique_id.removeprefix(prefix) not in current_keys
+        ):
+            ent_reg.async_remove(entity_entry.entity_id)
+
+
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback) -> None:
     coordinator = hass.data[DOMAIN][entry.entry_id]
 
@@ -230,6 +250,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
             for flight in coordinator.flight.tracked_list
             if (tracker_key := flight_tracker_key(flight))
         }
+        _remove_stale_tracked_flight_entries(ent_reg, entry.entry_id, current_keys)
         for tracker_key in set(tracked_sensors) - current_keys:
             sensor = tracked_sensors.pop(tracker_key)
             if entity_id := ent_reg.async_get_entity_id(
