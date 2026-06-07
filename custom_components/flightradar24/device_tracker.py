@@ -1,4 +1,5 @@
 from __future__ import annotations
+import re
 from typing import Any
 
 from homeassistant.components.device_tracker.config_entry import TrackerEntity
@@ -17,12 +18,26 @@ from .const import (
 )
 
 
-def _live_tracked_flights(coordinator: FlightRadar24Coordinator) -> dict[str, dict[str, Any]]:
-    return {
-        flight_id: flight
-        for flight_id, flight in coordinator.flight.tracked.items()
+def _normalize_tracker_key(value: Any) -> str:
+    """Normalize a flight identifier for use in stable tracker unique IDs."""
+    return re.sub(r"[^a-z0-9_]+", "_", str(value).strip().lower()).strip("_")
+
+
+def _flight_tracker_key(flight: dict[str, Any]) -> str | None:
+    """Return a stable tracker key for a recurring tracked flight."""
+    for field in ("flight_number", "callsign", "aircraft_registration", "id"):
+        if value := flight.get(field):
+            if normalized := _normalize_tracker_key(value):
+                return f"{field}_{normalized}"
+    return None
+
+
+def _live_tracked_flights(coordinator: FlightRadar24Coordinator) -> list[dict[str, Any]]:
+    return [
+        flight
+        for flight in coordinator.flight.tracked.values()
         if flight.get('tracked_type') == 'live'
-    }
+    ]
 
 
 async def async_setup_entry(
@@ -43,12 +58,13 @@ async def async_setup_entry(
             return
 
         new_entities: list[FlightRadar24Tracker] = []
-        for flight_id in _live_tracked_flights(coordinator):
-            if flight_id in tracked:
+        for flight in _live_tracked_flights(coordinator):
+            tracker_key = _flight_tracker_key(flight)
+            if not tracker_key or tracker_key in tracked:
                 continue
 
-            tracker = FlightRadar24Tracker(coordinator, entry.entry_id, flight_id)
-            tracked[flight_id] = tracker
+            tracker = FlightRadar24Tracker(coordinator, entry.entry_id, tracker_key)
+            tracked[tracker_key] = tracker
             new_entities.append(tracker)
 
         if new_entities:
@@ -59,17 +75,17 @@ async def async_setup_entry(
 
 
 class FlightRadar24Tracker(CoordinatorEntity, TrackerEntity):
-    def __init__(self, coordinator: FlightRadar24Coordinator, entry_id: str, flight_id: str) -> None:
-        self.flight_id = flight_id
+    def __init__(self, coordinator: FlightRadar24Coordinator, entry_id: str, tracker_key: str) -> None:
+        self.tracker_key = tracker_key
         super().__init__(coordinator)
         self._attr_device_info = coordinator.device_info
-        self._attr_unique_id = f"{entry_id}_{DOMAIN}_{flight_id}"
+        self._attr_unique_id = f"{entry_id}_{DOMAIN}_{tracker_key}"
 
     @property
     def info(self) -> dict[str, Any]:
-        flight = self.coordinator.flight.tracked.get(self.flight_id)
-        if flight and flight.get('tracked_type') == 'live':
-            return flight
+        for flight in _live_tracked_flights(self.coordinator):
+            if _flight_tracker_key(flight) == self.tracker_key:
+                return flight
         return {}
 
     @property
