@@ -212,6 +212,21 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
     @callback
     def add_tracked_flight_sensors() -> None:
         """Add one sensor per additional tracked flight."""
+        current_keys = {
+            tracker_key
+            for flight in coordinator.flight.tracked_list
+            if (tracker_key := flight_tracker_key(flight))
+        }
+        for tracker_key in set(tracked_sensors) - current_keys:
+            sensor = tracked_sensors.pop(tracker_key)
+            if entity_id := ent_reg.async_get_entity_id(
+                    "sensor",
+                    DOMAIN,
+                    FlightRadar24TrackedFlightSensor.unique_id(entry.entry_id, tracker_key),
+            ):
+                ent_reg.async_remove(entity_id)
+            hass.async_create_task(sensor.async_remove())
+
         new_entities: list[FlightRadar24TrackedFlightSensor] = []
         for flight in coordinator.flight.tracked_list:
             tracker_key = flight_tracker_key(flight)
@@ -296,7 +311,11 @@ class FlightRadar24TrackedFlightSensor(CoordinatorEntity[FlightRadar24Coordinato
         self.tracker_key = tracker_key
         super().__init__(coordinator)
         self._attr_device_info = coordinator.device_info
-        self._attr_unique_id = f"{entry_id}_{DOMAIN}_tracked_flight_{tracker_key}"
+        self._attr_unique_id = self.unique_id(entry_id, tracker_key)
+
+    @staticmethod
+    def unique_id(entry_id: str, tracker_key: str) -> str:
+        return f"{entry_id}_{DOMAIN}_tracked_flight_{tracker_key}"
 
     @property
     def flight(self) -> dict[str, Any]:

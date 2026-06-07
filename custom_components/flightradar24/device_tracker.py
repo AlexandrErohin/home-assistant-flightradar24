@@ -6,6 +6,7 @@ from homeassistant.components.device_tracker.const import SourceType
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from .coordinator import FlightRadar24Coordinator
 from .flight_key import flight_tracker_key
@@ -32,6 +33,12 @@ async def async_setup_entry(
         async_add_entities: AddEntitiesCallback,
 ) -> None:
     coordinator = hass.data[DOMAIN][entry.entry_id]
+
+    ent_reg = er.async_get(hass)
+    old_unique_id = f"{coordinator.unique_id}_{DOMAIN}"
+    if entity_id := ent_reg.async_get_entity_id("device_tracker", DOMAIN, old_unique_id):
+        ent_reg.async_remove(entity_id)
+
     if not coordinator.enable_tracker:
         return
 
@@ -40,6 +47,21 @@ async def async_setup_entry(
     @callback
     def add_new_trackers() -> None:
         """Add a device tracker for each live tracked flight."""
+        current_keys = {
+            tracker_key
+            for flight in coordinator.flight.tracked_list
+            if (tracker_key := flight_tracker_key(flight))
+        }
+        for tracker_key in set(tracked) - current_keys:
+            tracker = tracked.pop(tracker_key)
+            if entity_id := ent_reg.async_get_entity_id(
+                    "device_tracker",
+                    DOMAIN,
+                    FlightRadar24Tracker.unique_id(entry.entry_id, tracker_key),
+            ):
+                ent_reg.async_remove(entity_id)
+            hass.async_create_task(tracker.async_remove())
+
         if not coordinator.enable_tracker:
             return
 
@@ -64,19 +86,34 @@ class FlightRadar24Tracker(CoordinatorEntity, TrackerEntity):
     def __init__(self, coordinator: FlightRadar24Coordinator, entry_id: str, tracker_key: str) -> None:
         self.tracker_key = tracker_key
         super().__init__(coordinator)
+        self._info = self._find_info()
         self._attr_device_info = coordinator.device_info
-        self._attr_unique_id = f"{entry_id}_{DOMAIN}_{tracker_key}"
+        self._attr_unique_id = self.unique_id(entry_id, tracker_key)
 
-    @property
-    def info(self) -> dict[str, Any]:
+    @staticmethod
+    def unique_id(entry_id: str, tracker_key: str) -> str:
+        return f"{entry_id}_{DOMAIN}_{tracker_key}"
+
+    def _find_info(self) -> dict[str, Any]:
         for flight in _live_tracked_flights(self.coordinator):
             if flight_tracker_key(flight) == self.tracker_key:
                 return flight
         return {}
 
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator."""
+        self._info = self._find_info()
+        self.async_write_ha_state()
+
+    @property
+    def info(self) -> dict[str, Any]:
+        return self._info
+
     @property
     def available(self) -> bool:
-        return bool(self.info)
+        info = self.info
+        return bool(info)
 
     @property
     def source_type(self) -> SourceType:
@@ -84,15 +121,18 @@ class FlightRadar24Tracker(CoordinatorEntity, TrackerEntity):
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
-        return self.info
+        info = self.info
+        return info
 
     @property
     def latitude(self) -> float | None:
-        return self.info.get('latitude')
+        info = self.info
+        return info.get('latitude')
 
     @property
     def longitude(self) -> float | None:
-        return self.info.get('longitude')
+        info = self.info
+        return info.get('longitude')
 
     @property
     def icon(self) -> str:
@@ -101,12 +141,14 @@ class FlightRadar24Tracker(CoordinatorEntity, TrackerEntity):
     @property
     def entity_picture(self) -> str | None:
         # This tells the map to show the actual photo of the plane!
-        return self.info.get('aircraft_photo_small')
+        info = self.info
+        return info.get('aircraft_photo_small')
 
     @property
     def name(self) -> str:
+        info = self.info
         # If no flight is currently tracked, return the default domain name
-        if not self.info:
+        if not info:
             return DOMAIN
 
         # Check what the user selected in the Integration Options
@@ -115,10 +157,10 @@ class FlightRadar24Tracker(CoordinatorEntity, TrackerEntity):
         )
 
         # Safely grab the flight data, falling back to 'N/A' if it's missing
-        callsign = self.info.get('callsign') or self.info.get('flight_number') or "Unknown"
-        reg = self.info.get('aircraft_registration') or callsign
-        origin = self.info.get('airport_origin_code_iata') or "N/A"
-        dest = self.info.get('airport_destination_code_iata') or "N/A"
+        callsign = info.get('callsign') or info.get('flight_number') or "Unknown"
+        reg = info.get('aircraft_registration') or callsign
+        origin = info.get('airport_origin_code_iata') or "N/A"
+        dest = info.get('airport_destination_code_iata') or "N/A"
 
         # Piece the string together based on their preference!
         if style == TRACKER_NAME_CALLSIGN_ROUTE:

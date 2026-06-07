@@ -15,6 +15,7 @@ from ..const import (
     EVENT_TRACKED_ARRIVED_GATE,
     EVENT_TRACKED_LEFT_GATE,
 )
+from ..flight_key import TRACKING_KEY, ensure_tracking_key
 import pycountry
 
 
@@ -135,12 +136,15 @@ class FlightProcessor:
             'aircraft_registration': value.get('aircraft_registration'),
             'flight_number': value.get('flight_number'),
             'callsign': value.get('callsign'),
+            TRACKING_KEY: value.get(TRACKING_KEY),
         } for key, value in self._tracked.items()}
 
     def clear_tracked(self) -> None:
         self._tracked = {}
 
     def set_tracked(self, tracked: dict[str, dict[str, Any]]) -> None:
+        for flight in tracked.values():
+            ensure_tracking_key(flight)
         self._tracked = tracked
 
     def enable_most_tracked(self) -> None:
@@ -152,6 +156,8 @@ class FlightProcessor:
         self._find_flight(found, number)
         if not found:
             return None
+        for flight in found.values():
+            ensure_tracking_key(flight, number, prefer_fallback=True)
         self._tracked = self._tracked | found if self._tracked else found
 
         return found
@@ -199,6 +205,7 @@ class FlightProcessor:
             flights = self._client.get_flights(registration=','.join(reg_numbers))
             for obj in flights:
                 self._update_flights_data(obj, current, self._tracked, FlightType.TRACKED)
+                self._set_current_tracking_key(current[obj.id], obj.id)
                 current[obj.id]['tracked_type'] = 'live'
                 if current[obj.id].get('flight_number'):
                     current_flights.append(current[obj.id].get('flight_number'))
@@ -217,12 +224,17 @@ class FlightProcessor:
                 number = flight_number or callsign
                 if not number:
                     continue
-                size = current.__len__()
+                current_keys = set(current)
                 self._find_flight(current, number)
-                if size != current.__len__():
+                new_keys = set(current) - current_keys
+                if new_keys:
+                    tracking_key = ensure_tracking_key(self._tracked[flight_id], flight_id)
+                    for new_key in new_keys:
+                        current[new_key][TRACKING_KEY] = tracking_key
                     current_flights.append(number)
                 else:
                     current[flight_id] = self._tracked[flight_id]
+                    ensure_tracking_key(current[flight_id], flight_id)
                     current[flight_id]['tracked_type'] = 'not_found'
 
         # --- AUTO-CLEANUP LOGIC WRAPPED IN CONFIG CHECK ---
@@ -259,6 +271,14 @@ class FlightProcessor:
         # -----------------------
 
         self._tracked = current
+
+    def _set_current_tracking_key(self, flight: dict[str, Any], flight_id: str) -> None:
+        for old_key, old_flight in self._tracked.items():
+            for field in ('id', 'aircraft_registration', 'flight_number', 'callsign'):
+                if flight.get(field) and flight.get(field) == old_flight.get(field):
+                    flight[TRACKING_KEY] = ensure_tracking_key(old_flight, old_key)
+                    return
+        ensure_tracking_key(flight, flight_id)
 
     def _find_flight(self, current: dict[str, dict[str, Any]], number: str) -> None:
         def process_search_flight(objects: dict, search: str) -> dict | None:
