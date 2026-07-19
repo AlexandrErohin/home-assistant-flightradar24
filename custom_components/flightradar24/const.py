@@ -35,3 +35,18 @@ EVENT_TRACKED_LEFT_GATE = f"{DOMAIN}_tracked_left_gate"
 
 MIN_ALTITUDE = -1
 MAX_ALTITUDE = 100000
+
+# FR24's bot mitigation can hand out a session that only ever receives valid
+# but empty feed responses, and a session keeps that fate for its entire
+# lifetime (issues #278 / #271). A session is considered healthy when it sees
+# traffic in at least one of these bounds (y1,y2,x1,x2) - regions busy enough
+# that a healthy session never finds all of them empty, no matter the time of day.
+CANARY_BOUNDS = [
+    '54.0,44.0,-2.0,20.0',    # Central/Western Europe
+    '42.0,30.0,-95.0,-75.0',  # US East
+]
+SESSION_SETUP_MAX_TRIES = 5
+# Runtime guard: only canary-check when the area feed has been empty this long,
+# and at most once per throttle window, to keep extra API calls negligible.
+SESSION_GUARD_EMPTY_SECONDS = 1800
+SESSION_GUARD_CHECK_THROTTLE = 1800
