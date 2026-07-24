@@ -476,14 +476,13 @@ cards:
         {% set data = state_attr('sensor.flightradar24_current_in_area',
         'flights') | default([], true) %} {% for flight in data %}
           <ha-icon icon="mdi:airplane"></ha-icon>{{ flight.flight_number }}({{ flight.aircraft_registration }}) - {{ flight.airline_short }} - {{ flight.aircraft_model }}
-          {{ flight.airport_origin_city }}{%if flight.airport_origin_city %}<img src="[https://flagsapi.com/](https://flagsapi.com/){{ flight.airport_origin_country_code }}/shiny/16.png" title='{{ flight.airport_origin_country_name }}'/>{% endif %} -> {{ flight.airport_destination_city }}{%
-          if flight.airport_destination_country_code %}<img src="[https://flagsapi.com/](https://flagsapi.com/){{ flight.airport_destination_country_code }}/shiny/16.png" title='{{ flight.airport_destination_country_name }}'/>{% endif %}
+          {{ flight.airport_origin_city }}{%if flight.airport_origin_city %}<img src="https://flagsapi.com/{{ flight.airport_origin_country_code }}/shiny/16.png" title='{{ flight.airport_origin_country_name }}'/>{% endif %} -> {{ flight.airport_destination_city }}{%
+          if flight.airport_destination_country_code %}<img src="https://flagsapi.com/{{ flight.airport_destination_country_code }}/shiny/16.png" title='{{ flight.airport_destination_country_name }}'/>{% endif %}
           {%if flight.time_scheduled_departure %}Departure - {{ flight.time_scheduled_departure | timestamp_custom('%H:%M') }}; {% endif %}{%if flight.time_scheduled_arrival%}Arrival - {{ flight.time_scheduled_arrival | timestamp_custom('%H:%M') }}{% endif %}
           Altitude - {{ flight.altitude }} ft{%if flight.altitude > 0 %} ({{(flight.altitude * 0.3048)| round(0)}} m){% endif%}; Gr. speed - {{ flight.ground_speed }} kts{%if flight.ground_speed > 0 %} ({{(flight.ground_speed * 1.852)| round(0)}} km/h){% endif%}
           {% endfor %}
   - type: iframe
-    url: >-
-      [https://globe.adsb.fi/?enableLabels&trackLabels&zoom=12&hideSideBar&lat=LATITUDE&lon=LONGITUDE](https://globe.adsb.fi/?enableLabels&trackLabels&zoom=12&hideSideBar&lat=LATITUDE&lon=LONGITUDE)
+    url: https://globe.adsb.fi/?enableLabels&trackLabels&zoom=12&hideSideBar&lat=LATITUDE&lon=LONGITUDE
     aspect_ratio: 100%
 ```
 
