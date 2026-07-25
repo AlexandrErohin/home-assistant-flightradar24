@@ -44,7 +44,17 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     client = FlightRadar24API()
     if username and password:
-        await hass.async_add_executor_job(client.login, username, password)
+        try:
+            await hass.async_add_executor_job(client.login, username, password)
+        except Exception as error:
+            # Logging in is optional - Flightradar24 serves the feed anonymously
+            # too. Failing the whole setup here turns a transient error such as
+            # HTTP 429 into a permanent "setup_error" that Home Assistant never
+            # retries, so carry on unauthenticated instead.
+            _LOGGER.warning(
+                'FlightRadar24: could not log in, continuing anonymously - %s',
+                error,
+            )
 
     latitude = entry.data[CONF_LATITUDE]
     longitude = entry.data[CONF_LONGITUDE]
