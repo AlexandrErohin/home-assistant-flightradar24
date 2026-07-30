@@ -15,11 +15,11 @@ from .const import (
     SESSION_GUARD_EMPTY_SECONDS,
     SESSION_GUARD_CHECK_THROTTLE,
 )
+from .api.client import FlightRadarClient
 from .api.event import EventManager, Event
 from .api.flight import FlightProcessor
 from .api.airport import AirportProcessor
 from logging import Logger
-from .client import FlightRadarClient
 from FlightRadar24 import Entity
 
 

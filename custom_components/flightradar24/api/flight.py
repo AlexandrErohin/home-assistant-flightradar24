@@ -355,14 +355,8 @@ class FlightProcessor:
                 and to_int(last_position) == obj.on_ground):
             flight = tracked[obj.id]
         else:
-            data = self._get_flight_details(obj)
-            if data is None:
-                # Details are unavailable for now - keep whatever is already known
-                # about the flight, or skip it until the next update, instead of
-                # aborting the whole cycle.
-                flight = previous_flight
-            else:
-                flight = self._get_flight_data(data)
+            data = self._client.get_flight_details(obj)
+            flight = self._get_flight_data(data)
         if flight is not None:
             current[flight['id']] = flight
             flight['latitude'] = obj.latitude

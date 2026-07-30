@@ -54,7 +54,7 @@ class FlightRadarConfigFlow(ConfigFlow, domain=DOMAIN):
                     vol.Required(CONF_RADIUS, default=1000): vol.Coerce(float),
                     vol.Required(CONF_LATITUDE): cv.latitude,
                     vol.Required(CONF_LONGITUDE): cv.longitude,
-                    vol.Required(CONF_SCAN_INTERVAL, default=10): int,
+                    vol.Required(CONF_SCAN_INTERVAL, default=20): int,
                 }
             ),
             {
