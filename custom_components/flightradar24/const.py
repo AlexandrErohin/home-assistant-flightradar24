@@ -57,3 +57,6 @@ SESSION_GUARD_CHECK_THROTTLE = 1800
 REQUEST_INTERVAL = 0.2
 REQUEST_ATTEMPTS = 3
 RETRY_BASE_DELAY = 2
+# Once a request has exhausted its retries, fail fast for this long instead of
+# letting every remaining call of the cycle burn its own backoff (circuit breaker).
+FAILURE_COOLDOWN = 30
