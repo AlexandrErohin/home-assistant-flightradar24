@@ -105,14 +105,14 @@ class FlightProcessor:
         self._raw_in_area_count: int = 0
 
     @property
-    def client(self) -> FlightRadar24API:
+    def client(self) -> FlightRadarClient:
         return self._client
 
     @property
     def raw_in_area_count(self) -> int:
         return self._raw_in_area_count
 
-    def update_client(self, client: FlightRadar24API) -> None:
+    def update_client(self, client: FlightRadarClient) -> None:
         self._client = client
 
     @property

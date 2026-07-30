@@ -32,7 +32,7 @@ class AirportProcessor:
         self._arrivals: list[dict[str, Any]] | None = None
         self._departures: list[dict[str, Any]] | None = None
 
-    def update_client(self, client: FlightRadar24API) -> None:
+    def update_client(self, client: FlightRadarClient) -> None:
         self._client = client
 
     @property
