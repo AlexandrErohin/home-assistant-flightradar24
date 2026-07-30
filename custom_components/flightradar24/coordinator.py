@@ -15,6 +15,7 @@ from .const import (
     SESSION_GUARD_EMPTY_SECONDS,
     SESSION_GUARD_CHECK_THROTTLE,
 )
+from .api.client import FlightRadarClient
 from .api.event import EventManager, Event
 from .api.flight import FlightProcessor
 from .api.airport import AirportProcessor
@@ -22,7 +23,7 @@ from logging import Logger
 from FlightRadar24 import FlightRadar24API, Entity
 
 
-def is_session_healthy(client: FlightRadar24API) -> bool:
+def is_session_healthy(client: FlightRadarClient) -> bool:
     """Blocking canary check for the sticky empty-session issue (#278, #271).
 
     FR24's bot mitigation randomly hands out sessions that only ever receive
@@ -41,7 +42,7 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
             self,
             hass: HomeAssistant,
             bounds: str,
-            client: FlightRadar24API,
+            client: FlightRadarClient,
             update_interval: int,
             logger: Logger,
             unique_id: str,
@@ -127,13 +128,13 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
 
         self.event_manager.fire_events(self.config_entry.title, fire)
 
-    def _renew_client(self) -> FlightRadar24API:
+    def _renew_client(self) -> FlightRadarClient:
         client = FlightRadar24API()
         username = self.config_entry.data.get(CONF_USERNAME)
         password = self.config_entry.data.get(CONF_PASSWORD)
         if username and password:
             client.login(username, password)
-        return client
+        return FlightRadarClient(client, self.logger)
 
     async def _check_session(self) -> None:
         """Detect a session gone sticky-empty at runtime and replace it (#278).

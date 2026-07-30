@@ -8,6 +8,10 @@
           "latitude": "Latitude",
           "longitude": "Longitude",
           "scan_interval": "Update interval in seconds"
+        },
+        "data_description": {
+          "radius": "Radius of the monitored area in meters, not kilometers. For example, enter 25000 for a 25 km radius.",
+          "scan_interval": "How often Flightradar24 is polled. Short intervals make it more likely that your requests get throttled."
         }
       }
     }
@@ -29,6 +33,11 @@
           "tracker_name_style": "Map Tracker Naming Style",
           "username": "Username (Optional)",
           "password": "Password (Optional)"
+        },
+        "data_description": {
+          "radius": "Radius of the monitored area in meters, not kilometers. For example, enter 25000 for a 25 km radius.",
+          "scan_interval": "How often Flightradar24 is polled. Short intervals make it more likely that your requests get throttled.",
+          "min_altitude": "Aircraft below this altitude are ignored. Raising it reduces the number of requests made to Flightradar24."
         }
       }
     }

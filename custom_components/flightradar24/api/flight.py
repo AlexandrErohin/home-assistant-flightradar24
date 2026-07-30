@@ -1,7 +1,8 @@
 import re
 from typing import Any
 from enum import Enum
-from FlightRadar24 import FlightRadar24API, Flight, Entity
+from .client import FlightRadarClient
+from FlightRadar24 import Flight, Entity
 from .helper import to_int, get_value
 from .event import EventManager
 from ..const import (
@@ -81,7 +82,7 @@ class FlightProcessor:
 
     def __init__(
             self,
-            client: FlightRadar24API,
+            client: FlightRadarClient,
             event_manager: EventManager,
             min_altitude: int,
             max_altitude: int,
@@ -104,14 +105,14 @@ class FlightProcessor:
         self._raw_in_area_count: int = 0
 
     @property
-    def client(self) -> FlightRadar24API:
+    def client(self) -> FlightRadarClient:
         return self._client
 
     @property
     def raw_in_area_count(self) -> int:
         return self._raw_in_area_count
 
-    def update_client(self, client: FlightRadar24API) -> None:
+    def update_client(self, client: FlightRadarClient) -> None:
         self._client = client
 
     @property
@@ -312,7 +313,8 @@ class FlightProcessor:
                 'flight_number': found['detail'].get('flight'),
                 'aircraft_registration': None,
             }
-        current[found.get('id')]['tracked_type'] = found.get('type')
+        if found.get('id') in current:
+            current[found.get('id')]['tracked_type'] = found.get('type')
 
     def update_most_tracked(self) -> None:
         if self._most_tracked is None:
