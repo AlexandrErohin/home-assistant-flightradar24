@@ -94,6 +94,14 @@ The default data is preset already
 3. You may change the default values for Radius, Latitude and Longitude
 4. Click `SUBMIT`
 
+<br>
+
+> **⚠️ IMPORTANT NOTE ⚠️**  
+> After integration installation or reload and after every HA restart sensors from this integration may stay Unknown or Unavailable for some minutes.
+> It is because of downloading information from FR24
+
+<br>
+
 ### <a id="edit-configuration">Edit Configuration</a>
 You may edit configuration data like:
 1. Latitude and longitude of your point
@@ -150,14 +158,6 @@ Flightradar24
    - Radius
 
 5. Click `SUBMIT`
-
-<br>
-
-> **⚠️ IMPORTANT NOTE ⚠️**  
-> After integration installation or reload and after every HA restart sensors from this integration may stay Unknown or Unavailable for some minutes.
-> It is because of downloading information from FR24
-
-<br>
 
 ---
 
