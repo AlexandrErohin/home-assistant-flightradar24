@@ -1,9 +1,8 @@
 import re
-import time
-from logging import getLogger
 from typing import Any
 from enum import Enum
-from FlightRadar24 import FlightRadar24API, Flight, Entity
+from .client import FlightRadarClient
+from FlightRadar24 import Flight, Entity
 from .helper import to_int, get_value
 from .event import EventManager
 from ..const import (
@@ -16,14 +15,8 @@ from ..const import (
     EVENT_MOST_TRACKED_NEW,
     EVENT_TRACKED_ARRIVED_GATE,
     EVENT_TRACKED_LEFT_GATE,
-    DETAIL_REQUEST_INTERVAL,
-    DETAIL_REQUEST_ATTEMPTS,
-    DETAIL_RETRY_BASE_DELAY,
-    EMPTY_FEED_WARNING_THRESHOLD,
 )
 import pycountry
-
-_LOGGER = getLogger(__name__)
 
 
 def is_helicopter(flight) -> bool:
@@ -85,12 +78,11 @@ class FlightType(Enum):
 
 class FlightProcessor:
     __slots__ = ('_in_area', '_tracked', '_most_tracked', '_entered', '_exited', '_min_altitude', '_max_altitude',
-                 '_point', '_client', '_bounds', '_event_manager', '_auto_cleanup', '_last_detail_request',
-                 '_empty_responses')
+                 '_point', '_client', '_bounds', '_event_manager', '_auto_cleanup')
 
     def __init__(
             self,
-            client: FlightRadar24API,
+            client: FlightRadarClient,
             event_manager: EventManager,
             min_altitude: int,
             max_altitude: int,
@@ -110,8 +102,6 @@ class FlightProcessor:
         self._most_tracked: dict[str, dict[str, Any]] | None = None
         self._entered: list[dict[str, Any]] = []
         self._exited: list[dict[str, Any]] = []
-        self._last_detail_request: float = 0.0
-        self._empty_responses: int = 0
 
     @property
     def tracked(self) -> dict[str, dict[str, Any]]:
@@ -180,7 +170,6 @@ class FlightProcessor:
         self._entered = {}
         self._exited = {}
         flights = self._client.get_flights(bounds=self._bounds)
-        self._check_empty_feed(flights)
         current: dict[str, dict[str, Any]] = {}
         for obj in flights:
             if not self._min_altitude <= obj.altitude <= self._max_altitude:
@@ -195,25 +184,6 @@ class FlightProcessor:
             self._event_manager.add_events(EVENT_ENTRY, self._entered)
             self._event_manager.add_events(EVENT_EXIT, self._exited)
         self._in_area = current
-
-    def _check_empty_feed(self, flights: list[Flight]) -> None:
-        """Warn when Flightradar24 keeps answering with an empty feed.
-
-        A throttled client is served HTTP 200 with no aircraft rather than an
-        error, so the integration would silently report zero flights forever.
-        """
-        if flights:
-            self._empty_responses = 0
-            return
-
-        self._empty_responses += 1
-        if self._empty_responses == EMPTY_FEED_WARNING_THRESHOLD:
-            _LOGGER.warning(
-                'FlightRadar24: Flightradar24 has returned no aircraft for %s consecutive updates. '
-                'This usually means the requests are being throttled. Consider increasing the update '
-                'interval, reducing the radius or raising the minimum altitude.',
-                EMPTY_FEED_WARNING_THRESHOLD,
-            )
 
     def update_flights_tracked(self) -> None:
         if not self._tracked:
@@ -354,30 +324,6 @@ class FlightProcessor:
         entries = [current[x] for x in (current.keys() - self._most_tracked.keys())]
         self._most_tracked = current
         self._event_manager.add_events(EVENT_MOST_TRACKED_NEW, entries)
-
-    def _get_flight_details(self, obj: Flight) -> dict | None:
-        """Fetch the details of a single flight.
-
-        Flightradar24 rejects bursts of detail requests, so the lookups are
-        spaced out and retried with a backoff. ``None`` is returned when the
-        details cannot be fetched, which lets the caller keep the rest of the
-        update instead of losing it to a single failed request.
-        """
-        for attempt in range(DETAIL_REQUEST_ATTEMPTS):
-            elapsed = time.monotonic() - self._last_detail_request
-            if elapsed < DETAIL_REQUEST_INTERVAL:
-                time.sleep(DETAIL_REQUEST_INTERVAL - elapsed)
-            self._last_detail_request = time.monotonic()
-
-            try:
-                return self._client.get_flight_details(obj)
-            except Exception as error:
-                if attempt == DETAIL_REQUEST_ATTEMPTS - 1:
-                    _LOGGER.warning('FlightRadar24: Could not get details of flight %s - %s', obj.id, error)
-                    return None
-                time.sleep(DETAIL_RETRY_BASE_DELAY * (2 ** attempt))
-
-        return None
 
     def _update_flights_data(self,
                              obj: Flight,

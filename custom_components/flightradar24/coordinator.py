@@ -14,7 +14,8 @@ from .api.event import EventManager, Event
 from .api.flight import FlightProcessor
 from .api.airport import AirportProcessor
 from logging import Logger
-from FlightRadar24 import FlightRadar24API, Entity
+from .client import FlightRadarClient
+from FlightRadar24 import Entity
 
 
 class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
@@ -23,7 +24,7 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
             self,
             hass: HomeAssistant,
             bounds: str,
-            client: FlightRadar24API,
+            client: FlightRadarClient,
             update_interval: int,
             logger: Logger,
             unique_id: str,
