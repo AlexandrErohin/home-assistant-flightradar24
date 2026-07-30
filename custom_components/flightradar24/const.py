@@ -35,3 +35,15 @@ EVENT_TRACKED_LEFT_GATE = f"{DOMAIN}_tracked_left_gate"
 
 MIN_ALTITUDE = -1
 MAX_ALTITUDE = 100000
+
+# Flightradar24 rate limits clients that request flight details too quickly.
+# Space the per-flight detail lookups out and retry them with a backoff instead
+# of letting a single failure abort the whole update cycle.
+DETAIL_REQUEST_INTERVAL = 0.5
+DETAIL_REQUEST_ATTEMPTS = 3
+DETAIL_RETRY_BASE_DELAY = 2
+
+# When a client is throttled, Flightradar24 answers with HTTP 200 and an empty
+# feed instead of an error, which is indistinguishable from "no aircraft".
+# Warn once the feed has been empty for this many consecutive updates.
+EMPTY_FEED_WARNING_THRESHOLD = 5
