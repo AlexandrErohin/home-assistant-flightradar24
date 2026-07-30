@@ -123,41 +123,7 @@ To do that:
 2. Search for `Flightradar24`, and click on it.
 3. Click on `CONFIGURE`
 4. Edit the options you need and click `SUBMIT`
-
-3. Restart Home Assistant
-
----
-
-# ⚙️ Configuration
-
-The integration is fully configured through the Home Assistant UI.
-
-## Initial Setup
-
-1. Open:
-
-```text
-Settings → Devices & Services
-```
-
-2. Click:
-
-```text
-+ ADD INTEGRATION
-```
-
-3. Search for:
-
-```text
-Flightradar24
-```
-
-4. Configure:
-   - Latitude
-   - Longitude
-   - Radius
-
-5. Click `SUBMIT`
+5. Restart Home Assistant
 
 ---
 
