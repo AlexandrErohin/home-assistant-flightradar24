@@ -45,7 +45,10 @@ CANARY_BOUNDS = [
     '54.0,44.0,-2.0,20.0',    # Central/Western Europe
     '42.0,30.0,-95.0,-75.0',  # US East
 ]
-SESSION_SETUP_MAX_TRIES = 5
+# Keep this low: every attempt costs blocking requests inside async_setup_entry,
+# and an unverified session is no longer a reason to fail setup - the runtime
+# guard below recovers it without leaving every entity unavailable meanwhile.
+SESSION_SETUP_MAX_TRIES = 2
 # Runtime guard: only canary-check when the area feed has been empty this long,
 # and at most once per throttle window, to keep extra API calls negligible.
 SESSION_GUARD_EMPTY_SECONDS = 1800
@@ -59,4 +62,19 @@ REQUEST_ATTEMPTS = 3
 RETRY_BASE_DELAY = 2
 # Once a request has exhausted its retries, fail fast for this long instead of
 # letting every remaining call of the cycle burn its own backoff (circuit breaker).
+# The cooldown is kept per endpoint - a rate limited details endpoint must not
+# take the area feed (and with it every count sensor) down with it.
 FAILURE_COOLDOWN = 30
+# Details are the chatty endpoint and the first to get rate limited. Fail fast
+# there and let the next cycle retry, instead of blocking the executor for
+# RETRY_BASE_DELAY * 2**n seconds per flight.
+DETAILS_REQUEST_ATTEMPTS = 1
+# A details lookup only enriches the `flights` attribute - the counts come
+# straight from the area feed. Cap the lookups per cycle so a busy area, or a
+# cold cache right after a restart, can never stretch one update past the scan
+# interval. Flights beyond the cap are still counted and get enriched later.
+MAX_DETAILS_PER_UPDATE = 25
+# Traffic without a schedule (GA, military, ferry flights) never fills the fields
+# _is_valid asks for. Stop re-requesting details for such a flight on every
+# single cycle after this many fruitless attempts.
+DETAILS_MAX_TRIES = 3

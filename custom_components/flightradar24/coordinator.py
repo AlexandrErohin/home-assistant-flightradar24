@@ -49,6 +49,7 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
             min_altitude: int,
             max_altitude: int,
             point: Entity,
+            session_verified: bool = True,
     ) -> None:
         self.unique_id = unique_id
         self.event_manager = EventManager()
@@ -56,7 +57,13 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
         self.airport = AirportProcessor(client)
         self.enable_tracker: bool = False
         self.scanning: bool = True
-        self._guard_last_seen: float = monotonic()
+        # Setup no longer fails on an unverified session (that would leave every
+        # entity unavailable through HA's retry backoff). Instead, pretend the
+        # feed has been empty for a full window so the very first empty cycle
+        # runs the canary and swaps the session out straight away.
+        self._guard_last_seen: float = (
+            monotonic() if session_verified else monotonic() - SESSION_GUARD_EMPTY_SECONDS
+        )
         self._guard_last_check: float = 0.0
         self.device_info = DeviceInfo(
             configuration_url=URL,
@@ -112,16 +119,26 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
         if not self.scanning:
             return
 
-        self.flight._auto_cleanup = self.config_entry.data.get(CONF_AUTO_CLEANUP, CONF_AUTO_CLEANUP_DEFAULT)
+        self.flight.auto_cleanup = self.config_entry.data.get(CONF_AUTO_CLEANUP, CONF_AUTO_CLEANUP_DEFAULT)
+
+        # Every section stands on its own. Sharing one try block meant a single
+        # failing call - a rate limited airport lookup, say - silently skipped
+        # everything after it, which is how all the sensors ended up stuck.
+        for section, job in (
+                ('flights in area', self.flight.update_flights_in_area),
+                ('tracked flights', self.flight.update_flights_tracked),
+                ('most tracked', self.flight.update_most_tracked),
+                ('airport', self.airport.update_airport_info),
+        ):
+            try:
+                await self.hass.async_add_executor_job(job)
+            except Exception as e:
+                self.logger.error("FlightRadar24: could not update %s - %s", section, e)
 
         try:
-            await self.hass.async_add_executor_job(self.flight.update_flights_in_area)
-            await self.hass.async_add_executor_job(self.flight.update_flights_tracked)
-            await self.hass.async_add_executor_job(self.flight.update_most_tracked)
-            await self.hass.async_add_executor_job(self.airport.update_airport_info)
             await self._check_session()
         except Exception as e:
-            self.logger.error("FlightRadar24: %s", e)
+            self.logger.error("FlightRadar24: session check failed - %s", e)
 
         def fire(event: Event) -> None:
             self.hass.bus.fire(event.event, event.data)
