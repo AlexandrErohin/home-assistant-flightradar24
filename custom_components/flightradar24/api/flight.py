@@ -1,7 +1,8 @@
 import re
 from typing import Any
 from enum import Enum
-from FlightRadar24 import FlightRadar24API, Flight, Entity
+from .client import FlightRadarClient
+from FlightRadar24 import Flight, Entity
 from .helper import to_int, get_value
 from .event import EventManager
 from ..const import (
@@ -78,11 +79,11 @@ class FlightType(Enum):
 
 class FlightProcessor:
     __slots__ = ('_in_area', '_tracked', '_most_tracked', '_entered', '_exited', '_min_altitude', '_max_altitude',
-                 '_point', '_client', '_bounds', '_event_manager', '_auto_cleanup')
+                 '_point', '_client', '_bounds', '_event_manager', '_auto_cleanup', '_raw_in_area_count')
 
     def __init__(
             self,
-            client: FlightRadar24API,
+            client: FlightRadarClient,
             event_manager: EventManager,
             min_altitude: int,
             max_altitude: int,
@@ -102,6 +103,18 @@ class FlightProcessor:
         self._most_tracked: dict[str, dict[str, Any]] | None = None
         self._entered: list[dict[str, Any]] = []
         self._exited: list[dict[str, Any]] = []
+        self._raw_in_area_count: int = 0
+
+    @property
+    def client(self) -> FlightRadarClient:
+        return self._client
+
+    @property
+    def raw_in_area_count(self) -> int:
+        return self._raw_in_area_count
+
+    def update_client(self, client: FlightRadarClient) -> None:
+        self._client = client
 
     @property
     def tracked(self) -> dict[str, dict[str, Any]]:
@@ -175,6 +188,9 @@ class FlightProcessor:
         self._entered = {}
         self._exited = {}
         flights = self._client.get_flights(bounds=self._bounds)
+        # Unfiltered count for the session guard (see coordinator) - altitude
+        # filtering below must not hide traffic from the empty-session detection.
+        self._raw_in_area_count = len(flights)
         current: dict[str, dict[str, Any]] = {}
         for obj in flights:
             if not self._min_altitude <= obj.altitude <= self._max_altitude:
@@ -317,7 +333,8 @@ class FlightProcessor:
                 'flight_number': found['detail'].get('flight'),
                 'aircraft_registration': None,
             }
-        current[found.get('id')]['tracked_type'] = found.get('type')
+        if found.get('id') in current:
+            current[found.get('id')]['tracked_type'] = found.get('type')
 
     def update_most_tracked(self) -> None:
         if self._most_tracked is None:

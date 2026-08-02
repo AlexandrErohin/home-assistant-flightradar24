@@ -5,7 +5,6 @@
 ![Stars](https://img.shields.io/github/stars/AlexandrErohin/home-assistant-flightradar24?style=social)
 ![Downloads](https://img.shields.io/github/downloads/AlexandrErohin/home-assistant-flightradar24/total)
 
-
 [![Latest Release](https://img.shields.io/github/v/release/AlexandrErohin/home-assistant-flightradar24?style=for-the-badge&color=007ec6)](https://github.com/AlexandrErohin/home-assistant-flightradar24/releases)
 [![Home Assistant CI](https://img.shields.io/github/actions/workflow/status/AlexandrErohin/home-assistant-flightradar24/hass-ci.yml?label=Home%20Assistant%20CI&style=for-the-badge)](https://github.com/AlexandrErohin/home-assistant-flightradar24/actions/workflows/hass-ci.yml)
 [![Code Checks](https://img.shields.io/github/actions/workflow/status/AlexandrErohin/home-assistant-flightradar24/codechecker.yml?style=for-the-badge&label=CODE%20CHECKS&color=5dbb0f)](https://github.com/AlexandrErohin/home-assistant-flightradar24/actions)
@@ -17,14 +16,6 @@
 [![Maintainer](https://img.shields.io/badge/maintainer-%40AlexandrErohin-007ec6?style=for-the-badge)](https://github.com/AlexandrErohin)
 [![CodeQL](https://img.shields.io/github/actions/workflow/status/AlexandrErohin/home-assistant-flightradar24/codeql.yml?label=CodeQL&style=for-the-badge)](https://github.com/AlexandrErohin/home-assistant-flightradar24/actions/workflows/codeql.yml)
 
-
-
-
-
-
-
-
-
 ## 📡 Overview
 
 The **Flightradar24** integration brings real-time aviation tracking into Home Assistant.
@@ -32,7 +23,6 @@ The **Flightradar24** integration brings real-time aviation tracking into Home A
 Track flights above your location, monitor airports, follow specific aircraft worldwide, and trigger powerful automations based on live flight events.
 
 > ✅ **No Flightradar24 subscription required**
-
 
 ---
 
@@ -48,7 +38,6 @@ Track flights above your location, monitor airports, follow specific aircraft wo
 - 🔥 Monitor the top 10 most tracked flights on Flightradar24
 
 ---
-
 
 It allows you:
 1. Know how many flights in your area right now, or just have entered or exited it. And get list of flights with [full information](#flight) by every relevant flight for the sensor 
@@ -105,6 +94,14 @@ The default data is preset already
 3. You may change the default values for Radius, Latitude and Longitude
 4. Click `SUBMIT`
 
+<br>
+
+> **⚠️ IMPORTANT NOTE ⚠️**  
+> After integration installation or reload and after every HA restart sensors from this integration may stay Unknown or Unavailable for some minutes.
+> It is because of downloading information from FR24
+
+<br>
+
 ### <a id="edit-configuration">Edit Configuration</a>
 You may edit configuration data like:
 1. Latitude and longitude of your point
@@ -126,41 +123,7 @@ To do that:
 2. Search for `Flightradar24`, and click on it.
 3. Click on `CONFIGURE`
 4. Edit the options you need and click `SUBMIT`
-
-3. Restart Home Assistant
-
----
-
-# ⚙️ Configuration
-
-The integration is fully configured through the Home Assistant UI.
-
-## Initial Setup
-
-1. Open:
-
-```text
-Settings → Devices & Services
-```
-
-2. Click:
-
-```text
-+ ADD INTEGRATION
-```
-
-3. Search for:
-
-```text
-Flightradar24
-```
-
-4. Configure:
-   - Latitude
-   - Longitude
-   - Radius
-
-5. Click `SUBMIT`
+5. Restart Home Assistant
 
 ---
 
@@ -486,14 +449,13 @@ cards:
         {% set data = state_attr('sensor.flightradar24_current_in_area',
         'flights') | default([], true) %} {% for flight in data %}
           <ha-icon icon="mdi:airplane"></ha-icon>{{ flight.flight_number }}({{ flight.aircraft_registration }}) - {{ flight.airline_short }} - {{ flight.aircraft_model }}
-          {{ flight.airport_origin_city }}{%if flight.airport_origin_city %}<img src="[https://flagsapi.com/](https://flagsapi.com/){{ flight.airport_origin_country_code }}/shiny/16.png" title='{{ flight.airport_origin_country_name }}'/>{% endif %} -> {{ flight.airport_destination_city }}{%
-          if flight.airport_destination_country_code %}<img src="[https://flagsapi.com/](https://flagsapi.com/){{ flight.airport_destination_country_code }}/shiny/16.png" title='{{ flight.airport_destination_country_name }}'/>{% endif %}
+          {{ flight.airport_origin_city }}{%if flight.airport_origin_city %}<img src="https://flagsapi.com/{{ flight.airport_origin_country_code }}/shiny/16.png" title='{{ flight.airport_origin_country_name }}'/>{% endif %} -> {{ flight.airport_destination_city }}{%
+          if flight.airport_destination_country_code %}<img src="https://flagsapi.com/{{ flight.airport_destination_country_code }}/shiny/16.png" title='{{ flight.airport_destination_country_name }}'/>{% endif %}
           {%if flight.time_scheduled_departure %}Departure - {{ flight.time_scheduled_departure | timestamp_custom('%H:%M') }}; {% endif %}{%if flight.time_scheduled_arrival%}Arrival - {{ flight.time_scheduled_arrival | timestamp_custom('%H:%M') }}{% endif %}
           Altitude - {{ flight.altitude }} ft{%if flight.altitude > 0 %} ({{(flight.altitude * 0.3048)| round(0)}} m){% endif%}; Gr. speed - {{ flight.ground_speed }} kts{%if flight.ground_speed > 0 %} ({{(flight.ground_speed * 1.852)| round(0)}} km/h){% endif%}
           {% endfor %}
   - type: iframe
-    url: >-
-      [https://globe.adsb.fi/?enableLabels&trackLabels&zoom=12&hideSideBar&lat=LATITUDE&lon=LONGITUDE](https://globe.adsb.fi/?enableLabels&trackLabels&zoom=12&hideSideBar&lat=LATITUDE&lon=LONGITUDE)
+    url: https://globe.adsb.fi/?enableLabels&trackLabels&zoom=12&hideSideBar&lat=LATITUDE&lon=LONGITUDE
     aspect_ratio: 100%
 ```
 

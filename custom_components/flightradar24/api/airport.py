@@ -1,5 +1,5 @@
 from enum import Enum
-from FlightRadar24 import FlightRadar24API
+from .client import FlightRadarClient
 from .helper import to_int, to_float, get_value
 from typing import Any
 
@@ -25,12 +25,15 @@ class AirportStats:
 class AirportProcessor:
     __slots__ = ('_client', '_code', '_stats', '_arrivals', '_departures')
 
-    def __init__(self, client: FlightRadar24API) -> None:
+    def __init__(self, client: FlightRadarClient) -> None:
         self._client = client
         self._code: str | None = None
         self._stats: AirportStats | None = None
         self._arrivals: list[dict[str, Any]] | None = None
         self._departures: list[dict[str, Any]] | None = None
+
+    def update_client(self, client: FlightRadarClient) -> None:
+        self._client = client
 
     @property
     def code(self) -> str | None:
