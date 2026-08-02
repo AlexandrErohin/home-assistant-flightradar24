@@ -97,7 +97,7 @@ class AirportProcessor:
         flights = []
         airport = 'origin' if schedule == ScheduleType.ARRIVAL else 'destination'
         i = 0
-        for item in data:
+        for item in (data or []):
             i += 1
             item = get_value(item, ['flight'])
             flights.append({

@@ -14,6 +14,7 @@ from .const import (
     CANARY_BOUNDS,
     SESSION_GUARD_EMPTY_SECONDS,
     SESSION_GUARD_CHECK_THROTTLE,
+    SESSION_SETUP_MAX_TRIES,
 )
 from .api.client import FlightRadarClient
 from .api.event import EventManager, Event
@@ -49,6 +50,7 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
             min_altitude: int,
             max_altitude: int,
             point: Entity,
+            session_verified: bool = True,
     ) -> None:
         self.unique_id = unique_id
         self.event_manager = EventManager()
@@ -56,7 +58,13 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
         self.airport = AirportProcessor(client)
         self.enable_tracker: bool = False
         self.scanning: bool = True
-        self._guard_last_seen: float = monotonic()
+        # Setup no longer fails on an unverified session (that would leave every
+        # entity unavailable through HA's retry backoff). Instead, pretend the
+        # feed has been empty for a full window so the very first empty cycle
+        # runs the canary and swaps the session out straight away.
+        self._guard_last_seen: float = (
+            monotonic() if session_verified else monotonic() - SESSION_GUARD_EMPTY_SECONDS
+        )
         self._guard_last_check: float = 0.0
         self.device_info = DeviceInfo(
             configuration_url=URL,
@@ -112,16 +120,26 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
         if not self.scanning:
             return
 
-        self.flight._auto_cleanup = self.config_entry.data.get(CONF_AUTO_CLEANUP, CONF_AUTO_CLEANUP_DEFAULT)
+        self.flight.auto_cleanup = self.config_entry.data.get(CONF_AUTO_CLEANUP, CONF_AUTO_CLEANUP_DEFAULT)
+
+        # Every section stands on its own. Sharing one try block meant a single
+        # failing call - a rate limited airport lookup, say - silently skipped
+        # everything after it, which is how all the sensors ended up stuck.
+        for section, job in (
+                ('flights in area', self.flight.update_flights_in_area),
+                ('tracked flights', self.flight.update_flights_tracked),
+                ('most tracked', self.flight.update_most_tracked),
+                ('airport', self.airport.update_airport_info),
+        ):
+            try:
+                await self.hass.async_add_executor_job(job)
+            except Exception as e:
+                self.logger.error("FlightRadar24: could not update %s - %s", section, e)
 
         try:
-            await self.hass.async_add_executor_job(self.flight.update_flights_in_area)
-            await self.hass.async_add_executor_job(self.flight.update_flights_tracked)
-            await self.hass.async_add_executor_job(self.flight.update_most_tracked)
-            await self.hass.async_add_executor_job(self.airport.update_airport_info)
             await self._check_session()
         except Exception as e:
-            self.logger.error("FlightRadar24: %s", e)
+            self.logger.error("FlightRadar24: session check failed - %s", e)
 
         def fire(event: Event) -> None:
             self.hass.bus.fire(event.event, event.data)
@@ -135,6 +153,28 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
         if username and password:
             client.login(username, password)
         return FlightRadarClient(client, self.logger)
+
+    def _renew_verified_client(self) -> tuple[FlightRadarClient, bool]:
+        """Create a replacement session and canary-verify it before handing it over.
+
+        Without this, a bad session replaced by another bad session (the dice
+        roll is ~1 in 5 per fresh session) would sit unnoticed until the guard's
+        next throttle window - half an hour of zeros. Bounded like setup.
+        """
+        client = None
+        for attempt in range(1, SESSION_SETUP_MAX_TRIES + 1):
+            client = self._renew_client()
+            try:
+                if is_session_healthy(client):
+                    return client, True
+            except Exception as e:
+                self.logger.warning('FlightRadar24: could not verify the replacement session - %s', e)
+                return client, False
+            self.logger.warning(
+                'FlightRadar24: replacement session is empty as well (bot mitigation), recreating (%d/%d)',
+                attempt, SESSION_SETUP_MAX_TRIES,
+            )
+        return client, False
 
     async def _check_session(self) -> None:
         """Detect a session gone sticky-empty at runtime and replace it (#278).
@@ -156,6 +196,11 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
         self.logger.warning(
             'FlightRadar24: session only receives empty feed data (bot mitigation), recreating session'
         )
-        client = await self.hass.async_add_executor_job(self._renew_client)
+        client, verified = await self.hass.async_add_executor_job(self._renew_verified_client)
         self.flight.update_client(client)
         self.airport.update_client(client)
+        if verified:
+            # A verified session earns a fresh observation window; an unverified
+            # one keeps the timers as they are, so the guard re-checks it after
+            # the next throttle window instead of trusting it for a full one.
+            self._guard_last_seen = monotonic()
