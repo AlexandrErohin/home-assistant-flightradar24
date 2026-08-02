@@ -17,6 +17,7 @@ from ..const import (
     EVENT_TRACKED_LEFT_GATE,
     MAX_DETAILS_PER_UPDATE,
     DETAILS_MAX_TRIES,
+    ENTRY_EVENT_MAX_WAIT_CYCLES,
 )
 import pycountry
 
@@ -87,7 +88,7 @@ class FlightType(Enum):
 class FlightProcessor:
     __slots__ = ('_in_area', '_tracked', '_most_tracked', '_entered', '_exited', '_min_altitude', '_max_altitude',
                  '_point', '_client', '_bounds', '_event_manager', '_auto_cleanup', '_raw_in_area_count',
-                 '_details_budget', '_details_paused', '_details_tries')
+                 '_details_budget', '_details_paused', '_details_tries', '_pending_entry')
 
     def __init__(
             self,
@@ -115,6 +116,7 @@ class FlightProcessor:
         self._details_budget: int = 0
         self._details_paused: bool = False
         self._details_tries: dict[str, int] = {}
+        self._pending_entry: dict[str, int] = {}
 
     def _begin_details_cycle(self) -> None:
         """Reset the per-cycle details allowance."""
@@ -230,9 +232,33 @@ class FlightProcessor:
 
         if self._in_area is not None:
             entries = current.keys() - self._in_area.keys()
-            self._entered = [current[x] for x in entries]
             exits = self._in_area.keys() - current.keys()
             self._exited = [self._in_area[x] for x in exits]
+
+            # Entry events wait until the record is enriched with details - or
+            # until it is clear no enrichment is coming (no schedule to fetch,
+            # or the details endpoint stayed unavailable for the whole grace
+            # window). User automations then always see a fully keyed record
+            # with the best data we could get, at the price of the event firing
+            # up to ENTRY_EVENT_MAX_WAIT_CYCLES cycles late in degraded mode.
+            # The healthy path is unchanged: details arrive in the same cycle,
+            # so the event still fires immediately.
+            for flight_id in entries:
+                self._pending_entry[flight_id] = ENTRY_EVENT_MAX_WAIT_CYCLES
+            self._entered = []
+            for flight_id in list(self._pending_entry):
+                if flight_id not in current:
+                    # Entered and left again before enrichment: fire the entry
+                    # with the last known record so every exit has its entry.
+                    if flight_id in self._in_area:
+                        self._entered.append(self._in_area[flight_id])
+                    del self._pending_entry[flight_id]
+                    continue
+                self._pending_entry[flight_id] -= 1
+                flight = current[flight_id]
+                if self._entry_ready(flight) or self._pending_entry[flight_id] <= 0:
+                    self._entered.append(flight)
+                    del self._pending_entry[flight_id]
             self._event_manager.add_events(EVENT_ENTRY, self._entered)
             self._event_manager.add_events(EVENT_EXIT, self._exited)
         else:
@@ -397,14 +423,23 @@ class FlightProcessor:
         self._most_tracked = current
         self._event_manager.add_events(EVENT_MOST_TRACKED_NEW, entries)
 
+    def _entry_ready(self, flight: dict[str, Any]) -> bool:
+        """True once a record is enriched, or provably as good as it gets."""
+        return (self._is_valid(flight)
+                or self._details_tries.get(flight.get('id'), 0) >= DETAILS_MAX_TRIES)
+
     def _get_feed_data(self, obj: Flight) -> dict[str, Any]:
-        """Build a record from the live feed alone.
+        """Build a record from the live feed alone, on the full details schema.
 
         Used whenever the details lookup is unavailable, so a flight is still
         counted and still has an identity instead of silently disappearing.
+        Passing a minimal details dict through _get_flight_data yields every
+        key a real lookup would deliver (as None where the feed knows nothing),
+        so events and the `flights` attribute never hand user automations or
+        templates a record with missing keys.
         """
-        return {
-            'id': obj.id,
+        flight = self._get_flight_data({'identification': {'id': obj.id}})
+        flight.update({
             'flight_number': feed_value(obj, 'number'),
             'callsign': feed_value(obj, 'callsign'),
             'aircraft_registration': feed_value(obj, 'registration'),
@@ -413,7 +448,8 @@ class FlightProcessor:
             'airline_icao': feed_value(obj, 'airline_icao'),
             'airport_origin_code_iata': feed_value(obj, 'origin_airport_iata'),
             'airport_destination_code_iata': feed_value(obj, 'destination_airport_iata'),
-        }
+        })
+        return flight
 
     def _fetch_details(self, obj: Flight, priority: bool = False) -> dict[str, Any] | None:
         """Fetch and map one flight's details, staying inside this cycle's budget.
@@ -437,7 +473,10 @@ class FlightProcessor:
             # flight of this cycle only makes it worse. The client already logged.
             self._details_paused = True
             return None
-        if flight is None:
+        if flight is None or not self._is_valid(flight):
+            # Fruitless also covers a lookup that succeeded but still lacks the
+            # schedule fields _is_valid wants (GA/military/ferry traffic) -
+            # otherwise those flights get re-requested on every single cycle.
             self._details_tries[obj.id] = self._details_tries.get(obj.id, 0) + 1
         else:
             self._details_tries.pop(obj.id, None)

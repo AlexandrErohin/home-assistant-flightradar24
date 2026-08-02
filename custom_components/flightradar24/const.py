@@ -78,3 +78,7 @@ MAX_DETAILS_PER_UPDATE = 25
 # _is_valid asks for. Stop re-requesting details for such a flight on every
 # single cycle after this many fruitless attempts.
 DETAILS_MAX_TRIES = 3
+# Hold an entry event back until its record is enriched with details, but never
+# longer than this many cycles - automations get complete data when possible,
+# and a bounded delay when the details endpoint is down.
+ENTRY_EVENT_MAX_WAIT_CYCLES = 3

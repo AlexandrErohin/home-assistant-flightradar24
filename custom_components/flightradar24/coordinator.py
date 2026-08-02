@@ -14,6 +14,7 @@ from .const import (
     CANARY_BOUNDS,
     SESSION_GUARD_EMPTY_SECONDS,
     SESSION_GUARD_CHECK_THROTTLE,
+    SESSION_SETUP_MAX_TRIES,
 )
 from .api.client import FlightRadarClient
 from .api.event import EventManager, Event
@@ -153,6 +154,28 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
             client.login(username, password)
         return FlightRadarClient(client, self.logger)
 
+    def _renew_verified_client(self) -> tuple[FlightRadarClient, bool]:
+        """Create a replacement session and canary-verify it before handing it over.
+
+        Without this, a bad session replaced by another bad session (the dice
+        roll is ~1 in 5 per fresh session) would sit unnoticed until the guard's
+        next throttle window - half an hour of zeros. Bounded like setup.
+        """
+        client = None
+        for attempt in range(1, SESSION_SETUP_MAX_TRIES + 1):
+            client = self._renew_client()
+            try:
+                if is_session_healthy(client):
+                    return client, True
+            except Exception as e:
+                self.logger.warning('FlightRadar24: could not verify the replacement session - %s', e)
+                return client, False
+            self.logger.warning(
+                'FlightRadar24: replacement session is empty as well (bot mitigation), recreating (%d/%d)',
+                attempt, SESSION_SETUP_MAX_TRIES,
+            )
+        return client, False
+
     async def _check_session(self) -> None:
         """Detect a session gone sticky-empty at runtime and replace it (#278).
 
@@ -173,6 +196,11 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
         self.logger.warning(
             'FlightRadar24: session only receives empty feed data (bot mitigation), recreating session'
         )
-        client = await self.hass.async_add_executor_job(self._renew_client)
+        client, verified = await self.hass.async_add_executor_job(self._renew_verified_client)
         self.flight.update_client(client)
         self.airport.update_client(client)
+        if verified:
+            # A verified session earns a fresh observation window; an unverified
+            # one keeps the timers as they are, so the guard re-checks it after
+            # the next throttle window instead of trusting it for a full one.
+            self._guard_last_seen = monotonic()
