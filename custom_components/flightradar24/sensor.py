@@ -3,6 +3,7 @@ from collections.abc import Callable
 from typing import Any
 from homeassistant.components.sensor import (
     SensorStateClass,
+    SensorEntity,
     RestoreSensor,
     SensorEntityDescription,
 )
@@ -11,7 +12,6 @@ from homeassistant.core import HomeAssistant, callback
 from .const import DOMAIN
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
-from homeassistant.helpers import entity_registry as er  # Imported for migration
 from homeassistant.util import dt as dt_util
 from .coordinator import FlightRadar24Coordinator
 
@@ -51,18 +51,6 @@ SENSOR_TYPES: tuple[FlightRadar24SensorEntityDescription, ...] = (
         state_class=SensorStateClass.TOTAL,
         value=lambda coord: len(coord.flight.exited_list),
         attributes=lambda coord: {'flights': coord.flight.exited_list},
-    ),
-    FlightRadar24SensorEntityDescription(
-        key="most_tracked",
-        translation_key="most_tracked",
-        icon="mdi:airplane-search",
-        state_class=SensorStateClass.TOTAL,
-        value=lambda coord: (
-            len(coord.flight.most_tracked_list)
-            if coord.flight.most_tracked_list is not None
-            else None
-        ),
-        attributes=lambda coord: {'flights': coord.flight.most_tracked_list or []},
     ),
     FlightRadar24SensorEntityDescription(
         key="airport_arrivals_on_time",
@@ -183,9 +171,6 @@ RESTORE_SENSOR_TYPES: tuple[FlightRadar24SensorEntityDescription, ...] = (
     ),
 )
 
-# These count what happened during the last cycle. Restoring them would hand
-# automations a delta measured before the restart, so they start over at 0.
-NON_RESTORED_KEYS = frozenset({"entered", "exited"})
 
 # Sensors that have no source at all until an airport is tracked - the only
 # ones that legitimately report `unavailable`.
@@ -196,21 +181,6 @@ AIRPORT_KEYS = frozenset(
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback) -> None:
     coordinator = hass.data[DOMAIN][entry.entry_id]
-
-    # --- DYNAMIC MIGRATION LOGIC TO PREVENT BREAKING CHANGES ---
-    ent_reg = er.async_get(hass)
-    for description in SENSOR_TYPES + RESTORE_SENSOR_TYPES:
-        old_unique_id = f"{coordinator.unique_id}_{DOMAIN}_{description.key}"
-        new_unique_id = f"{entry.entry_id}_{DOMAIN}_{description.key}"
-        if entity_id := ent_reg.async_get_entity_id("sensor", DOMAIN, old_unique_id):
-            # Bulletproof check: Only migrate if the new ID isn't already taken!
-            if not ent_reg.async_get_entity_id("sensor", DOMAIN, new_unique_id):
-                try:
-                    ent_reg.async_update_entity(entity_id, new_unique_id=new_unique_id)
-                except ValueError:
-                    pass
-    # -----------------------------------------------------------
-
     sensors = []
     for description in SENSOR_TYPES:
         sensors.append(FlightRadar24Sensor(coordinator, description, entry.entry_id))
@@ -219,7 +189,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
     async_add_entities(sensors, False)
 
 
-class FlightRadar24Sensor(CoordinatorEntity[FlightRadar24Coordinator], RestoreSensor):
+class FlightRadar24Sensor(CoordinatorEntity[FlightRadar24Coordinator], SensorEntity):
     _attr_has_entity_name = True
     entity_description: FlightRadar24SensorEntityDescription
 
@@ -237,19 +207,7 @@ class FlightRadar24Sensor(CoordinatorEntity[FlightRadar24Coordinator], RestoreSe
         super().__init__(coordinator)
         self._attr_device_info = coordinator.device_info
         self._attr_unique_id = f"{entry_id}_{DOMAIN}_{description.key}"
-
-    async def async_added_to_hass(self) -> None:
-        """Take up the last known value so a restart is not a data gap."""
-        await super().async_added_to_hass()
-
-        if self.entity_description.key in NON_RESTORED_KEYS:
-            self._attr_native_value = self.entity_description.value(self.coordinator)
-            return
-
-        if self._attr_native_value is None:
-            last_data = await self.async_get_last_sensor_data()
-            if last_data is not None:
-                self._attr_native_value = last_data.native_value
+        self._attr_native_value = self.entity_description.value(coordinator)
 
     @callback
     def _handle_coordinator_update(self) -> None:
@@ -287,7 +245,7 @@ class FlightRadar24Sensor(CoordinatorEntity[FlightRadar24Coordinator], RestoreSe
         return True
 
 
-class FlightRadar24RestoreSensor(FlightRadar24Sensor):
+class FlightRadar24RestoreSensor(FlightRadar24Sensor, RestoreSensor):
 
     # WE MUST RECORD THIS SPECIFIC SENSOR TO RESTORE TRACKED FLIGHTS ON REBOOT
     _unrecorded_attributes = frozenset()

@@ -23,7 +23,6 @@
           "scan_interval": "Interval aktualizácie v sekundách",
           "min_altitude": "Minimálna výška v stopách",
           "max_altitude": "Maximálna výška v stopách",
-          "most_tracked": "Povoliť zoznam najviac sledovaných letov",
           "enable_tracker": "Povoliť device_tracker pre ďalšie sledované lety",
           "auto_cleanup": "Povoliť automatické čistenie sledovaných pristátých letov",
           "tracker_name_style": "Štýl pomenovania sledovania na mape",
@@ -38,7 +37,6 @@
       "in_area": { "name": "Lety v oblasti" },
       "entered": { "name": "Vstúpili do oblasti" },
       "exited": { "name": "Opustili oblasť" },
-      "most_tracked": { "name": "Najviac sledované" },
       "additional_tracked": { "name": "Ďalšie sledované" },
       "airport_arrivals": { "name": "Prílety na letisko" },
       "airport_departures": { "name": "Odlety z letiska" },
@@ -59,7 +57,8 @@
       "tracked_clear": { "name": "Vymazať ďalšie sledované" }
     },
     "switch": {
-      "scanning": { "name": "Získavanie údajov API" }
+      "scanning": { "name": "Získavanie údajov API" },
+      "most_tracked": { "name": "Najviac sledované" }
     },
     "text": {
       "add_track": { "name": "Pridať k sledovaniu" },

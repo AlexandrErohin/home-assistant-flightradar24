@@ -1,8 +1,10 @@
 import re
-from typing import Any
+from typing import Any, Optional
 from enum import Enum
+from time import time
+from random import randint
 from .client import FlightRadarClient
-from FlightRadar24 import Flight, Entity
+from FlightRadarAPI import Flight, Entity
 from .helper import to_int, get_value
 from .event import EventManager
 from ..const import (
@@ -15,17 +17,8 @@ from ..const import (
     EVENT_MOST_TRACKED_NEW,
     EVENT_TRACKED_ARRIVED_GATE,
     EVENT_TRACKED_LEFT_GATE,
-    MAX_DETAILS_PER_UPDATE,
-    DETAILS_MAX_TRIES,
-    ENTRY_EVENT_MAX_WAIT_CYCLES,
 )
 import pycountry
-
-
-def feed_value(obj: Flight, name: str) -> Any | None:
-    """Read one field off a live feed object, normalising its 'no data' markers."""
-    value = getattr(obj, name, None)
-    return None if not value or value == 'N/A' else value
 
 
 def is_helicopter(flight) -> bool:
@@ -80,6 +73,15 @@ def is_helicopter(flight) -> bool:
     return False
 
 
+def get_country_code(code: Optional[str]) -> Optional[str]:
+    if code is None or len(code) == 2:
+        return code
+
+    country = pycountry.countries.get(alpha_3=code)
+
+    return country.alpha_2 if country is not None else code
+
+
 class FlightType(Enum):
     TRACKED = 1
     IN_AREA = 2
@@ -87,8 +89,7 @@ class FlightType(Enum):
 
 class FlightProcessor:
     __slots__ = ('_in_area', '_tracked', '_most_tracked', '_entered', '_exited', '_min_altitude', '_max_altitude',
-                 '_point', '_client', '_bounds', '_event_manager', '_auto_cleanup', '_raw_in_area_count',
-                 '_details_budget', '_details_paused', '_details_tries', '_pending_entry')
+                 '_point', '_client', '_bounds', '_event_manager', '_auto_cleanup', '_raw_in_area_count')
 
     def __init__(
             self,
@@ -113,27 +114,10 @@ class FlightProcessor:
         self._entered: list[dict[str, Any]] = []
         self._exited: list[dict[str, Any]] = []
         self._raw_in_area_count: int = 0
-        self._details_budget: int = 0
-        self._details_paused: bool = False
-        self._details_tries: dict[str, int] = {}
-        self._pending_entry: dict[str, int] = {}
-
-    def _begin_details_cycle(self) -> None:
-        """Reset the per-cycle details allowance."""
-        self._details_budget = MAX_DETAILS_PER_UPDATE
-        self._details_paused = False
 
     @property
     def client(self) -> FlightRadarClient:
         return self._client
-
-    @property
-    def auto_cleanup(self) -> bool:
-        return self._auto_cleanup
-
-    @auto_cleanup.setter
-    def auto_cleanup(self, value: bool) -> None:
-        self._auto_cleanup = value
 
     @property
     def raw_in_area_count(self) -> int:
@@ -159,8 +143,8 @@ class FlightProcessor:
         return self._most_tracked is not None
 
     @property
-    def most_tracked_list(self) -> list[dict[str, Any]] | None:
-        return list(self._most_tracked.values()) if self._most_tracked is not None else None
+    def most_tracked_list(self) -> list[dict[str, Any]]:
+        return list(self._most_tracked.values()) if self._most_tracked else []
 
     @property
     def entered_list(self) -> list[dict[str, Any]]:
@@ -192,14 +176,15 @@ class FlightProcessor:
     def enable_most_tracked(self) -> None:
         self._most_tracked = {}
 
+    def disable_most_tracked(self) -> None:
+        self._most_tracked = None
+
     def add_track(self, number: str) -> dict | None:
-        found: dict[str, dict[str, Any]] = {}
-        number = number.upper()
-        self._begin_details_cycle()
-        self._find_flight(found, number)
+        found = self._find_flight(number.upper())
         if not found:
             return None
-        self._tracked = self._tracked | found if self._tracked else found
+        found = {found.get('id'): found}
+        self._tracked = (self._tracked | found) if self._tracked else found
 
         return found
 
@@ -213,198 +198,216 @@ class FlightProcessor:
         return None
 
     def update_flights_in_area(self) -> None:
-        # Only the feed call is allowed to abort this method. Everything after it
-        # keeps going on partial data, because bailing out halfway would leave
-        # _in_area untouched and publish 0 for in area / entered / exited.
+        self._entered = {}
+        self._exited = {}
         flights = self._client.get_flights(bounds=self._bounds)
         # Unfiltered count for the session guard (see coordinator) - altitude
         # filtering below must not hide traffic from the empty-session detection.
         self._raw_in_area_count = len(flights)
-        self._begin_details_cycle()
 
-        current: dict[str, dict[str, Any]] = {}
+        is_first_run = self._in_area is None
+        self._in_area = self._in_area or {}
+
+        # Firstly, remove exited flights
+        if not is_first_run:
+            for key in set(self._in_area) - {f.id for f in flights}:
+                self._exited[key] = self._in_area.pop(key)
+                self._event_manager.add_event(EVENT_EXIT, self._exited[key])
+
         for obj in flights:
             altitude = to_int(obj.altitude)
             # An unknown altitude is not a reason to drop the flight from the area.
-            if altitude is not None and not self._min_altitude <= altitude <= self._max_altitude:
-                continue
-            self._update_flights_data(obj, current, self._in_area, FlightType.IN_AREA)
-
-        if self._in_area is not None:
-            entries = current.keys() - self._in_area.keys()
-            exits = self._in_area.keys() - current.keys()
-            self._exited = [self._in_area[x] for x in exits]
-
-            # Entry events wait until the record is enriched with details - or
-            # until it is clear no enrichment is coming (no schedule to fetch,
-            # or the details endpoint stayed unavailable for the whole grace
-            # window). User automations then always see a fully keyed record
-            # with the best data we could get, at the price of the event firing
-            # up to ENTRY_EVENT_MAX_WAIT_CYCLES cycles late in degraded mode.
-            # The healthy path is unchanged: details arrive in the same cycle,
-            # so the event still fires immediately.
-            for flight_id in entries:
-                self._pending_entry[flight_id] = ENTRY_EVENT_MAX_WAIT_CYCLES
-            self._entered = []
-            for flight_id in list(self._pending_entry):
-                if flight_id not in current:
-                    # Entered and left again before enrichment: fire the entry
-                    # with the last known record so every exit has its entry.
-                    if flight_id in self._in_area:
-                        self._entered.append(self._in_area[flight_id])
-                    del self._pending_entry[flight_id]
-                    continue
-                self._pending_entry[flight_id] -= 1
-                flight = current[flight_id]
-                if self._entry_ready(flight) or self._pending_entry[flight_id] <= 0:
-                    self._entered.append(flight)
-                    del self._pending_entry[flight_id]
-            self._event_manager.add_events(EVENT_ENTRY, self._entered)
-            self._event_manager.add_events(EVENT_EXIT, self._exited)
-        else:
-            self._entered = []
-            self._exited = []
-        self._in_area = current
-        self._details_tries = {
-            key: value for key, value in self._details_tries.items()
-            if key in current or key in self._tracked
-        }
+            if altitude is None or self._min_altitude <= altitude <= self._max_altitude:
+                is_new_flight = not is_first_run and obj.id not in self._in_area
+                # Secondly update existed flight or add a new flight with details
+                flight = self._update_flights_data(obj, self._in_area.get(obj.id, {}), FlightType.IN_AREA)
+                if flight:
+                    self._in_area[flight['id']] = flight
+                    if is_new_flight:
+                        self._entered[obj.id] = self._in_area.get(obj.id)
+                        self._event_manager.add_event(EVENT_ENTRY, self._entered[obj.id])
 
     def update_flights_tracked(self) -> None:
         if not self._tracked:
             return
 
-        self._begin_details_cycle()
-        reg_numbers = []
         current_flights = []
-        current: dict[str, dict[str, Any]] = {}
-        for flight in self._tracked:
-            if self._tracked[flight].get('aircraft_registration'):
-                reg_numbers.append(self._tracked[flight].get('aircraft_registration'))
+        flight_ids = set(self._tracked.keys())
+        reg_to_id = {f.get('aircraft_registration'): f.get('id') for f in self._tracked.values() if
+                     f.get('aircraft_registration')}
 
-        if reg_numbers:
-            flights = self._client.get_flights(registration=','.join(reg_numbers))
+        # Firstly checking live flights
+        if reg_to_id:
+            flights = self._client.get_flights(registration=','.join(reg_to_id.keys()))
             for obj in flights:
-                self._update_flights_data(obj, current, self._tracked, FlightType.TRACKED)
-                data = current.get(obj.id)
-                if data is None:
-                    continue
-                data['tracked_type'] = 'live'
-                if data.get('flight_number'):
-                    current_flights.append(data.get('flight_number'))
-                if data.get('callsign'):
-                    current_flights.append(data.get('callsign'))
+                flight = self._update_flights_data(obj, self._tracked.get(obj.id, {}), FlightType.TRACKED)
+                if flight:
+                    old_flight_id = reg_to_id.pop(flight.get('aircraft_registration'))
+                    if old_flight_id != flight.get('id'):
+                        del self._tracked[old_flight_id]
+                    # mark that flight has updated
+                    flight['live_attempt'] = 1
+                    self._tracked[obj.id] = flight
+                    flight_ids.remove(old_flight_id)
+                    if flight.get('flight_number'):
+                        current_flights.append(flight.get('flight_number'))
+                    if flight.get('callsign'):
+                        current_flights.append(flight.get('callsign'))
 
-        remains = self._tracked.keys() - current.keys()
-        if remains:
-            for flight_id in remains:
-                flight_number = self._tracked[flight_id].get('flight_number')
-                if flight_number and flight_number in current_flights:
-                    continue
-                callsign = self._tracked[flight_id].get('callsign')
-                if not flight_number and callsign and callsign in current_flights:
-                    continue
-                number = flight_number or callsign
-                if not number:
-                    continue
-                size = current.__len__()
-                searched = self._find_flight(current, number)
-                if size != current.__len__():
-                    current_flights.append(number)
-                else:
-                    current[flight_id] = self._tracked[flight_id]
-                    # Only a search that actually ran proves the flight is gone -
-                    # a failed one must not flip every tracked flight to not_found.
-                    if searched:
-                        current[flight_id]['tracked_type'] = 'not_found'
+        # Secondly checking flights that were live recently
+        for flight_id in reg_to_id.values():
+            flight = self._tracked[flight_id]
+            # move to next update to re-check if this flight ends
+            if flight.get('live_attempt'):
+                del self._tracked[flight_id]['live_attempt']
+                flight_ids.remove(flight_id)
+                continue
 
-        # --- AUTO-CLEANUP LOGIC WRAPPED IN CONFIG CHECK ---
-        if self._auto_cleanup:
-            keys_to_remove = []
-            for fid, new_data in current.items():
-                if new_data.get('tracked_type') == 'schedule':
-                    number = new_data.get('flight_number') or new_data.get('callsign')
-                    # Check if this flight was 'live' in our previous update
-                    for old_data in self._tracked.values():
-                        old_number = old_data.get('flight_number') or old_data.get('callsign')
-                        if old_number == number and old_data.get('tracked_type') == 'live':
-                            keys_to_remove.append(fid)
-                            # Fire an event to Home Assistant for automations!
-                            self._event_manager.add_events(EVENT_TRACKED_ARRIVED_GATE, [old_data])
-                            break
+            # Logic for recent live flights that now is ended
+            if flight.get('tracked_type') != 'live':
+                # fr24 search doesnt show schedule for aircraft registration - waiting live flight
+                if flight.get('tracked_type') == 'aircraft':
+                    flight_ids.remove(flight_id)
+                continue
+            # Fire an event when a flight no more live
+            self._event_manager.add_event(EVENT_TRACKED_ARRIVED_GATE, flight)
+            # --- AUTO-CLEANUP LOGIC WRAPPED IN CONFIG CHECK ---
+            if self._auto_cleanup:
+                del self._tracked[flight_id]
+                flight_ids.remove(flight_id)
+                continue
 
-            # Remove the landed flights from the current tracking list
-            for fid in keys_to_remove:
-                current.pop(fid, None)
-        # -------------------------------------------------------------------
+            if flight.get('tracked_by') == 'aircraft_registration':
+                # fr24 search doesnt show schedule for aircraft registration - waiting live flight
+                self._tracked[flight_id] = {
+                            'id': flight_id,
+                            'latitude': flight.get('latitude'),
+                            'longitude': flight.get('longitude'),
+                            'altitude': flight.get('altitude'),
+                            'aircraft_icao_24bit': flight.get('aircraft_icao_24bit'),
+                            'on_ground': flight.get('on_ground'),
+                            'aircraft_category': flight.get('aircraft_category'),
+                            'aircraft_registration': flight.get('aircraft_registration'),
+                            'aircraft_photo_small': flight.get('aircraft_photo_small'),
+                            'aircraft_photo_medium': flight.get('aircraft_photo_medium'),
+                            'aircraft_photo_large': flight.get('aircraft_photo_large'),
+                            'aircraft_model': flight.get('aircraft_model'),
+                            'aircraft_code': flight.get('aircraft_code'),
+                            'airline': flight.get('airline'),
+                            'airline_short': flight.get('airline_short'),
+                            'airline_iata': flight.get('airline_iata'),
+                            'airline_icao': flight.get('airline_icao'),
+                            'airport_origin_name': flight.get('airport_destination_name'),
+                            'airport_origin_code_iata': flight.get('airport_destination_name'),
+                            'airport_origin_code_icao': flight.get('airport_destination_code_icao'),
+                            'airport_origin_country_name': flight.get('airport_destination_country_name'),
+                            'airport_origin_country_code': flight.get('airport_destination_country_code'),
+                            'airport_origin_city': flight.get('airport_destination_city'),
+                            'airport_origin_timezone_offset': flight.get('airport_destination_timezone_offset'),
+                            'airport_origin_timezone_abbr': flight.get('airport_destination_timezone_abbr'),
+                            'airport_origin_terminal': None,
+                            'airport_origin_latitude': flight.get('airport_destination_latitude'),
+                            'airport_origin_longitude': flight.get('airport_destination_longitude'),
+                            'tracked_by': 'aircraft_registration',
+                            'tracked_type': 'aircraft',
+                }
+                flight_ids.remove(flight_id)
 
-        # --- LEFT GATE LOGIC ---
-        # Fire an event when a flight changes from 'schedule' to 'live'
-        # Issue context: https://github.com/AlexandrErohin/home-assistant-flightradar24/issues/171
-        for fid, new_data in current.items():
-            if new_data.get('tracked_type') == 'live':
-                number = new_data.get('flight_number') or new_data.get('callsign')
-                for old_data in self._tracked.values():
-                    old_number = old_data.get('flight_number') or old_data.get('callsign')
-                    if old_number == number and old_data.get('tracked_type') == 'schedule':
-                        self._event_manager.add_events(EVENT_TRACKED_LEFT_GATE, [new_data])
-                        break
-        # -----------------------
+        # Thirdly checking scheduled flights
+        for flight_id in flight_ids:
+            flight = self._tracked[flight_id]
 
-        self._tracked = current
+            number = flight.get('flight_number') or flight.get('callsign')
+            if not number or number in current_flights:
+                del self._tracked[flight_id]
+                continue
+            found = self._find_flight(number)
+            if found:
+                if found.get('tracked_type') == 'schedule':
+                    # Copy origin and destination airports info
+                    keys_to_copy = ['airport_origin_name', 'airport_origin_code_iata', 'airport_origin_code_icao',
+                                    'airport_origin_country_name', 'airport_origin_country_code',
+                                    'airport_origin_city', 'airport_origin_timezone_offset',
+                                    'airport_origin_timezone_abbr', 'airport_origin_latitude',
+                                    'airport_origin_longitude', 'airport_destination_name',
+                                    'airport_destination_code_iata', 'airport_destination_code_icao',
+                                    'airport_destination_country_name', 'airport_destination_country_code',
+                                    'airport_destination_city', 'airport_destination_timezone_offset',
+                                    'airport_destination_timezone_abbr', 'airport_destination_latitude',
+                                    'airport_destination_longitude'
+                                    ]
+                    for key in keys_to_copy:
+                        if key in flight:
+                            found[key] = flight[key]
+                if flight_id != found.get('id'):
+                    del self._tracked[flight_id]
+                self._tracked[found.get('id')] = found
+                # Fire an event when a flight changes from 'schedule' to 'live'
+                if found.get('tracked_type') == 'live':
+                    self._event_manager.add_event(EVENT_TRACKED_LEFT_GATE, found)
 
-    def _find_flight(self, current: dict[str, dict[str, Any]], number: str) -> bool:
-        """Look one flight up by number. Returns False when the search never ran."""
-
-        def process_search_flight(objects: dict, search: str) -> dict | None:
-            live = objects.get('live')
-            if live:
-                for element in live:
-                    detail = element.get('detail')
-                    if detail and search in (detail.get('reg'), detail.get('callsign'), detail.get('flight')):
-                        return element
-            schedule = objects.get('schedule')
-            if schedule:
-                for element in schedule:
-                    detail = element.get('detail')
-                    if detail and search in (detail.get('callsign'), detail.get('flight')):
-                        return element
-            return None
-
-        try:
-            flights = self._client.search(number)
-        except Exception:
-            return False
-        found = process_search_flight(flights, number)
+    def _find_flight(self, number: str) -> dict[str, Any] | None:
+        flights = self._client.search(number)
+        found = self._process_search_flight(flights, number)
         if not found:
-            return True
-        if found.get('type') == 'live':
+            return None
+        if found.get('tracked_type') == 'live':
             data = [None] * 20
-            data[1] = get_value(found, ['detail', 'lat'])
-            data[2] = get_value(found, ['detail', 'lon'])
+            data[1] = found.get('lat')
+            data[2] = found.get('lon')
             data[13] = []
             flight = Flight(found.get('id'), data)
-            flight.registration = found['detail']['reg']
-            flight.callsign = found['detail']['callsign']
-
-            self._update_flights_data(flight, current, self._tracked)
+            flight.registration = found.get('reg')
+            flight.callsign = found.get('callsign')
+            result = self._update_flights_data(flight, {})
         else:
-            current[found.get('id')] = {
+            result = {
                 'id': found.get('id'),
-                'callsign': found['detail'].get('callsign'),
-                'flight_number': found['detail'].get('flight'),
-                'aircraft_registration': None,
+                'callsign': found.get('callsign'),
+                'flight_number': found.get('flight'),
+                'aircraft_registration': found.get('aircraft_registration'),
             }
-        if found.get('id') in current:
-            current[found.get('id')]['tracked_type'] = found.get('type')
-        return True
+        if result:
+            result['tracked_type'] = found.get('tracked_type')
+            result['tracked_by'] = found.get('tracked_by')
+        return result
+
+    def _process_search_flight(self, objects: dict, search: str) -> dict | None:
+        if not search:
+            return None
+
+        search_rules = [
+            ('live', 'reg', 'aircraft_registration'),
+            ('live', 'callsign', 'callsign'),
+            ('live', 'flight', 'flight_number'),
+            ('schedule', 'callsign', 'callsign'),
+            ('schedule', 'flight', 'flight_number'),
+        ]
+
+        for type, field, tracked_by in search_rules:
+            for item in objects.get(type, []):
+                detail = item.get('detail')
+                if detail and detail.get(field) == search:
+                    detail['id'] = item.get('id')
+                    detail['tracked_type'] = type
+                    detail['tracked_by'] = tracked_by
+                    return detail
+
+        for element in objects.get('aircraft', []):
+            if element.get('id') == search:
+                element['aircraft_registration'] = element.get('id')
+                element['tracked_type'] = 'aircraft'
+                element['tracked_by'] = 'aircraft_registration'
+                return element
+
+        return None
 
     def update_most_tracked(self) -> None:
         if self._most_tracked is None:
             return
         flights = self._client.get_most_tracked()
         current: dict[str, dict[str, Any]] = {}
-        for obj in (get_value(flights, ['data']) or []):
+        for obj in flights.get('data'):
             current[obj['flight_id']] = {
                 'id': obj.get('flight_id'),
                 'flight_number': obj.get('flight'),
@@ -423,91 +426,26 @@ class FlightProcessor:
         self._most_tracked = current
         self._event_manager.add_events(EVENT_MOST_TRACKED_NEW, entries)
 
-    def _entry_ready(self, flight: dict[str, Any]) -> bool:
-        """True once a record is enriched, or provably as good as it gets."""
-        return (self._is_valid(flight)
-                or self._details_tries.get(flight.get('id'), 0) >= DETAILS_MAX_TRIES)
-
-    def _get_feed_data(self, obj: Flight) -> dict[str, Any]:
-        """Build a record from the live feed alone, on the full details schema.
-
-        Used whenever the details lookup is unavailable, so a flight is still
-        counted and still has an identity instead of silently disappearing.
-        Passing a minimal details dict through _get_flight_data yields every
-        key a real lookup would deliver (as None where the feed knows nothing),
-        so events and the `flights` attribute never hand user automations or
-        templates a record with missing keys.
-        """
-        flight = self._get_flight_data({'identification': {'id': obj.id}})
-        flight.update({
-            'flight_number': feed_value(obj, 'number'),
-            'callsign': feed_value(obj, 'callsign'),
-            'aircraft_registration': feed_value(obj, 'registration'),
-            'aircraft_code': feed_value(obj, 'aircraft_code'),
-            'airline_iata': feed_value(obj, 'airline_iata'),
-            'airline_icao': feed_value(obj, 'airline_icao'),
-            'airport_origin_code_iata': feed_value(obj, 'origin_airport_iata'),
-            'airport_destination_code_iata': feed_value(obj, 'destination_airport_iata'),
-        })
-        return flight
-
-    def _fetch_details(self, obj: Flight, priority: bool = False) -> dict[str, Any] | None:
-        """Fetch and map one flight's details, staying inside this cycle's budget.
-
-        Returns None when the lookup is skipped or fails - the caller then falls
-        back to what it already knows, so the flight is never lost. `priority`
-        is for the few flights that just took off or landed: their schedule data
-        has genuinely changed, so they are worth a lookup past the budget.
-        """
-        if self._details_paused:
-            return None
-        if not priority and self._details_budget <= 0:
-            return None
-        if self._details_tries.get(obj.id, 0) >= DETAILS_MAX_TRIES:
-            return None
-        self._details_budget -= 1
-        try:
-            flight = self._get_flight_data(self._client.get_flight_details(obj))
-        except Exception:
-            # Rate limited or in cooldown: asking again for every remaining
-            # flight of this cycle only makes it worse. The client already logged.
-            self._details_paused = True
-            return None
-        if flight is None or not self._is_valid(flight):
-            # Fruitless also covers a lookup that succeeded but still lacks the
-            # schedule fields _is_valid wants (GA/military/ferry traffic) -
-            # otherwise those flights get re-requested on every single cycle.
-            self._details_tries[obj.id] = self._details_tries.get(obj.id, 0) + 1
-        else:
-            self._details_tries.pop(obj.id, None)
-        return flight
-
     def _update_flights_data(self,
                              obj: Flight,
-                             current: dict[str, dict[str, Any]],
-                             tracked: dict[str, dict[str, Any]],
+                             previous: dict[str, Any],
                              sensor_type: FlightType | None = None,
-                             ) -> None:
-        previous_flight = tracked.get(obj.id) if tracked is not None else None
-        last_position = previous_flight.get('on_ground') if previous_flight is not None else None
-        previous_closest_distance = (
-            previous_flight.get('closest_distance') if previous_flight is not None else None
-        )
-        position_changed = (previous_flight is not None
-                            and to_int(last_position) != to_int(obj.on_ground))
-        if position_changed:
-            # A new leg publishes new schedule data - worth asking again.
-            self._details_tries.pop(obj.id, None)
-
-        if previous_flight is not None and not position_changed and self._is_valid(previous_flight):
-            flight = previous_flight
+                             ) -> dict[str, Any] | None:
+        is_same_flight = previous and previous.get('id') == obj.id
+        if is_same_flight:
+            last_position = previous.get('on_ground')
+            previous_closest_distance = previous.get('closest_distance')
         else:
-            flight = (self._fetch_details(obj, priority=position_changed)
-                      or previous_flight
-                      or self._get_feed_data(obj))
+            last_position = None
+            previous_closest_distance = None
 
+        if (is_same_flight and self._is_valid(previous)
+                and to_int(last_position) == obj.on_ground):
+            flight = previous
+        else:
+            data = self._client.get_flight_details(obj)
+            flight = self._get_flight_data(data)
         if flight is not None:
-            current[flight['id']] = flight
             flight['latitude'] = obj.latitude
             flight['longitude'] = obj.longitude
             flight['altitude'] = obj.altitude
@@ -524,33 +462,41 @@ class FlightProcessor:
             )
             flight['on_ground'] = obj.on_ground
             flight['aircraft_category'] = "Helicopter" if is_helicopter(flight) else "Airplane"
+            # Add information for additional tracked flights
+            if previous.get('tracked_by'):
+                flight['tracked_by'] = previous.get('tracked_by')
+            if previous.get('tracked_type'):
+                flight['tracked_type'] = 'live'
             self._takeoff_and_landing(flight, last_position, obj.on_ground, sensor_type)
+
+        return flight
 
     def _takeoff_and_landing(self,
                              flight: dict[str, Any],
                              last_position, position,
                              sensor_type: FlightType | None) -> None:
-        last_position = to_int(last_position)
-        position = to_int(position)
-        if sensor_type is None or last_position is None or position is None or last_position == position:
+        if sensor_type is None:
             return
-        if position == 0:
-            self._event_manager.add_events(EVENT_AREA_TOOK_OFF if FlightType.IN_AREA == sensor_type
-                                           else EVENT_TRACKED_TOOK_OFF, [flight])
-        else:
-            self._event_manager.add_events(EVENT_AREA_LANDED if FlightType.IN_AREA == sensor_type
-                                           else EVENT_TRACKED_LANDED, [flight])
+
+        last = to_int(last_position)
+        current = to_int(position)
+
+        if last is None or current is None or last == current:
+            return
+
+        # (Type, position) -> event
+        event_map = {
+            (FlightType.IN_AREA, 0): EVENT_AREA_TOOK_OFF,  # 0 = ground -> take off
+            (FlightType.IN_AREA, 1): EVENT_AREA_LANDED,  # 1 = Flying -> land
+            (FlightType.TRACKED, 0): EVENT_TRACKED_TOOK_OFF,
+            (FlightType.TRACKED, 1): EVENT_TRACKED_LANDED,
+        }
+
+        event_type = event_map.get((sensor_type, current))
+        if event_type:
+            self._event_manager.add_event(event_type, flight)
 
     def _get_flight_data(self, flight: dict) -> dict[str, Any] | None:
-
-        def _get_country_code(code: None | str) -> None | str:
-            if code is None or len(code) == 2:
-                return code
-
-            country = pycountry.countries.get(alpha_3=code)
-
-            return country.alpha_2 if country is not None else code
-
         flight_id = get_value(flight, ['identification', 'id'])
         if flight_id is None:
             return None
@@ -573,7 +519,7 @@ class FlightProcessor:
             'airport_origin_code_iata': get_value(flight, ['airport', 'origin', 'code', 'iata']),
             'airport_origin_code_icao': get_value(flight, ['airport', 'origin', 'code', 'icao']),
             'airport_origin_country_name': get_value(flight, ['airport', 'origin', 'position', 'country', 'name']),
-            'airport_origin_country_code': _get_country_code(
+            'airport_origin_country_code': get_country_code(
                 get_value(flight, ['airport', 'origin', 'position', 'country', 'code'])),
             'airport_origin_city': get_value(flight, ['airport', 'origin', 'position', 'region', 'city']),
             'airport_origin_timezone_offset': get_value(flight, ['airport', 'origin', 'timezone', 'offset']),
@@ -586,7 +532,7 @@ class FlightProcessor:
             'airport_destination_code_icao': get_value(flight, ['airport', 'destination', 'code', 'icao']),
             'airport_destination_country_name': get_value(flight, ['airport', 'destination', 'position',
                                                                    'country', 'name']),
-            'airport_destination_country_code': _get_country_code(
+            'airport_destination_country_code': get_country_code(
                 get_value(flight, ['airport', 'destination', 'position', 'country', 'code'])),
             'airport_destination_city': get_value(flight, ['airport', 'destination', 'position',
                                                            'region', 'city']),
@@ -602,17 +548,19 @@ class FlightProcessor:
             'time_real_arrival': get_value(flight, ['time', 'real', 'arrival']),
             'time_estimated_departure': get_value(flight, ['time', 'estimated', 'departure']),
             'time_estimated_arrival': get_value(flight, ['time', 'estimated', 'arrival']),
+            'details_updated_at': time(),
         }
 
-    # --- IMPLEMENTED ALEXANDR'S FIX HERE SO I DONT FORGET ---
     def _is_valid(self, flight: dict) -> bool:
         if is_helicopter(flight):
             return flight.get("id") is not None
 
-        required_fields = [
-            "flight_number",
-            "time_scheduled_departure",
-            "time_estimated_arrival",
-        ]
+        f_num = flight.get('flight_number')
+        sched = flight.get('time_scheduled_departure')
+        est = flight.get('time_estimated_arrival')
+        updated = flight.get('details_updated_at')
 
-        return all(flight.get(f) is not None for f in required_fields)
+        return (f_num is not None and
+                ((sched is not None and est is not None) or
+                 # flight times are updated rarely so no need to get them every scan
+                 (updated is not None and updated < time() + randint(2, 6) * 60)))

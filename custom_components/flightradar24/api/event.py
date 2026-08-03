@@ -17,6 +17,9 @@ class EventManager:
     def add_events(self, event: str, flights: list[dict[str, Any]]) -> None:
         self._events.extend([Event(event, flight) for flight in flights])
 
+    def add_event(self, event: str, flight: dict[str, Any]) -> None:
+        self._events.append(Event(event, flight))
+
     def fire_events(self, device: str, callback: Callable[[Event], None]) -> None:
         for event in self._events:
             event.data['tracked_by_device'] = device

@@ -4,10 +4,8 @@ URL = 'https://www.flightradar24.com/'
 
 CONF_MIN_ALTITUDE = "min_altitude"
 CONF_MAX_ALTITUDE = "max_altitude"
-CONF_MOST_TRACKED = "most_tracked"
 CONF_ENABLE_TRACKER = "enable_tracker"
 CONF_AUTO_CLEANUP = "auto_cleanup"
-CONF_MOST_TRACKED_DEFAULT = True
 CONF_ENABLE_TRACKER_DEFAULT = False
 CONF_AUTO_CLEANUP_DEFAULT = False
 
@@ -65,20 +63,3 @@ RETRY_BASE_DELAY = 2
 # The cooldown is kept per endpoint - a rate limited details endpoint must not
 # take the area feed (and with it every count sensor) down with it.
 FAILURE_COOLDOWN = 30
-# Details are the chatty endpoint and the first to get rate limited. Fail fast
-# there and let the next cycle retry, instead of blocking the executor for
-# RETRY_BASE_DELAY * 2**n seconds per flight.
-DETAILS_REQUEST_ATTEMPTS = 1
-# A details lookup only enriches the `flights` attribute - the counts come
-# straight from the area feed. Cap the lookups per cycle so a busy area, or a
-# cold cache right after a restart, can never stretch one update past the scan
-# interval. Flights beyond the cap are still counted and get enriched later.
-MAX_DETAILS_PER_UPDATE = 25
-# Traffic without a schedule (GA, military, ferry flights) never fills the fields
-# _is_valid asks for. Stop re-requesting details for such a flight on every
-# single cycle after this many fruitless attempts.
-DETAILS_MAX_TRIES = 3
-# Hold an entry event back until its record is enriched with details, but never
-# longer than this many cycles - automations get complete data when possible,
-# and a bounded delay when the details endpoint is down.
-ENTRY_EVENT_MAX_WAIT_CYCLES = 3

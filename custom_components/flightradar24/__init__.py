@@ -18,14 +18,14 @@ from homeassistant.const import (
 from .const import (
     CONF_MIN_ALTITUDE,
     CONF_MAX_ALTITUDE,
-    CONF_MOST_TRACKED,
-    CONF_MOST_TRACKED_DEFAULT,
     CONF_ENABLE_TRACKER,
     CONF_ENABLE_TRACKER_DEFAULT,
     MIN_ALTITUDE,
     MAX_ALTITUDE,
+    CONF_AUTO_CLEANUP,
+    CONF_AUTO_CLEANUP_DEFAULT,
 )
-from FlightRadar24 import FlightRadar24API, Entity
+from FlightRadarAPI import FlightRadar24API, Entity
 
 PLATFORMS: list[Platform] = [
     Platform.DEVICE_TRACKER,
@@ -101,10 +101,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         MAX_ALTITUDE if max_altitude is None else int(max_altitude),
         Entity(latitude, longitude),
         session_verified,
+        entry.data.get(CONF_AUTO_CLEANUP, CONF_AUTO_CLEANUP_DEFAULT)
     )
 
-    if entry.data.get(CONF_MOST_TRACKED, CONF_MOST_TRACKED_DEFAULT):
-        coordinator.flight.enable_most_tracked()
     coordinator.enable_tracker = entry.data.get(CONF_ENABLE_TRACKER, CONF_ENABLE_TRACKER_DEFAULT)
 
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = coordinator

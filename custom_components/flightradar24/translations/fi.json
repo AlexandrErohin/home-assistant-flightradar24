@@ -23,7 +23,6 @@
           "scan_interval": "Päivitysväli sekunteina",
           "min_altitude": "Minimikorkeus jalkoina",
           "max_altitude": "Maksimikorkeus jalkoina",
-          "most_tracked": "Ota käyttöön seuratuimpien lentojen luettelo",
           "enable_tracker": "Ota device_tracker käyttöön lisäseurannalle",
           "auto_cleanup": "Ota käyttöön laskeutuneiden seurattujen lentojen automaattinen puhdistus",
           "tracker_name_style": "Karttaseurannan nimeämistyyli",
@@ -38,7 +37,6 @@
       "in_area": { "name": "Lennot alueella" },
       "entered": { "name": "Saapunut alueelle" },
       "exited": { "name": "Poistunut alueelta" },
-      "most_tracked": { "name": "Seuratuimmat" },
       "additional_tracked": { "name": "Lisäseurannassa" },
       "airport_arrivals": { "name": "Lentokentän saapuvat" },
       "airport_departures": { "name": "Lentokentän lähtevät" },
@@ -59,7 +57,8 @@
       "tracked_clear": { "name": "Tyhjennä lisäseuranta" }
     },
     "switch": {
-      "scanning": { "name": "API-tietojen nouto" }
+      "scanning": { "name": "API-tietojen nouto" },
+      "most_tracked": { "name": "Seuratuimmat" }
     },
     "text": {
       "add_track": { "name": "Lisää seurantaan" },
