@@ -60,11 +60,6 @@ SESSION_GUARD_CHECK_THROTTLE = 1800
 REQUEST_INTERVAL = 0.2
 REQUEST_ATTEMPTS = 3
 RETRY_BASE_DELAY = 2
-# Once a request has exhausted its retries, fail fast for this long instead of
-# letting every remaining call of the cycle burn its own backoff (circuit breaker).
-# The cooldown is kept per endpoint - a rate limited details endpoint must not
-# take the area feed (and with it every count sensor) down with it.
-FAILURE_COOLDOWN = 30
 # Details are the chatty endpoint and the first to get rate limited. Fail fast
 # there and let the next cycle retry, instead of blocking the executor for
 # RETRY_BASE_DELAY * 2**n seconds per flight.
