@@ -34,7 +34,10 @@ SENSOR_TYPES: tuple[FlightRadar24SensorEntityDescription, ...] = (
         icon="mdi:airplane-marker",
         state_class=SensorStateClass.TOTAL,
         value=lambda coord: len(coord.flight.in_area_list),
-        attributes=lambda coord: {'flights': coord.flight.in_area_list},
+        attributes=lambda coord: {
+            'flights': coord.flight.in_area_list,
+            'bounds': coord.flight.bounds,
+        },
     ),
     FlightRadar24SensorEntityDescription(
         key="entered",
@@ -208,6 +211,15 @@ class FlightRadar24Sensor(CoordinatorEntity[FlightRadar24Coordinator], SensorEnt
         self._attr_device_info = coordinator.device_info
         self._attr_unique_id = f"{entry_id}_{DOMAIN}_{description.key}"
         self._attr_native_value = self.entity_description.value(coordinator)
+        # Publish static attributes (e.g. bounds) immediately so Lovelace cards
+        # can render the map before the first refresh finishes.
+        if self.entity_description.attributes is not None:
+            attributes = self.entity_description.attributes(coordinator)
+            if attributes is not None:
+                self._attr_extra_state_attributes = {
+                    key: [dict(item) for item in value] if isinstance(value, list) else value
+                    for key, value in attributes.items()
+                }
 
     @callback
     def _handle_coordinator_update(self) -> None:

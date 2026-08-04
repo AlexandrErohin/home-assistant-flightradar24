@@ -1,6 +1,22 @@
+from pathlib import Path
+import json
+
 DEFAULT_NAME = "FlightRadar24"
 DOMAIN = "flightradar24"
 URL = 'https://www.flightradar24.com/'
+
+with open(Path(__file__).parent / "manifest.json", encoding="utf-8") as _manifest:
+    INTEGRATION_VERSION = json.load(_manifest).get("version", "0.0.0")
+
+# Lovelace card static path and modules
+URL_BASE = f"/{DOMAIN}"
+JSMODULES = [
+    {
+        "name": "Flightradar24 Card",
+        "filename": "flightradar24-card.js",
+        "version": INTEGRATION_VERSION,
+    },
+]
 
 CONF_MIN_ALTITUDE = "min_altitude"
 CONF_MAX_ALTITUDE = "max_altitude"
@@ -63,3 +79,7 @@ RETRY_BASE_DELAY = 2
 # The cooldown is kept per endpoint - a rate limited details endpoint must not
 # take the area feed (and with it every count sensor) down with it.
 FAILURE_COOLDOWN = 30
+
+# Per-flight position history stored on each flight dict as `coordinates`
+# ([[lat, lon], ...]). Capped so sensor attributes stay bounded.
+COORDINATES_MAX_POINTS = 50

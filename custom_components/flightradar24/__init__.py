@@ -2,11 +2,12 @@ from __future__ import annotations
 from logging import getLogger
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, CoreState, EVENT_HOMEASSISTANT_STARTED
 from homeassistant.exceptions import ConfigEntryNotReady
 from .api.client import FlightRadarClient
 from .const import DOMAIN, SESSION_SETUP_MAX_TRIES
 from .coordinator import FlightRadar24Coordinator, is_session_healthy
+from .frontend import JSModuleRegistration
 from homeassistant.const import (
     CONF_LATITUDE,
     CONF_LONGITUDE,
@@ -36,6 +37,20 @@ PLATFORMS: list[Platform] = [
 ]
 
 _LOGGER = getLogger(__name__)
+
+
+async def async_setup(hass: HomeAssistant, config: dict) -> bool:
+    """Set up the integration (frontend registration once)."""
+
+    async def _register_frontend(_event=None) -> None:
+        await JSModuleRegistration(hass).async_register()
+
+    if hass.state == CoreState.running:
+        await _register_frontend()
+    else:
+        hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STARTED, _register_frontend)
+
+    return True
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:

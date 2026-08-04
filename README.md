@@ -41,10 +41,11 @@ It allows you:
 4. Get [top 10 most tracked flights on FlightRadar24](#most-tracked) 
 5. Create notifications (example - [Get a notification when a flight enters or exits your area](#notification-enters), [Get a notification when a tracked scheduled flight takes off](#notification-scheduled))
 6. Create automations (example - [Automatically track a flight by your needs](#automation))
-7. Add flights table for your area to your [Home Assistant dashboard](https://www.home-assistant.io/dashboards/) by [Lovelace Card](#lovelace))
-8. Add departures/arrivals boards of the selected airport to your [Home Assistant dashboard](https://www.home-assistant.io/dashboards/) by [Lovelace Airport Card](#lovelace-airport))
-9. Track your flight as [Device Tracker](#device-tracker) 
-10. Get info for last flights which were in your area or get info about latest exited flight by creating [Last Flights History Sensor](#last-flights) 
+7. Add a live [map card](#flightradar24-card) with aircraft markers and flight tracks to your [Home Assistant dashboard](https://www.home-assistant.io/dashboards/)
+8. Add flights table for your area to your [Home Assistant dashboard](https://www.home-assistant.io/dashboards/) by [Lovelace Card](#lovelace)
+9. Add departures/arrivals boards of the selected airport to your [Home Assistant dashboard](https://www.home-assistant.io/dashboards/) by [Lovelace Airport Card](#lovelace-airport)
+10. Track your flight as [Device Tracker](#device-tracker) 
+11. Get info for last flights which were in your area or get info about latest exited flight by creating [Last Flights History Sensor](#last-flights) 
 
 <img src="https://raw.githubusercontent.com/AlexandrErohin/home-assistant-flightradar24/master/docs/media/map.png" width="48%"><img src="https://raw.githubusercontent.com/AlexandrErohin/home-assistant-flightradar24/master/docs/media/lovelace.png" width="48%">
 <img src="https://raw.githubusercontent.com/AlexandrErohin/home-assistant-flightradar24/master/docs/media/sensors1.jpg" width="48%"><img src="https://raw.githubusercontent.com/AlexandrErohin/home-assistant-flightradar24/master/docs/media/sensors2.jpg" width="48%">
@@ -331,6 +332,46 @@ template:
           icon: mdi:airplane
 ```
 
+### <a id="flightradar24-card">Flightradar24 Map Card</a>
+Built-in Lovelace card with an OpenStreetMap of your monitored area, aircraft markers, optional flight tracks, and a list of flights currently in the area.
+
+The card is registered automatically when the integration is loaded — no manual Lovelace resource setup is required.
+
+<p align="center"><img src="https://raw.githubusercontent.com/AlexandrErohin/home-assistant-flightradar24/master/docs/media/map.png" width="55%"></p>
+
+#### Add via UI
+
+1. Go to your [Home Assistant dashboard](https://www.home-assistant.io/dashboards/)
+2. In the top right corner, select the three-dot menu, then select **Edit dashboard**
+3. Click **+ ADD CARD**, search for `Flightradar24 Card`, and select it
+4. Choose the sensor entity (usually `sensor.flightradar24_current_in_area`), set options if needed, and click **SAVE**
+
+#### Add via YAML
+
+1. Go to your [Home Assistant dashboard](https://www.home-assistant.io/dashboards/)
+2. In the top right corner, select the three-dot menu, then select **Edit dashboard**
+3. Click **+ ADD CARD**, search for `Manual`, click on **Manual**
+4. Add the following code and click **SAVE**
+
+> **Note:** If your Home Assistant system is not in English, your sensor names may be translated. Please replace `sensor.flightradar24_current_in_area` with your exact [local entity ID!](#entity-id)
+
+```yaml
+type: custom:flightradar24-card
+entity: sensor.flightradar24_current_in_area
+title: Flights Nearby
+show_flights: true
+show_tracks: true
+```
+
+#### Configuration options
+
+| Option | Type | Default | Description |
+| ------ | ---- | ------- | ----------- |
+| `entity` | string | — | **Required.** typically `sensor.flightradar24_current_in_area` |
+| `title` | string | — | Optional card title |
+| `show_flights` | boolean | `true` | Show the flights list under the map |
+| `show_tracks` | boolean | `true` | Draw flight tracks on the map from each flight's `coordinates` history |
+
 ### <a id="lovelace">Lovelace Card</a>
 You can add flight table to your [Home Assistant dashboard](https://www.home-assistant.io/dashboards/)
 
@@ -375,46 +416,6 @@ This example for `sensor.flightradar24_current_in_area` which shows flights in y
 
 All available fields for flight you can check [here](#flight)
 
-### Lovelace Card with Map
-<p align="center"><img src="https://raw.githubusercontent.com/AlexandrErohin/home-assistant-flightradar24/master/docs/media/map2.png" width="55%"></p>
-
-1. Go to your [Home Assistant dashboard](https://www.home-assistant.io/dashboards/)
-2. In the top right corner, select the three-dot menu, then select Edit dashboard 
-3. Click on `+ ADD CARD`, search for `Manual`, click on `Manual`. 
-4. Add following code to the input window. Replace LATITUDE, LONGITUDE with your coordinates. URL example: https://globe.adsb.fi/?enableLabels&trackLabels&zoom=12&hideSideBar&lat=50.984944839678334&lon=11.311357147743463
-5. Click `SAVE`
-
-> **Note:** If your Home Assistant system is not in English, your sensor names may be translated. Please replace all instances of `sensor.flightradar24_current_in_area` below with your exact [local entity ID!](#entity-id)
-
-```yaml
-type: vertical-stack
-title: Flightradar24
-cards:
-  - type: entities
-    entities:
-      - entity: sensor.flightradar24_current_in_area
-        name: In area
-  - type: conditional
-    conditions:
-      - condition: numeric_state
-        entity: sensor.flightradar24_current_in_area
-        above: 0
-    card:
-      type: markdown
-      content: >-
-        {% set data = state_attr('sensor.flightradar24_current_in_area',
-        'flights') | default([], true) %} {% for flight in data %}
-          <ha-icon icon="mdi:airplane"></ha-icon>{{ flight.flight_number }}({{ flight.aircraft_registration }}) - {{ flight.airline_short }} - {{ flight.aircraft_model }}
-          {{ flight.airport_origin_city }}{%if flight.airport_origin_city %}<img src="https://flagsapi.com/{{ flight.airport_origin_country_code }}/shiny/16.png" title='{{ flight.airport_origin_country_name }}'/>{% endif %} -> {{ flight.airport_destination_city }}{%
-          if flight.airport_destination_country_code %}<img src="https://flagsapi.com/{{ flight.airport_destination_country_code }}/shiny/16.png" title='{{ flight.airport_destination_country_name }}'/>{% endif %}
-          {%if flight.time_scheduled_departure %}Departure - {{ flight.time_scheduled_departure | timestamp_custom('%H:%M') }}; {% endif %}{%if flight.time_scheduled_arrival%}Arrival - {{ flight.time_scheduled_arrival | timestamp_custom('%H:%M') }}{% endif %}
-          Altitude - {{ flight.altitude }} ft{%if flight.altitude > 0 %} ({{(flight.altitude * 0.3048)| round(0)}} m){% endif%}; Gr. speed - {{ flight.ground_speed }} kts{%if flight.ground_speed > 0 %} ({{(flight.ground_speed * 1.852)| round(0)}} km/h){% endif%}
-          {% endfor %}
-  - type: iframe
-    url: https://globe.adsb.fi/?enableLabels&trackLabels&zoom=12&hideSideBar&lat=LATITUDE&lon=LONGITUDE
-    aspect_ratio: 100%
-```
-
 # 🧾 Recorder Database Optimization
 To decrease data stored by [Recorder](https://www.home-assistant.io/integrations/recorder/) in database add following lines to your `configuration.yaml` file.
 
@@ -444,6 +445,7 @@ recorder:
 | flight_number                       | Flight Number                                                                                                                                                                                               |
 | latitude                            | Current latitude of the aircraft                                                                                                                                                                            |
 | longitude                           | Current longitude of the aircraft                                                                                                                                                                           |
+| coordinates                         | Track history as a list of `[latitude, longitude]` points. Seeded from FR24 `trail` on first details fetch (newest `COORDINATES_MAX_POINTS` points, stored oldest→newest), then appended on each update |
 | altitude                            | Altitude (measurement: foot)                                                                                                                                                                                |
 | on_ground                           | Is the aircraft on ground (measurement: 0 - in the air; 1 - on ground)                                                                                                                                      |
 | distance                            | Distance between the aircraft and your point (measurement: kilometers)                                                                                                                                      |

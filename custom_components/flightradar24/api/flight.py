@@ -17,6 +17,7 @@ from ..const import (
     EVENT_MOST_TRACKED_NEW,
     EVENT_TRACKED_ARRIVED_GATE,
     EVENT_TRACKED_LEFT_GATE,
+    COORDINATES_MAX_POINTS,
 )
 import pycountry
 
@@ -122,6 +123,10 @@ class FlightProcessor:
     @property
     def raw_in_area_count(self) -> int:
         return self._raw_in_area_count
+
+    @property
+    def bounds(self) -> str:
+        return self._bounds
 
     def update_client(self, client: FlightRadarClient) -> None:
         self._client = client
@@ -465,6 +470,18 @@ class FlightProcessor:
             )
             flight['on_ground'] = obj.on_ground
             flight['aircraft_category'] = "Helicopter" if is_helicopter(flight) else "Airplane"
+            # Prefer live history we already accumulated; otherwise seed from
+            # FR24 trail returned with the first details payload.
+            seed = None
+            if is_same_flight and previous.get('coordinates'):
+                seed = previous.get('coordinates')
+            elif flight.get('coordinates'):
+                seed = flight.get('coordinates')
+            flight['coordinates'] = self._append_coordinates(
+                seed,
+                obj.latitude,
+                obj.longitude,
+            )
             # Add information for additional tracked flights
             if previous.get('tracked_by'):
                 flight['tracked_by'] = previous.get('tracked_by')
@@ -473,6 +490,43 @@ class FlightProcessor:
             self._takeoff_and_landing(flight, last_position, obj.on_ground, sensor_type)
 
         return flight
+
+    def _coordinates_from_trail(self, trail: list | None) -> list[list[float]]:
+        """Build chronological [lat, lon] history from FR24 details trail.
+
+        FR24 returns `trail` newest-first (descending `ts`). Keep the newest
+        COORDINATES_MAX_POINTS points and reverse them to oldest -> newest.
+        """
+        if not trail:
+            return []
+
+        points: list[list[float]] = []
+        for item in trail[:COORDINATES_MAX_POINTS]:
+            if not isinstance(item, dict):
+                continue
+            lat = item.get('lat')
+            lng = item.get('lng')
+            if lat is None or lng is None:
+                continue
+            points.append([lat, lng])
+        points.reverse()
+        return points
+
+    def _append_coordinates(
+            self,
+            previous_coordinates: list | None,
+            latitude,
+            longitude,
+    ) -> list[list[float]]:
+        """Accumulate [lat, lon] history for the flight track."""
+        coordinates = list(previous_coordinates) if previous_coordinates else []
+        if latitude is None or longitude is None:
+            return coordinates[-COORDINATES_MAX_POINTS:]
+
+        point = [latitude, longitude]
+        if not coordinates or coordinates[-1] != point:
+            coordinates.append(point)
+        return coordinates[-COORDINATES_MAX_POINTS:]
 
     def _takeoff_and_landing(self,
                              flight: dict[str, Any],
@@ -552,6 +606,8 @@ class FlightProcessor:
             'time_estimated_departure': get_value(flight, ['time', 'estimated', 'departure']),
             'time_estimated_arrival': get_value(flight, ['time', 'estimated', 'arrival']),
             'details_updated_at': time(),
+            # Seed track from FR24 trail (newest-first in API payload).
+            'coordinates': self._coordinates_from_trail(flight.get('trail')),
         }
 
     def _is_valid(self, flight: dict) -> bool:
