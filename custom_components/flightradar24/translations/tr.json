@@ -40,7 +40,6 @@
       "additional_tracked": { "name": "Ek izlenenler" },
       "airport_arrivals": { "name": "Havalimanı varışları" },
       "airport_departures": { "name": "Havalimanı kalkışları" },
-      "helicopters_in_area": { "name": "Bölgedeki helikopterler" },
       "airport_arrivals_on_time": { "name": "Zamanında varışlar" },
       "airport_arrivals_delayed": { "name": "Gecikmeli varışlar" },
       "airport_arrivals_delay_average": { "name": "Varış ortalama gecikme" },

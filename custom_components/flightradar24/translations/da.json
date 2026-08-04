@@ -40,7 +40,6 @@
       "additional_tracked": { "name": "Yderligere sporede" },
       "airport_arrivals": { "name": "Lufthavnsankomster" },
       "airport_departures": { "name": "Lufthavnsafgange" },
-      "helicopters_in_area": { "name": "Helikoptere i området" },
       "airport_arrivals_on_time": { "name": "Ankomster til tiden" },
       "airport_arrivals_delayed": { "name": "Forsinkede ankomster" },
       "airport_arrivals_delay_average": { "name": "Gennemsnitlig ankomstforsinkelse" },

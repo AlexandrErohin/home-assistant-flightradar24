@@ -40,7 +40,6 @@
       "additional_tracked": { "name": "Допълнително проследявани" },
       "airport_arrivals": { "name": "Пристигащи на летището" },
       "airport_departures": { "name": "Заминаващи от летището" },
-      "helicopters_in_area": { "name": "Хеликоптери в зоната" },
       "airport_arrivals_on_time": { "name": "Пристигащи навреме" },
       "airport_arrivals_delayed": { "name": "Закъснели пристигащи" },
       "airport_arrivals_delay_average": { "name": "Средно закъснение пристигащи" },

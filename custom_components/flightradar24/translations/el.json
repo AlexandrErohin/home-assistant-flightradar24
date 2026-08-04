@@ -40,7 +40,6 @@
       "additional_tracked": { "name": "Επιπλέον παρακολούθηση" },
       "airport_arrivals": { "name": "Αφίξεις αεροδρομίου" },
       "airport_departures": { "name": "Αναχωρήσεις αεροδρομίου" },
-      "helicopters_in_area": { "name": "Ελικόπτερα στην περιοχή" },
       "airport_arrivals_on_time": { "name": "Αφίξεις στην ώρα τους" },
       "airport_arrivals_delayed": { "name": "Καθυστερημένες αφίξεις" },
       "airport_arrivals_delay_average": { "name": "Μέσος όρος καθυστέρησης αφίξεων" },

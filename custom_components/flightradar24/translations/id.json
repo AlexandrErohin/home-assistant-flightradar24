@@ -40,7 +40,6 @@
       "additional_tracked": { "name": "Pelacakan tambahan" },
       "airport_arrivals": { "name": "Kedatangan bandara" },
       "airport_departures": { "name": "Keberangkatan bandara" },
-      "helicopters_in_area": { "name": "Helikopter di area" },
       "airport_arrivals_on_time": { "name": "Kedatangan tepat waktu" },
       "airport_arrivals_delayed": { "name": "Kedatangan tertunda" },
       "airport_arrivals_delay_average": { "name": "Rata-rata penundaan kedatangan" },

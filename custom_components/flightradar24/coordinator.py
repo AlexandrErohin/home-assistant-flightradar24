@@ -66,6 +66,7 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
             monotonic() if session_verified else monotonic() - SESSION_GUARD_EMPTY_SECONDS
         )
         self._guard_last_check: float = 0.0
+        self._first_start: bool = True
         self.device_info = DeviceInfo(
             configuration_url=URL,
             identifiers={(DOMAIN, self.unique_id)},
@@ -120,33 +121,53 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
         if not self.scanning:
             return
 
-        def fire(event: Event) -> None:
-            self.hass.bus.fire(event.event, event.data)
+        if self._first_start:
+            try:
+                await self._update_most_tracked_and_airport()
+            except Exception as e:
+                self.logger.error("FlightRadar24: %s", e)
 
-        try:
-            await self.hass.async_add_executor_job(self.flight.update_most_tracked)
-            self.async_set_updated_data(self.flight.most_tracked_list)
-            self.event_manager.fire_events(self.config_entry.title, fire)
+            try:
+                await self._update_area_and_tracked()
+                await self._check_session()
+            except Exception as e:
+                self.logger.error("FlightRadar24: %s", e)
+        else:
+            try:
+                await self._update_area_and_tracked()
+            except Exception as e:
+                self.logger.error("FlightRadar24: %s", e)
 
-            await self.hass.async_add_executor_job(self.airport.update_airport_info)
-            self.async_set_updated_data(self.airport)
-        except Exception as e:
-            self.logger.error("FlightRadar24: %s", e)
+            try:
+                await self._update_most_tracked_and_airport()
+                await self._check_session()
+            except Exception as e:
+                self.logger.error("FlightRadar24: %s", e)
 
-        try:
-            await self.hass.async_add_executor_job(self.flight.update_flights_in_area)
-            self.async_set_updated_data(self.flight.in_area_list)
-            self.async_set_updated_data(self.flight.entered_list)
-            self.async_set_updated_data(self.flight.exited_list)
-            self.event_manager.fire_events(self.config_entry.title, fire)
+        self._first_start = False
 
-            await self.hass.async_add_executor_job(self.flight.update_flights_tracked)
-            self.async_set_updated_data(self.flight.tracked)
-            self.async_set_updated_data(self.flight.tracked_list)
-            self.event_manager.fire_events(self.config_entry.title, fire)
-            await self._check_session()
-        except Exception as e:
-            self.logger.error("FlightRadar24: %s", e)
+    async def _update_most_tracked_and_airport(self) -> None:
+        await self.hass.async_add_executor_job(self.flight.update_most_tracked)
+        self.async_set_updated_data(self.flight.most_tracked_list)
+        self.event_manager.fire_events(self.config_entry.title, self._fire)
+
+        await self.hass.async_add_executor_job(self.airport.update_airport_info)
+        self.async_set_updated_data(self.airport)
+
+    async def _update_area_and_tracked(self) -> None:
+        await self.hass.async_add_executor_job(self.flight.update_flights_in_area)
+        self.async_set_updated_data(self.flight.in_area_list)
+        self.async_set_updated_data(self.flight.entered_list)
+        self.async_set_updated_data(self.flight.exited_list)
+        self.event_manager.fire_events(self.config_entry.title, self._fire)
+
+        await self.hass.async_add_executor_job(self.flight.update_flights_tracked)
+        self.async_set_updated_data(self.flight.tracked)
+        self.async_set_updated_data(self.flight.tracked_list)
+        self.event_manager.fire_events(self.config_entry.title, self._fire)
+
+    def _fire(self, event: Event) -> None:
+        self.hass.bus.fire(event.event, event.data)
 
     def _renew_client(self) -> FlightRadarClient:
         client = FlightRadar24API()

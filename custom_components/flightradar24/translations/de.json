@@ -40,7 +40,6 @@
       "additional_tracked": { "name": "Zusätzlich verfolgt" },
       "airport_arrivals": { "name": "Flughafen Ankünfte" },
       "airport_departures": { "name": "Flughafen Abflüge" },
-      "helicopters_in_area": { "name": "Hubschrauber im Bereich" },
       "airport_arrivals_on_time": { "name": "Ankünfte pünktlich" },
       "airport_arrivals_delayed": { "name": "Ankünfte verspätet" },
       "airport_arrivals_delay_average": { "name": "Durchschnittliche Ankunftsverspätung" },

@@ -40,7 +40,6 @@
       "additional_tracked": { "name": "Дополнительно отслеживаемые" },
       "airport_arrivals": { "name": "Прибытие в аэропорт" },
       "airport_departures": { "name": "Вылет из аэропорта" },
-      "helicopters_in_area": { "name": "Вертолеты в зоне" },
       "airport_arrivals_on_time": { "name": "Прибытие по расписанию" },
       "airport_arrivals_delayed": { "name": "Прибытие с задержкой" },
       "airport_arrivals_delay_average": { "name": "Средняя задержка прибытия" },

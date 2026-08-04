@@ -40,7 +40,6 @@
       "additional_tracked": { "name": "Ďalšie sledované" },
       "airport_arrivals": { "name": "Prílety na letisko" },
       "airport_departures": { "name": "Odlety z letiska" },
-      "helicopters_in_area": { "name": "Vrtuľníky v oblasti" },
       "airport_arrivals_on_time": { "name": "Prílety načas" },
       "airport_arrivals_delayed": { "name": "Omeškané prílety" },
       "airport_arrivals_delay_average": { "name": "Priemerné meškanie príletov" },

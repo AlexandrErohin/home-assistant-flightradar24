@@ -198,8 +198,8 @@ class FlightProcessor:
         return None
 
     def update_flights_in_area(self) -> None:
-        self._entered = {}
-        self._exited = {}
+        self._entered = []
+        self._exited = []
         flights = self._client.get_flights(bounds=self._bounds)
         # Unfiltered count for the session guard (see coordinator) - altitude
         # filtering below must not hide traffic from the empty-session detection.
@@ -211,8 +211,9 @@ class FlightProcessor:
         # Firstly, remove exited flights
         if not is_first_run:
             for key in set(self._in_area) - {f.id for f in flights}:
-                self._exited[key] = self._in_area.pop(key)
-                self._event_manager.add_event(EVENT_EXIT, self._exited[key])
+                exited = self._in_area.pop(key)
+                self._exited.append(exited)
+                self._event_manager.add_event(EVENT_EXIT, exited)
 
         for obj in flights:
             altitude = to_int(obj.altitude)
@@ -224,8 +225,8 @@ class FlightProcessor:
                 if flight:
                     self._in_area[flight['id']] = flight
                     if is_new_flight:
-                        self._entered[obj.id] = self._in_area.get(obj.id)
-                        self._event_manager.add_event(EVENT_ENTRY, self._entered[obj.id])
+                        self._entered.append(flight)
+                        self._event_manager.add_event(EVENT_ENTRY, flight)
 
     def update_flights_tracked(self) -> None:
         if not self._tracked:
@@ -565,4 +566,4 @@ class FlightProcessor:
         return (f_num is not None and
                 ((sched is not None and est is not None) or
                  # flight times are updated rarely so no need to get them every scan
-                 (updated is not None and updated < time() + randint(2, 6) * 60)))
+                 (updated is not None and updated > (time() - randint(2, 6) * 60))))

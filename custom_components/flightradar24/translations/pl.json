@@ -40,7 +40,6 @@
       "additional_tracked": { "name": "Dodatkowo śledzone" },
       "airport_arrivals": { "name": "Przyloty" },
       "airport_departures": { "name": "Odloty" },
-      "helicopters_in_area": { "name": "Helikoptery w strefie" },
       "airport_arrivals_on_time": { "name": "Przyloty o czasie" },
       "airport_arrivals_delayed": { "name": "Przyloty opóźnione" },
       "airport_arrivals_delay_average": { "name": "Średnie opóźnienie przylotów" },

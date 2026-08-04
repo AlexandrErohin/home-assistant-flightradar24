@@ -40,7 +40,6 @@
       "additional_tracked": { "name": "Lisäseurannassa" },
       "airport_arrivals": { "name": "Lentokentän saapuvat" },
       "airport_departures": { "name": "Lentokentän lähtevät" },
-      "helicopters_in_area": { "name": "Helikopterit alueella" },
       "airport_arrivals_on_time": { "name": "Saapuvat ajoissa" },
       "airport_arrivals_delayed": { "name": "Saapuvat myöhässä" },
       "airport_arrivals_delay_average": { "name": "Keskimääräinen saapumisviive" },

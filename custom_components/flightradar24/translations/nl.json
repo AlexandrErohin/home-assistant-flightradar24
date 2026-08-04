@@ -40,7 +40,6 @@
       "additional_tracked": { "name": "Extra gevolgde vluchten" },
       "airport_arrivals": { "name": "Aankomsten luchthaven" },
       "airport_departures": { "name": "Vertrekken luchthaven" },
-      "helicopters_in_area": { "name": "Helikopters in de buurt" },
       "airport_arrivals_on_time": { "name": "Aankomsten op tijd" },
       "airport_arrivals_delayed": { "name": "Vertraagde aankomsten" },
       "airport_arrivals_delay_average": { "name": "Gemiddelde vertraging aankomsten" },
