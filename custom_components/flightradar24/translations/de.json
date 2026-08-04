@@ -23,7 +23,6 @@
           "scan_interval": "Aktualisierungsintervall in Sekunden",
           "min_altitude": "Mindesthöhe in Fuß",
           "max_altitude": "Maximale Höhe in Fuß",
-          "most_tracked": "Liste der meistverfolgten Flüge aktivieren",
           "enable_tracker": "Device_tracker für zusätzliche verfolgte Flüge aktivieren",
           "auto_cleanup": "Automatische Bereinigung gelandeter verfolgter Flüge aktivieren",
           "tracker_name_style": "Benennungsstil für Karten-Tracker",
@@ -38,11 +37,9 @@
       "in_area": { "name": "Flüge im Bereich" },
       "entered": { "name": "Bereich betreten" },
       "exited": { "name": "Bereich verlassen" },
-      "most_tracked": { "name": "Meistverfolgt" },
       "additional_tracked": { "name": "Zusätzlich verfolgt" },
       "airport_arrivals": { "name": "Flughafen Ankünfte" },
       "airport_departures": { "name": "Flughafen Abflüge" },
-      "helicopters_in_area": { "name": "Hubschrauber im Bereich" },
       "airport_arrivals_on_time": { "name": "Ankünfte pünktlich" },
       "airport_arrivals_delayed": { "name": "Ankünfte verspätet" },
       "airport_arrivals_delay_average": { "name": "Durchschnittliche Ankunftsverspätung" },
@@ -59,7 +56,8 @@
       "tracked_clear": { "name": "Zusätzlich verfolgte löschen" }
     },
     "switch": {
-      "scanning": { "name": "API-Datenabruf" }
+      "scanning": { "name": "API-Datenabruf" },
+      "most_tracked": { "name": "Meistverfolgt" }
     },
     "text": {
       "add_track": { "name": "Zur Verfolgung hinzufügen" },

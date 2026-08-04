@@ -4,10 +4,8 @@ URL = 'https://www.flightradar24.com/'
 
 CONF_MIN_ALTITUDE = "min_altitude"
 CONF_MAX_ALTITUDE = "max_altitude"
-CONF_MOST_TRACKED = "most_tracked"
 CONF_ENABLE_TRACKER = "enable_tracker"
 CONF_AUTO_CLEANUP = "auto_cleanup"
-CONF_MOST_TRACKED_DEFAULT = True
 CONF_ENABLE_TRACKER_DEFAULT = False
 CONF_AUTO_CLEANUP_DEFAULT = False
 
@@ -45,7 +43,10 @@ CANARY_BOUNDS = [
     '54.0,44.0,-2.0,20.0',    # Central/Western Europe
     '42.0,30.0,-95.0,-75.0',  # US East
 ]
-SESSION_SETUP_MAX_TRIES = 5
+# Keep this low: every attempt costs blocking requests inside async_setup_entry,
+# and an unverified session is no longer a reason to fail setup - the runtime
+# guard below recovers it without leaving every entity unavailable meanwhile.
+SESSION_SETUP_MAX_TRIES = 2
 # Runtime guard: only canary-check when the area feed has been empty this long,
 # and at most once per throttle window, to keep extra API calls negligible.
 SESSION_GUARD_EMPTY_SECONDS = 1800
@@ -59,4 +60,6 @@ REQUEST_ATTEMPTS = 3
 RETRY_BASE_DELAY = 2
 # Once a request has exhausted its retries, fail fast for this long instead of
 # letting every remaining call of the cycle burn its own backoff (circuit breaker).
+# The cooldown is kept per endpoint - a rate limited details endpoint must not
+# take the area feed (and with it every count sensor) down with it.
 FAILURE_COOLDOWN = 30

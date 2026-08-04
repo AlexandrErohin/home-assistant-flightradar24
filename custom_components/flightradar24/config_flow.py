@@ -12,10 +12,8 @@ from .const import (
     DEFAULT_NAME,
     CONF_MIN_ALTITUDE,
     CONF_MAX_ALTITUDE,
-    CONF_MOST_TRACKED,
     CONF_ENABLE_TRACKER,
     CONF_AUTO_CLEANUP,
-    CONF_MOST_TRACKED_DEFAULT,
     CONF_ENABLE_TRACKER_DEFAULT,
     CONF_AUTO_CLEANUP_DEFAULT,
     MIN_ALTITUDE,
@@ -26,7 +24,7 @@ from .const import (
     TRACKER_NAME_CALLSIGN_ROUTE,
     TRACKER_NAME_REG_ROUTE,
 )
-from FlightRadar24 import FlightRadar24API
+from FlightRadarAPI import FlightRadar24API
 import homeassistant.helpers.config_validation as cv
 from homeassistant.data_entry_flow import FlowResult
 from homeassistant.core import callback
@@ -102,9 +100,6 @@ class FlightRadarOptionsFlow(OptionsFlowWithConfigEntry):
                          description={"suggested_value": data.get(CONF_MIN_ALTITUDE, MIN_ALTITUDE)}): int,
             vol.Optional(CONF_MAX_ALTITUDE,
                          description={"suggested_value": data.get(CONF_MAX_ALTITUDE, MAX_ALTITUDE)}): int,
-            vol.Optional(CONF_MOST_TRACKED,
-                         description={
-                             "suggested_value": data.get(CONF_MOST_TRACKED, CONF_MOST_TRACKED_DEFAULT)}): cv.boolean,
             vol.Optional(CONF_ENABLE_TRACKER,
                          description={
                              "suggested_value": data.get(CONF_ENABLE_TRACKER,

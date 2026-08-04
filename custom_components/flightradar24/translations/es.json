@@ -23,7 +23,6 @@
           "scan_interval": "Intervalo de actualización en segundos",
           "min_altitude": "Altitud mínima en pies",
           "max_altitude": "Altitud máxima en pies",
-          "most_tracked": "Habilitar lista de vuelos más rastreados",
           "enable_tracker": "Habilitar device_tracker for vuelos adicionales",
           "auto_cleanup": "Habilitar la limpieza automática de vuelos rastreados aterrizados",
           "tracker_name_style": "Estilo de nomenclatura del rastreador de mapas",
@@ -38,11 +37,9 @@
       "in_area": { "name": "Vuelos en el área" },
       "entered": { "name": "Entró en el área" },
       "exited": { "name": "Salió del área" },
-      "most_tracked": { "name": "Más rastreados" },
       "additional_tracked": { "name": "Rastreados adicionales" },
       "airport_arrivals": { "name": "Llegadas al aeropuerto" },
       "airport_departures": { "name": "Salidas del aeropuerto" },
-      "helicopters_in_area": { "name": "Helicópteros en el área" },
       "airport_arrivals_on_time": { "name": "Llegadas a tiempo" },
       "airport_arrivals_delayed": { "name": "Llegadas retrasadas" },
       "airport_arrivals_delay_average": { "name": "Retraso promedio llegadas" },
@@ -59,7 +56,8 @@
       "tracked_clear": { "name": "Borrar rastreados adicionales" }
     },
     "switch": {
-      "scanning": { "name": "Obtención de datos API" }
+      "scanning": { "name": "Obtención de datos API" },
+      "most_tracked": { "name": "Más rastreados" }
     },
     "text": {
       "add_track": { "name": "Añadir al rastreo" },

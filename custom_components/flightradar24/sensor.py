@@ -12,10 +12,8 @@ from homeassistant.core import HomeAssistant, callback
 from .const import DOMAIN
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
-from homeassistant.helpers import entity_registry as er  # Imported for migration
+from homeassistant.util import dt as dt_util
 from .coordinator import FlightRadar24Coordinator
-import datetime
-import copy
 
 
 @dataclass
@@ -53,14 +51,6 @@ SENSOR_TYPES: tuple[FlightRadar24SensorEntityDescription, ...] = (
         state_class=SensorStateClass.TOTAL,
         value=lambda coord: len(coord.flight.exited_list),
         attributes=lambda coord: {'flights': coord.flight.exited_list},
-    ),
-    FlightRadar24SensorEntityDescription(
-        key="most_tracked",
-        translation_key="most_tracked",
-        icon="mdi:airplane-search",
-        state_class=SensorStateClass.TOTAL,
-        value=lambda coord: len(coord.flight.most_tracked_list) if coord.flight.most_tracked_list else None,
-        attributes=lambda coord: {'flights': coord.flight.most_tracked_list if coord.flight.most_tracked_list else {}},
     ),
     FlightRadar24SensorEntityDescription(
         key="airport_arrivals_on_time",
@@ -182,23 +172,15 @@ RESTORE_SENSOR_TYPES: tuple[FlightRadar24SensorEntityDescription, ...] = (
 )
 
 
+# Sensors that have no source at all until an airport is tracked - the only
+# ones that legitimately report `unavailable`.
+AIRPORT_KEYS = frozenset(
+    description.key for description in SENSOR_TYPES if description.key.startswith("airport_")
+)
+
+
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback) -> None:
     coordinator = hass.data[DOMAIN][entry.entry_id]
-
-    # --- DYNAMIC MIGRATION LOGIC TO PREVENT BREAKING CHANGES ---
-    ent_reg = er.async_get(hass)
-    for description in SENSOR_TYPES + RESTORE_SENSOR_TYPES:
-        old_unique_id = f"{coordinator.unique_id}_{DOMAIN}_{description.key}"
-        new_unique_id = f"{entry.entry_id}_{DOMAIN}_{description.key}"
-        if entity_id := ent_reg.async_get_entity_id("sensor", DOMAIN, old_unique_id):
-            # Bulletproof check: Only migrate if the new ID isn't already taken!
-            if not ent_reg.async_get_entity_id("sensor", DOMAIN, new_unique_id):
-                try:
-                    ent_reg.async_update_entity(entity_id, new_unique_id=new_unique_id)
-                except ValueError:
-                    pass
-    # -----------------------------------------------------------
-
     sensors = []
     for description in SENSOR_TYPES:
         sensors.append(FlightRadar24Sensor(coordinator, description, entry.entry_id))
@@ -225,21 +207,42 @@ class FlightRadar24Sensor(CoordinatorEntity[FlightRadar24Coordinator], SensorEnt
         super().__init__(coordinator)
         self._attr_device_info = coordinator.device_info
         self._attr_unique_id = f"{entry_id}_{DOMAIN}_{description.key}"
+        self._attr_native_value = self.entity_description.value(coordinator)
 
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
         self._attr_native_value = self.entity_description.value(self.coordinator)
-        if self.entity_description.attributes and self.entity_description.attributes(self.coordinator) is not None:
-            new_attributes = copy.deepcopy(self.entity_description.attributes(self.coordinator))
-            new_attributes["last_updated"] = datetime.datetime.now().isoformat()
-            self._attr_extra_state_attributes = new_attributes
+        if self.entity_description.attributes is not None:
+            attributes = self.entity_description.attributes(self.coordinator)
+            if attributes is not None:
+                # The coordinator keeps mutating these flight dicts in place, so
+                # they have to be copied - but they are flat and there can be
+                # hundreds of them, so deep-copying every cycle only stalls the
+                # event loop for nothing.
+                self._attr_extra_state_attributes = {
+                    key: [dict(item) for item in value] if isinstance(value, list) else value
+                    for key, value in attributes.items()
+                }
+                self._attr_extra_state_attributes["last_updated"] = dt_util.now().isoformat()
         self.async_write_ha_state()
 
     @property
     def available(self) -> bool:
-        """Return True if entity is available."""
-        return self.entity_description.value(self.coordinator) is not None
+        """Report unavailable only when this sensor has no source to read from.
+
+        A value that simply has not been fetched yet is `unknown`, not
+        `unavailable` - tying availability to the value being set is what took
+        every sensor offline after a restart until the first cycle landed.
+        """
+        if self.entity_description.key in AIRPORT_KEYS:
+            # The tracked airport is restored by the text entity, which may land
+            # after this platform. A restored value is proof enough that one was
+            # tracked; it is cleared again on the first cycle without an airport.
+            return bool(self.coordinator.airport.code) or self._attr_native_value is not None
+        if self.entity_description.key == "most_tracked":
+            return self.coordinator.flight.most_tracked_enabled
+        return True
 
 
 class FlightRadar24RestoreSensor(FlightRadar24Sensor, RestoreSensor):
@@ -257,3 +260,5 @@ class FlightRadar24RestoreSensor(FlightRadar24Sensor, RestoreSensor):
             for flight in last_state.attributes.get('flights', {}):
                 tracked[flight.get('id') or flight.get('flight_number') or flight.get('callsign')] = flight
             self.coordinator.flight.set_tracked(tracked)
+            self._attr_native_value = self.entity_description.value(self.coordinator)
+            self.async_write_ha_state()

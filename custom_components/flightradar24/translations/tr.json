@@ -23,7 +23,6 @@
           "scan_interval": "Saniye cinsinden güncelleme aralığı",
           "min_altitude": "Ayak cinsinden minimum irtifa",
           "max_altitude": "Ayak cinsinden maksimum irtifa",
-          "most_tracked": "En çok izlenen uçuşlar listesini etkinleştir",
           "enable_tracker": "Ek izleme uçuşları için device_tracker'ı etkinleştir",
           "auto_cleanup": "İniş yapan takip edilen uçuşlar için otomatik temizlemeyi etkinleştir",
           "tracker_name_style": "Harita Takipçisi Adlandırma Stili",
@@ -38,11 +37,9 @@
       "in_area": { "name": "Bölgedeki uçuşlar" },
       "entered": { "name": "Bölgeye giren" },
       "exited": { "name": "Bölgeden çıkan" },
-      "most_tracked": { "name": "En çok izlenen" },
       "additional_tracked": { "name": "Ek izlenenler" },
       "airport_arrivals": { "name": "Havalimanı varışları" },
       "airport_departures": { "name": "Havalimanı kalkışları" },
-      "helicopters_in_area": { "name": "Bölgedeki helikopterler" },
       "airport_arrivals_on_time": { "name": "Zamanında varışlar" },
       "airport_arrivals_delayed": { "name": "Gecikmeli varışlar" },
       "airport_arrivals_delay_average": { "name": "Varış ortalama gecikme" },
@@ -59,7 +56,8 @@
       "tracked_clear": { "name": "Ek izlenenleri temizle" }
     },
     "switch": {
-      "scanning": { "name": "API veri alımı" }
+      "scanning": { "name": "API veri alımı" },
+      "most_tracked": { "name": "En çok izlenen" }
     },
     "text": {
       "add_track": { "name": "Takibe ekle" },

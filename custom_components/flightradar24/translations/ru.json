@@ -23,7 +23,6 @@
           "scan_interval": "Интервал обновления в секундах",
           "min_altitude": "Минимальная высота в футах",
           "max_altitude": "Максимальная высота в футах",
-          "most_tracked": "Включить список самых отслеживаемых рейсов",
           "enable_tracker": "Включить device_tracker для дополнительных отслеживаемых рейсов",
           "auto_cleanup": "Включить автоматическую очистку отслеживаемых приземлившихся рейсов",
           "tracker_name_style": "Стиль именования трекера на карте",
@@ -38,11 +37,9 @@
       "in_area": { "name": "Рейсы в зоне" },
       "entered": { "name": "Вошли в зону" },
       "exited": { "name": "Покинули зону" },
-      "most_tracked": { "name": "Самые отслеживаемые" },
       "additional_tracked": { "name": "Дополнительно отслеживаемые" },
       "airport_arrivals": { "name": "Прибытие в аэропорт" },
       "airport_departures": { "name": "Вылет из аэропорта" },
-      "helicopters_in_area": { "name": "Вертолеты в зоне" },
       "airport_arrivals_on_time": { "name": "Прибытие по расписанию" },
       "airport_arrivals_delayed": { "name": "Прибытие с задержкой" },
       "airport_arrivals_delay_average": { "name": "Средняя задержка прибытия" },
@@ -59,7 +56,8 @@
       "tracked_clear": { "name": "Очистить доп. отслеживание" }
     },
     "switch": {
-      "scanning": { "name": "Получение данных API" }
+      "scanning": { "name": "Получение данных API" },
+      "most_tracked": { "name": "Самые отслеживаемые" }
     },
     "text": {
       "add_track": { "name": "Добавить в отслеживание" },

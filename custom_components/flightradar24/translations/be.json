@@ -23,7 +23,6 @@
           "scan_interval": "Інтэрвал абнаўлення ў секундах",
           "min_altitude": "Мінімальная вышыня ў футах",
           "max_altitude": "Максімальная вышыня ў футах",
-          "most_tracked": "Уключыць спіс самых адсочваемых рэйсаў",
           "enable_tracker": "Уключыць device_tracker для дадаткова адсочваемых рэйсаў",
           "auto_cleanup": "Уключыць аўтаматычную ачыстку адсочваемых рэйсаў, якія прызямліліся",
           "tracker_name_style": "Стыль наймення трэкера карты",
@@ -38,11 +37,9 @@
       "in_area": { "name": "Рэйсы ў зоне" },
       "entered": { "name": "Увайшлі ў зону" },
       "exited": { "name": "Пакінулі зону" },
-      "most_tracked": { "name": "Самыя адсочваемыя" },
       "additional_tracked": { "name": "Дадаткова адсочваемыя" },
       "airport_arrivals": { "name": "Прыбыццё ў аэрапорт" },
       "airport_departures": { "name": "Вылет з аэрапорта" },
-      "helicopters_in_area": { "name": "Верталёты ў зоне" },
       "airport_arrivals_on_time": { "name": "Прыбыццё па раскладзе" },
       "airport_arrivals_delayed": { "name": "Прыбыццё з затрымкай" },
       "airport_arrivals_delay_average": { "name": "Сярэдняя затрымка прыбыцця" },
@@ -59,7 +56,8 @@
       "tracked_clear": { "name": "Ачысціць дадаткова адсочваемыя" }
     },
     "switch": {
-      "scanning": { "name": "Атрыманне даных API" }
+      "scanning": { "name": "Атрыманне даных API" },
+      "most_tracked": { "name": "Самыя адсочваемыя" }
     },
     "text": {
       "add_track": { "name": "Дадаць у адсочванне" },

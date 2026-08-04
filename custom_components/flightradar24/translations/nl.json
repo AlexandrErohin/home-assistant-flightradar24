@@ -23,7 +23,6 @@
           "scan_interval": "Update interval in seconden",
           "min_altitude": "Minimum hoogte in feet",
           "max_altitude": "Maximum hoogte in feet",
-          "most_tracked": "Activeer meest gevolgde vluchtlijst",
           "enable_tracker": "Device_tracker inschakelen voor extra trackingvluchten",
           "auto_cleanup": "Automatisch opschonen van gelande gevolgde vluchten inschakelen",
           "tracker_name_style": "Naamstijl kaarttracker",
@@ -38,11 +37,9 @@
       "in_area": { "name": "Vluchten in de buurt" },
       "entered": { "name": "Gebied binnengekomen" },
       "exited": { "name": "Gebied verlaten" },
-      "most_tracked": { "name": "Meest gevolgde vluchten" },
       "additional_tracked": { "name": "Extra gevolgde vluchten" },
       "airport_arrivals": { "name": "Aankomsten luchthaven" },
       "airport_departures": { "name": "Vertrekken luchthaven" },
-      "helicopters_in_area": { "name": "Helikopters in de buurt" },
       "airport_arrivals_on_time": { "name": "Aankomsten op tijd" },
       "airport_arrivals_delayed": { "name": "Vertraagde aankomsten" },
       "airport_arrivals_delay_average": { "name": "Gemiddelde vertraging aankomsten" },
@@ -59,7 +56,8 @@
       "tracked_clear": { "name": "Extra gevolgde vluchten wissen" }
     },
     "switch": {
-      "scanning": { "name": "API gegevens ophalen" }
+      "scanning": { "name": "API gegevens ophalen" },
+      "most_tracked": { "name": "Meest gevolgde vluchten" }
     },
     "text": {
       "add_track": { "name": "Toevoegen aan volgen" },

@@ -23,7 +23,6 @@
           "scan_interval": "Interval aktualizace v sekundách",
           "min_altitude": "Minimální výška ve stopách",
           "max_altitude": "Maximální výška ve stopách",
-          "most_tracked": "Povolit seznam nejsledovanějších letů",
           "enable_tracker": "Povolit device_tracker pro další sledované lety",
           "auto_cleanup": "Povolit automatické čištění sledovaných přistálých letů",
           "tracker_name_style": "Styl pojmenování sledování mapy",
@@ -38,11 +37,9 @@
       "in_area": { "name": "Lety v oblasti" },
       "entered": { "name": "Vstoupily do oblasti" },
       "exited": { "name": "Opustily oblast" },
-      "most_tracked": { "name": "Nejsledovanější" },
       "additional_tracked": { "name": "Další sledované" },
       "airport_arrivals": { "name": "Přílety na letiště" },
       "airport_departures": { "name": "Odlety z letiště" },
-      "helicopters_in_area": { "name": "Vrtulníky v oblasti" },
       "airport_arrivals_on_time": { "name": "Přílety včas" },
       "airport_arrivals_delayed": { "name": "Zpožděné přílety" },
       "airport_arrivals_delay_average": { "name": "Průměrné zpoždění příletů" },
@@ -59,7 +56,8 @@
       "tracked_clear": { "name": "Vymazat další sledované" }
     },
     "switch": {
-      "scanning": { "name": "Načítání dat z API" }
+      "scanning": { "name": "Načítání dat z API" },
+      "most_tracked": { "name": "Nejsledovanější" }
     },
     "text": {
       "add_track": { "name": "Přidat ke sledování" },

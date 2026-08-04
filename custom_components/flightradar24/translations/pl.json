@@ -23,7 +23,6 @@
           "scan_interval": "Interwał aktualizacji w sekundach",
           "min_altitude": "Minimalna wysokość w stopach",
           "max_altitude": "Maksymalna wysokość w stopach",
-          "most_tracked": "Włącz listę najczęściej śledzonych lotów",
           "enable_tracker": "Włącz device_tracker dla dodatkowych śledzonych lotów",
           "auto_cleanup": "Włącz automatyczne czyszczenie śledzonych wylądowanych lotów",
           "tracker_name_style": "Styl nazywania śledzenia na mapie",
@@ -38,11 +37,9 @@
       "in_area": { "name": "Loty w strefie" },
       "entered": { "name": "Weszły do strefy" },
       "exited": { "name": "Opuściły strefę" },
-      "most_tracked": { "name": "Najczęściej śledzone" },
       "additional_tracked": { "name": "Dodatkowo śledzone" },
       "airport_arrivals": { "name": "Przyloty" },
       "airport_departures": { "name": "Odloty" },
-      "helicopters_in_area": { "name": "Helikoptery w strefie" },
       "airport_arrivals_on_time": { "name": "Przyloty o czasie" },
       "airport_arrivals_delayed": { "name": "Przyloty opóźnione" },
       "airport_arrivals_delay_average": { "name": "Średnie opóźnienie przylotów" },
@@ -59,7 +56,8 @@
       "tracked_clear": { "name": "Wyczyść dodatkowo śledzone" }
     },
     "switch": {
-      "scanning": { "name": "Pobieranie danych API" }
+      "scanning": { "name": "Pobieranie danych API" },
+      "most_tracked": { "name": "Najczęściej śledzone" }
     },
     "text": {
       "add_track": { "name": "Dodaj do śledzenia" },

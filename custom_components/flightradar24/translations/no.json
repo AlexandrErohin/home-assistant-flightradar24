@@ -23,7 +23,6 @@
           "scan_interval": "Oppdateringsintervall i sekunder",
           "min_altitude": "Minimum høyde i fot",
           "max_altitude": "Maksimum høyde i fot",
-          "most_tracked": "Aktiver liste over mest sporet fly",
           "enable_tracker": "Aktiver device_tracker for ekstra flysporing",
           "auto_cleanup": "Aktiver automatisk opprydding av sporede landede flyvninger",
           "tracker_name_style": "Navngivningsstil for kartsporing",
@@ -38,11 +37,9 @@
       "in_area": { "name": "Fly i området" },
       "entered": { "name": "Område inntrådt" },
       "exited": { "name": "Område forlatt" },
-      "most_tracked": { "name": "Mest sporet" },
       "additional_tracked": { "name": "Ekstra sporet" },
       "airport_arrivals": { "name": "Flyplassankomster" },
       "airport_departures": { "name": "Flyplassavganger" },
-      "helicopters_in_area": { "name": "Helikoptre i området" },
       "airport_arrivals_on_time": { "name": "Ankomster i tide" },
       "airport_arrivals_delayed": { "name": "Forsinkede ankomster" },
       "airport_arrivals_delay_average": { "name": "Gjennomsnittlig ankomstforsinkelse" },
@@ -59,7 +56,8 @@
       "tracked_clear": { "name": "Tøm ekstra sporing" }
     },
     "switch": {
-      "scanning": { "name": "API-datainnhenting" }
+      "scanning": { "name": "API-datainnhenting" },
+      "most_tracked": { "name": "Mest sporet" }
     },
     "text": {
       "add_track": { "name": "Legg til sporing" },

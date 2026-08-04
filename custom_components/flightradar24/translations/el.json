@@ -23,7 +23,6 @@
           "scan_interval": "Διάστημα ενημέρωσης σε δευτερόλεπτα",
           "min_altitude": "Ελάχιστο υψόμετρο σε πόδια",
           "max_altitude": "Μέγιστο υψόμετρο σε πόδια",
-          "most_tracked": "Ενεργοποίηση λίστας πτήσεων με τη μεγαλύτερη παρακολούθηση",
           "enable_tracker": "Ενεργοποίηση device_tracker για επιπλέον παρακολούθηση πτήσεων",
           "auto_cleanup": "Ενεργοποίηση αυτόματου καθαρισμού παρακολουθούμενων προσγειωμένων πτήσεων",
           "tracker_name_style": "Στυλ ονομασίας παρακολούθησης χάρτη",
@@ -38,11 +37,9 @@
       "in_area": { "name": "Πτήσεις στην περιοχή" },
       "entered": { "name": "Εισήλθαν στην περιοχή" },
       "exited": { "name": "Εξήλθαν από την περιοχή" },
-      "most_tracked": { "name": "Μεγαλύτερη παρακολούθηση" },
       "additional_tracked": { "name": "Επιπλέον παρακολούθηση" },
       "airport_arrivals": { "name": "Αφίξεις αεροδρομίου" },
       "airport_departures": { "name": "Αναχωρήσεις αεροδρομίου" },
-      "helicopters_in_area": { "name": "Ελικόπτερα στην περιοχή" },
       "airport_arrivals_on_time": { "name": "Αφίξεις στην ώρα τους" },
       "airport_arrivals_delayed": { "name": "Καθυστερημένες αφίξεις" },
       "airport_arrivals_delay_average": { "name": "Μέσος όρος καθυστέρησης αφίξεων" },
@@ -59,7 +56,8 @@
       "tracked_clear": { "name": "Εκκαθάριση επιπλέον παρακολούθησης" }
     },
     "switch": {
-      "scanning": { "name": "Λήψη δεδομένων API" }
+      "scanning": { "name": "Λήψη δεδομένων API" },
+      "most_tracked": { "name": "Μεγαλύτερη παρακολούθηση" }
     },
     "text": {
       "add_track": { "name": "Προσθήκη στην παρακολούθηση" },

@@ -27,7 +27,6 @@
           "scan_interval": "Update interval in seconds",
           "min_altitude": "Minimum altitude",
           "max_altitude": "Maximum altitude",
-          "most_tracked": "Enable most tracked flights",
           "enable_tracker": "Enable device tracker",
           "auto_cleanup": "Enable auto-cleanup of landed tracked flights",
           "tracker_name_style": "Map Tracker Naming Style",
@@ -47,11 +46,9 @@
       "in_area": { "name": "Current in area" },
       "entered": { "name": "Entered area" },
       "exited": { "name": "Exited area" },
-      "most_tracked": { "name": "Most tracked" },
       "additional_tracked": { "name": "Additional tracked" },
       "airport_arrivals": { "name": "Airport arrivals" },
       "airport_departures": { "name": "Airport departures" },
-      "helicopters_in_area": { "name": "Helicopters in area" },
       "airport_arrivals_on_time": { "name": "Airport arrivals on time" },
       "airport_arrivals_delayed": { "name": "Airport arrivals delayed" },
       "airport_arrivals_delay_average": { "name": "Arrivals delay average" },
@@ -68,7 +65,8 @@
       "tracked_clear": { "name": "Clear Additional tracked" }
     },
     "switch": {
-      "scanning": { "name": "API data fetching" }
+      "scanning": { "name": "API data fetching" },
+      "most_tracked": { "name": "Most tracked" }
     },
     "text": {
       "add_track": { "name": "Add to track" },

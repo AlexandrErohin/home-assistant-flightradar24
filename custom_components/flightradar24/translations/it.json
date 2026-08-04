@@ -23,7 +23,6 @@
           "scan_interval": "Intervallo di aggiornamento in secondi",
           "min_altitude": "Altitudine minima in piedi",
           "max_altitude": "Altitudine massima in piedi",
-          "most_tracked": "Abilita l'elenco dei voli più seguiti",
           "enable_tracker": "Abilita device_tracker per voli extra",
           "auto_cleanup": "Abilita la pulizia automatica dei voli tracciati atterrati",
           "tracker_name_style": "Stile di denominazione del tracker sulla mappa",
@@ -38,11 +37,9 @@
       "in_area": { "name": "Voli nell'area" },
       "entered": { "name": "Area entrata" },
       "exited": { "name": "Area uscita" },
-      "most_tracked": { "name": "I più seguiti" },
       "additional_tracked": { "name": "Seguiti extra" },
       "airport_arrivals": { "name": "Arrivi in aeroporto" },
       "airport_departures": { "name": "Partenze dall'aeroporto" },
-      "helicopters_in_area": { "name": "Elicotteri nell'area" },
       "airport_arrivals_on_time": { "name": "Arrivi in orario" },
       "airport_arrivals_delayed": { "name": "Arrivi in ritardo" },
       "airport_arrivals_delay_average": { "name": "Ritardo medio arrivi" },
@@ -59,7 +56,8 @@
       "tracked_clear": { "name": "Cancella seguiti extra" }
     },
     "switch": {
-      "scanning": { "name": "Recupero dati API" }
+      "scanning": { "name": "Recupero dati API" },
+      "most_tracked": { "name": "I più seguiti" }
     },
     "text": {
       "add_track": { "name": "Aggiungi al monitoraggio" },

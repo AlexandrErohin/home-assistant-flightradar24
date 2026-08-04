@@ -23,7 +23,6 @@
           "scan_interval": "更新间隔 (秒)",
           "min_altitude": "最小高度 (英尺)",
           "max_altitude": "最大高度 (英尺)",
-          "most_tracked": "启用被追踪最多的航班列表",
           "enable_tracker": "为额外追踪的航班启用 device_tracker",
           "auto_cleanup": "启用已降落追踪航班的自动清理",
           "tracker_name_style": "地图追踪器命名样式",
@@ -38,11 +37,9 @@
       "in_area": { "name": "区域内航班" },
       "entered": { "name": "进入区域" },
       "exited": { "name": "离开区域" },
-      "most_tracked": { "name": "被追踪最多" },
       "additional_tracked": { "name": "额外追踪" },
       "airport_arrivals": { "name": "机场到达" },
       "airport_departures": { "name": "机场出发" },
-      "helicopters_in_area": { "name": "区域内直升机" },
       "airport_arrivals_on_time": { "name": "准点到达" },
       "airport_arrivals_delayed": { "name": "延误到达" },
       "airport_arrivals_delay_average": { "name": "平均到达延误" },
@@ -59,7 +56,8 @@
       "tracked_clear": { "name": "清除额外追踪" }
     },
     "switch": {
-      "scanning": { "name": "API 数据获取" }
+      "scanning": { "name": "API 数据获取" },
+      "most_tracked": { "name": "被追踪最多" }
     },
     "text": {
       "add_track": { "name": "添加到追踪" },
