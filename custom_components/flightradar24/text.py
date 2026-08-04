@@ -126,3 +126,4 @@ class FlightRadar24TextAirport(
         if last_state is not None and last_state.state not in ("unknown", "unavailable", ""):
             self._attr_native_value = last_state.state
             self.coordinator.airport.restore_code(self._attr_native_value)
+            self.coordinator.async_update_listeners()

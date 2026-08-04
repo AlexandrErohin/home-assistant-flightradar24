@@ -351,6 +351,12 @@ class FlightProcessor:
         found = self._process_search_flight(flights, number)
         if not found:
             return None
+        result = {
+            'id': found.get('id'),
+            'callsign': found.get('callsign'),
+            'flight_number': found.get('flight'),
+            'aircraft_registration': found.get('aircraft_registration'),
+        }
         if found.get('tracked_type') == 'live':
             data = [None] * 20
             data[1] = found.get('lat')
@@ -359,14 +365,10 @@ class FlightProcessor:
             flight = Flight(found.get('id'), data)
             flight.registration = found.get('reg')
             flight.callsign = found.get('callsign')
-            result = self._update_flights_data(flight, {})
-        else:
-            result = {
-                'id': found.get('id'),
-                'callsign': found.get('callsign'),
-                'flight_number': found.get('flight'),
-                'aircraft_registration': found.get('aircraft_registration'),
-            }
+            try:
+                result = self._update_flights_data(flight, {})
+            except Exception:
+                found['tracked_type'] = 'schedule'
         if result:
             result['tracked_type'] = found.get('tracked_type')
             result['tracked_by'] = found.get('tracked_by')

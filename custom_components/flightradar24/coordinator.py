@@ -120,23 +120,33 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
         if not self.scanning:
             return
 
-        try:
-            await self.hass.async_add_executor_job(self.flight.update_flights_in_area)
-            await self.hass.async_add_executor_job(self.flight.update_flights_tracked)
-        except Exception as e:
-            self.logger.error("FlightRadar24: %s", e)
-
-        try:
-            await self.hass.async_add_executor_job(self.flight.update_most_tracked)
-            await self.hass.async_add_executor_job(self.airport.update_airport_info)
-            await self._check_session()
-        except Exception as e:
-            self.logger.error("FlightRadar24: %s", e)
-
         def fire(event: Event) -> None:
             self.hass.bus.fire(event.event, event.data)
 
-        self.event_manager.fire_events(self.config_entry.title, fire)
+        try:
+            await self.hass.async_add_executor_job(self.flight.update_most_tracked)
+            self.async_set_updated_data(self.flight.most_tracked_list)
+            self.event_manager.fire_events(self.config_entry.title, fire)
+
+            await self.hass.async_add_executor_job(self.airport.update_airport_info)
+            self.async_set_updated_data(self.airport)
+        except Exception as e:
+            self.logger.error("FlightRadar24: %s", e)
+
+        try:
+            await self.hass.async_add_executor_job(self.flight.update_flights_in_area)
+            self.async_set_updated_data(self.flight.in_area_list)
+            self.async_set_updated_data(self.flight.entered_list)
+            self.async_set_updated_data(self.flight.exited_list)
+            self.event_manager.fire_events(self.config_entry.title, fire)
+
+            await self.hass.async_add_executor_job(self.flight.update_flights_tracked)
+            self.async_set_updated_data(self.flight.tracked)
+            self.async_set_updated_data(self.flight.tracked_list)
+            self.event_manager.fire_events(self.config_entry.title, fire)
+            await self._check_session()
+        except Exception as e:
+            self.logger.error("FlightRadar24: %s", e)
 
     def _renew_client(self) -> FlightRadarClient:
         client = FlightRadar24API()

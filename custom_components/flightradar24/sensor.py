@@ -261,3 +261,4 @@ class FlightRadar24RestoreSensor(FlightRadar24Sensor, RestoreSensor):
                 tracked[flight.get('id') or flight.get('flight_number') or flight.get('callsign')] = flight
             self.coordinator.flight.set_tracked(tracked)
             self._attr_native_value = self.entity_description.value(self.coordinator)
+            self.async_write_ha_state()
