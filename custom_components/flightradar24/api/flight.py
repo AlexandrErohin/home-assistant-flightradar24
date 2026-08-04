@@ -17,6 +17,7 @@ from ..const import (
     EVENT_MOST_TRACKED_NEW,
     EVENT_TRACKED_ARRIVED_GATE,
     EVENT_TRACKED_LEFT_GATE,
+    DETAILS_MAX_TRIES,
 )
 import pycountry
 
@@ -89,7 +90,8 @@ class FlightType(Enum):
 
 class FlightProcessor:
     __slots__ = ('_in_area', '_tracked', '_most_tracked', '_entered', '_exited', '_min_altitude', '_max_altitude',
-                 '_point', '_client', '_bounds', '_event_manager', '_auto_cleanup', '_raw_in_area_count')
+                 '_point', '_client', '_bounds', '_event_manager', '_auto_cleanup', '_raw_in_area_count',
+                 '_details_paused', '_details_tries')
 
     def __init__(
             self,
@@ -114,6 +116,8 @@ class FlightProcessor:
         self._entered: list[dict[str, Any]] = []
         self._exited: list[dict[str, Any]] = []
         self._raw_in_area_count: int = 0
+        self._details_paused: bool = False
+        self._details_tries: dict[str, int] = {}
 
     @property
     def client(self) -> FlightRadarClient:
@@ -200,6 +204,7 @@ class FlightProcessor:
     def update_flights_in_area(self) -> None:
         self._entered = []
         self._exited = []
+        self._details_paused = False
         flights = self._client.get_flights(bounds=self._bounds)
         # Unfiltered count for the session guard (see coordinator) - altitude
         # filtering below must not hide traffic from the empty-session detection.
@@ -228,10 +233,14 @@ class FlightProcessor:
                         self._entered.append(flight)
                         self._event_manager.add_event(EVENT_ENTRY, flight)
 
+        self._details_tries = {key: value for key, value in self._details_tries.items()
+                               if key in self._in_area or key in self._tracked}
+
     def update_flights_tracked(self) -> None:
         if not self._tracked:
             return
 
+        self._details_paused = False
         current_flights = []
         flight_ids = set(self._tracked.keys())
         reg_to_id = {f.get('aircraft_registration'): f.get('id') for f in self._tracked.values() if
@@ -442,12 +451,37 @@ class FlightProcessor:
             last_position = None
             previous_closest_distance = None
 
+        if is_same_flight and to_int(last_position) != to_int(obj.on_ground):
+            # A new leg publishes new schedule data - the lookup cap starts over.
+            self._details_tries.pop(obj.id, None)
+
         if (is_same_flight and self._is_valid(previous)
                 and to_int(last_position) == obj.on_ground):
             flight = previous
+        elif self._details_paused or self._details_tries.get(obj.id, 0) >= DETAILS_MAX_TRIES:
+            # The details endpoint is unhappy this cycle, or this flight has
+            # provably nothing more to give - keep what exists instead of
+            # asking again.
+            flight = previous if is_same_flight else None
         else:
-            data = self._client.get_flight_details(obj)
-            flight = self._get_flight_data(data)
+            try:
+                data = self._client.get_flight_details(obj)
+            except Exception:
+                # One failed lookup pauses the rest of this cycle - hammering
+                # a rate limited endpoint once per flight only keeps it limited.
+                # The client already logged; known flights keep their record.
+                self._details_paused = True
+                flight = previous if is_same_flight else None
+            else:
+                flight = self._get_flight_data(data)
+                if flight is None or not self._is_valid(flight):
+                    # Fruitless also covers a lookup that succeeded but stays
+                    # schedule-less (GA, military, ferry) - cap the re-requests.
+                    self._details_tries[obj.id] = self._details_tries.get(obj.id, 0) + 1
+                else:
+                    self._details_tries.pop(obj.id, None)
+                if flight is None and is_same_flight:
+                    flight = previous
         if flight is not None:
             flight['latitude'] = obj.latitude
             flight['longitude'] = obj.longitude

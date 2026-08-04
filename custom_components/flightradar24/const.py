@@ -60,6 +60,15 @@ REQUEST_ATTEMPTS = 3
 RETRY_BASE_DELAY = 2
 # Once a request has exhausted its retries, fail fast for this long instead of
 # letting every remaining call of the cycle burn its own backoff (circuit breaker).
-# The cooldown is kept per endpoint - a rate limited details endpoint must not
-# take the area feed (and with it every count sensor) down with it.
+# HTTP 429/403 are endpoint-specific on FR24 (feed, details and most-tracked
+# live on different hosts - see #271), so those cool down per endpoint;
+# connection-level failures affect everything and cool down globally.
 FAILURE_COOLDOWN = 30
+# Details are the chatty endpoint and the first to get rate limited. One attempt,
+# no backoff - a failed lookup pauses further lookups for the running cycle and
+# the next cycle retries anyway.
+DETAILS_REQUEST_ATTEMPTS = 1
+# Traffic whose details stay schedule-less (GA, military, ferry flights) never
+# passes _is_valid. Stop re-requesting details for such a flight after this many
+# fruitless lookups; a takeoff/landing starts the count over for the new leg.
+DETAILS_MAX_TRIES = 3
