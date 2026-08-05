@@ -387,6 +387,20 @@ class Flightradar24Card extends HTMLElement {
         width: 100%;
         height: 100%;
       }
+      /* HA dark themes inherit light text; force readable OSM credit. */
+      .leaflet-control-attribution {
+        background: rgba(255, 255, 255, 0.9);
+        color: #333;
+        font-size: 11px;
+        line-height: 1.3;
+        max-width: calc(100% - 10px);
+        margin: 0;
+        padding: 2px 6px;
+        box-sizing: border-box;
+      }
+      .leaflet-control-attribution a {
+        color: #0078a8;
+      }
       .warning, .empty {
         padding: 16px;
         color: var(--secondary-text-color);
@@ -552,8 +566,20 @@ class Flightradar24Card extends HTMLElement {
       keyboard: false,
       touchZoom: false,
     });
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      maxZoom: 18,
+    L.control
+      .attribution({
+        prefix: false,
+        position: "bottomright",
+      })
+      .addTo(this._map);
+    // OSM tile usage: https://wiki.openstreetmap.org/wiki/Referer
+    // HA often sets Referrer-Policy: no-referrer/same-origin, which OSM rejects.
+    // Leaflet < May 2026 needs an explicit tile referrerPolicy.
+    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 19,
+      attribution:
+        '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      referrerPolicy: "strict-origin-when-cross-origin",
     }).addTo(this._map);
     this._markers = L.layerGroup().addTo(this._map);
     this._tracks = L.layerGroup().addTo(this._map);
