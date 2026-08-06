@@ -356,7 +356,7 @@ template:
 ```
 
 ### <a id="flightradar24-card">Flightradar24 Map Card</a>
-Built-in Lovelace card with an OpenStreetMap of your monitored area, aircraft markers, optional flight tracks, and a list of flights currently in the area.
+Built-in Lovelace card with an OpenStreetMap of your monitored area, aircraft markers, optional flight tracks, an optional marker at the centre of the area, and a list of flights currently in the area.
 
 The card is registered automatically when the integration is loaded — no manual Lovelace resource setup is required.
 
@@ -384,6 +384,7 @@ entity: sensor.flightradar24_current_in_area
 title: Flights Nearby
 show_flights: true
 show_tracks: true
+show_home: true
 ```
 
 #### Configuration options
@@ -394,6 +395,7 @@ show_tracks: true
 | `title` | string | — | Optional card title |
 | `show_flights` | boolean | `true` | Show the flights list under the map |
 | `show_tracks` | boolean | `true` | Draw flight tracks on the map from each flight's `coordinates` history |
+| `show_home` | boolean | `false` | Mark the centre of the observed area — the latitude/longitude this device is configured with |
 
 ### <a id="lovelace">Lovelace Card</a>
 You can add flight table to your [Home Assistant dashboard](https://www.home-assistant.io/dashboards/)
