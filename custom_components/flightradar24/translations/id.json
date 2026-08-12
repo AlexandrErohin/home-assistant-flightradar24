@@ -13,6 +13,11 @@
     }
   },
   "options": {
+    "error": {
+      "credentials_incomplete": "Masukkan nama pengguna dan kata sandi, atau biarkan keduanya kosong.",
+      "invalid_auth": "Nama pengguna atau kata sandi Flightradar24 tidak valid.",
+      "login_failed": "Gagal masuk ke Flightradar24. Periksa kredensial Anda dan coba lagi."
+    },
     "step": {
       "init": {
         "description": "Edit parameter untuk lokasi yang dilacak.",

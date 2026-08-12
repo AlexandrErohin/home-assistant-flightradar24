@@ -358,6 +358,8 @@ template:
 ### <a id="flightradar24-card">Flightradar24 Map Card</a>
 Built-in Lovelace card with an OpenStreetMap of your monitored area, aircraft markers, optional flight tracks, an optional marker at the centre of the area, and a list of flights currently in the area.
 
+> **Note:** The map card currently supports only the **Current in area** sensor (typically `sensor.flightradar24_current_in_area`, or your localized equivalent). Other Flightradar24 sensors — tracked flights, entered/exited, airport boards, and so on — are not supported yet. The card needs the `bounds` and `flights` attributes, which only the in-area sensor provides.
+
 The card is registered automatically when the integration is loaded — no manual Lovelace resource setup is required.
 
 <p align="center"><img src="https://raw.githubusercontent.com/AlexandrErohin/home-assistant-flightradar24/master/docs/media/map.jpg" width="55%"></p>
@@ -384,18 +386,19 @@ entity: sensor.flightradar24_current_in_area
 title: Flights Nearby
 show_flights: true
 show_tracks: true
-show_home: true
 ```
 
 #### Configuration options
 
 | Option | Type | Default | Description |
 | ------ | ---- | ------- | ----------- |
-| `entity` | string | — | **Required.** typically `sensor.flightradar24_current_in_area` |
+| `entity` | string | — | **Required.** Use the **Current in area** sensor only (typically `sensor.flightradar24_current_in_area`) |
 | `title` | string | — | Optional card title |
 | `show_flights` | boolean | `true` | Show the flights list under the map |
 | `show_tracks` | boolean | `true` | Draw flight tracks on the map from each flight's `coordinates` history |
-| `show_home` | boolean | `false` | Mark the centre of the observed area — the latitude/longitude this device is configured with |
+| `show_area_center` | boolean | `true` | Mark the centre of the observed area — the latitude/longitude this device is configured with (not `zone.home`) |
+| `zoom` | number | — | Fixed map zoom level (1–19). When omitted, the map auto-fits the monitored area. Useful for static dashboards and e-ink displays where manual zoom is not available |
+| `icon_size` | number | `28` | Aircraft marker size in pixels (12–64). Increase for wall displays or e-ink dashboards where planes are hard to see at the default size |
 
 ### <a id="lovelace">Lovelace Card</a>
 You can add flight table to your [Home Assistant dashboard](https://www.home-assistant.io/dashboards/)
@@ -537,6 +540,41 @@ Switch `Most tracked` when is enabled - shows top 10 most tracked flights on Fli
 | airport_origin_city | Origin airport city name |
 | airport_destination_code_iata | Destination airport IATA code |
 | airport_destination_city | Destination airport city name |
+
+#### Display on dashboard
+
+1. Go to your [Home Assistant dashboard](https://www.home-assistant.io/dashboards/)
+2. In the top right corner, select the three-dot menu, then select **Edit dashboard**
+3. Click **+ ADD CARD**, search for `Manual`, click on **Manual**
+4. Add the following code and click **SAVE**
+5. Turn on the **Most tracked** switch on the card (or under **Settings → Devices & Services → Entities**) to start fetching data
+
+> **Note:** If your Home Assistant system is not in English, your entity names may be translated. Please replace `switch.flightradar24_most_tracked` with your exact [local entity ID!](#entity-id)
+
+```yaml
+type: vertical-stack
+title: Flightradar24 Most Tracked
+cards:
+  - type: entities
+    entities:
+      - entity: switch.flightradar24_most_tracked
+        name: Most tracked
+  - type: conditional
+    conditions:
+      - condition: state
+        entity: switch.flightradar24_most_tracked
+        state: "on"
+    card:
+      type: markdown
+      title: Top 10 most tracked flights
+      content: >
+        {% set flights = state_attr('switch.flightradar24_most_tracked', 'flights') | default([], true) %}
+        | # | FLIGHT | ROUTE | CLICKS |
+        | - | ------ | ----- | ------ |
+        {% for f in flights %}
+        | {{ loop.index }} | {{ f.flight_number | default(f.callsign, true) | default('---', true) }} | {{ f.airport_origin_city | default(f.airport_origin_code_iata, true) | default('---', true) }} → {{ f.airport_destination_city | default(f.airport_destination_code_iata, true) | default('---', true) }} | {{ f.clicks | default('---', true) }} |
+        {% endfor %}
+```
 
 ### <a id="lovelace-airport">Lovelace Airport Card</a>
 You can add departures/arrivals boards of the selected airport to your [Home Assistant dashboard](https://www.home-assistant.io/dashboards/)

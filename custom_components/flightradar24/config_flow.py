@@ -40,6 +40,29 @@ from homeassistant.const import (
 _LOGGER = getLogger(__name__)
 
 
+def _http_status_code(error: Exception) -> int | None:
+    code = getattr(error, "status_code", None)
+    if code is not None:
+        return int(code)
+    response = getattr(error, "response", None)
+    if response is not None:
+        code = getattr(response, "status_code", None)
+        if code is not None:
+            return int(code)
+    return None
+
+
+def _is_login_rate_limited(error: Exception) -> bool:
+    if _http_status_code(error) == 429:
+        return True
+    message = str(error)
+    return "429" in message
+
+
+def _is_login_auth_error(error: Exception) -> bool:
+    return _http_status_code(error) in (401, 403)
+
+
 class FlightRadarConfigFlow(ConfigFlow, domain=DOMAIN):
 
     async def async_step_user(self, user_input: dict[str, Any] | None = None) -> FlowResult:
@@ -81,11 +104,21 @@ class FlightRadarOptionsFlow(OptionsFlowWithConfigEntry):
                 if username and password:
                     client = FlightRadar24API()
                     await self.hass.async_add_executor_job(client.login, username, password)
-                elif password and not username or username and not password:
-                    errors['base'] = 'You need to pass username and password'
+                elif (password and not username) or (username and not password):
+                    errors["base"] = "credentials_incomplete"
             except Exception as error:
-                _LOGGER.error('FlightRadar24 Integration Exception - {}'.format(error))
-                errors['base'] = str(error)
+                if _is_login_rate_limited(error):
+                    _LOGGER.warning(
+                        "FlightRadar24: login rate-limited while saving options (%s); "
+                        "credentials stored, integration will retry login on reload",
+                        error,
+                    )
+                elif _is_login_auth_error(error):
+                    _LOGGER.error("FlightRadar24: login rejected - %s", error)
+                    errors["base"] = "invalid_auth"
+                else:
+                    _LOGGER.error("FlightRadar24: login failed - %s", error)
+                    errors["base"] = "login_failed"
 
             if not errors:
                 self.hass.config_entries.async_update_entry(self.config_entry, data=user_input)

@@ -13,6 +13,11 @@
     }
   },
   "options": {
+    "error": {
+      "credentials_incomplete": "Geben Sie sowohl Benutzername als auch Passwort ein, oder lassen Sie beide Felder leer.",
+      "invalid_auth": "Ungültiger Flightradar24-Benutzername oder Passwort.",
+      "login_failed": "Anmeldung bei Flightradar24 fehlgeschlagen. Prüfen Sie Ihre Zugangsdaten und versuchen Sie es erneut."
+    },
     "step": {
       "init": {
         "description": "Bearbeiten Sie die Parameter für den Standort.",

@@ -13,6 +13,11 @@
     }
   },
   "options": {
+    "error": {
+      "credentials_incomplete": "Vul zowel gebruikersnaam als wachtwoord in, of laat beide leeg.",
+      "invalid_auth": "Ongeldige Flightradar24-gebruikersnaam of -wachtwoord.",
+      "login_failed": "Kan niet inloggen bij Flightradar24. Controleer je gegevens en probeer het opnieuw."
+    },
     "step": {
       "init": {
         "description": "Bewerk de parameters voor de te volgen locatie.",

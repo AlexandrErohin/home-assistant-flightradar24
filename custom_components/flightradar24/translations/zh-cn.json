@@ -13,6 +13,11 @@
     }
   },
   "options": {
+    "error": {
+      "credentials_incomplete": "请同时填写用户名和密码，或将两者都留空。",
+      "invalid_auth": "Flightradar24 用户名或密码无效。",
+      "login_failed": "无法登录 Flightradar24。请检查凭据后重试。"
+    },
     "step": {
       "init": {
         "description": "编辑要追踪的位置参数。",

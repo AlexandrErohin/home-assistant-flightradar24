@@ -13,6 +13,11 @@
     }
   },
   "options": {
+    "error": {
+      "credentials_incomplete": "Informe o nome de usuário e a senha, ou deixe ambos os campos vazios.",
+      "invalid_auth": "Nome de usuário ou senha do Flightradar24 inválidos.",
+      "login_failed": "Não foi possível entrar no Flightradar24. Verifique as credenciais e tente novamente."
+    },
     "step": {
       "init": {
         "description": "Edite os parâmetros para a localização rastreada.",

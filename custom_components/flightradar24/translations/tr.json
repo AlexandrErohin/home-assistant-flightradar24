@@ -13,6 +13,11 @@
     }
   },
   "options": {
+    "error": {
+      "credentials_incomplete": "Hem kullanıcı adını hem de parolayı girin veya her ikisini de boş bırakın.",
+      "invalid_auth": "Geçersiz Flightradar24 kullanıcı adı veya parolası.",
+      "login_failed": "Flightradar24 oturumu açılamadı. Kimlik bilgilerinizi kontrol edip yeniden deneyin."
+    },
     "step": {
       "init": {
         "description": "İzlenecek konum parametrelerini düzenleyin.",

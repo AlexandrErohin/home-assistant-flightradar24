@@ -17,6 +17,11 @@
     }
   },
   "options": {
+    "error": {
+      "credentials_incomplete": "Enter both username and password, or leave both empty.",
+      "invalid_auth": "Invalid Flightradar24 username or password.",
+      "login_failed": "Could not log in to Flightradar24. Check your credentials and try again."
+    },
     "step": {
       "init": {
         "description": "Edit parameters for the location to track.",

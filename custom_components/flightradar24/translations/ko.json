@@ -13,6 +13,11 @@
     }
   },
   "options": {
+    "error": {
+      "credentials_incomplete": "사용자 이름과 비밀번호를 모두 입력하거나 둘 다 비워 두세요.",
+      "invalid_auth": "잘못된 Flightradar24 사용자 이름 또는 비밀번호입니다.",
+      "login_failed": "Flightradar24에 로그인할 수 없습니다. 자격 증명을 확인하고 다시 시도하세요."
+    },
     "step": {
       "init": {
         "description": "추적할 위치의 매개변수를 편집합니다.",

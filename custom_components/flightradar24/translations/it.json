@@ -13,6 +13,11 @@
     }
   },
   "options": {
+    "error": {
+      "credentials_incomplete": "Inserisci sia nome utente che password, oppure lascia entrambi i campi vuoti.",
+      "invalid_auth": "Nome utente o password Flightradar24 non validi.",
+      "login_failed": "Impossibile accedere a Flightradar24. Controlla le credenziali e riprova."
+    },
     "step": {
       "init": {
         "description": "Modifica i parametri per la posizione da monitorare.",

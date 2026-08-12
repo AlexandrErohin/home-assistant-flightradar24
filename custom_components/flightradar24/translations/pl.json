@@ -13,6 +13,11 @@
     }
   },
   "options": {
+    "error": {
+      "credentials_incomplete": "Podaj zarówno nazwę użytkownika, jak i hasło, albo zostaw oba pola puste.",
+      "invalid_auth": "Nieprawidłowa nazwa użytkownika lub hasło Flightradar24.",
+      "login_failed": "Nie udało się zalogować do Flightradar24. Sprawdź dane logowania i spróbuj ponownie."
+    },
     "step": {
       "init": {
         "description": "Edytuj parametry śledzonej lokalizacji.",

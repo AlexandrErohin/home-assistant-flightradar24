@@ -13,6 +13,11 @@
     }
   },
   "options": {
+    "error": {
+      "credentials_incomplete": "Skriv inn både brukernavn og passord, eller la begge stå tomme.",
+      "invalid_auth": "Ugyldig Flightradar24-brukernavn eller -passord.",
+      "login_failed": "Kunne ikke logge inn på Flightradar24. Sjekk påloggingsdetaljene og prøv igjen."
+    },
     "step": {
       "init": {
         "description": "Rediger parametere for posisjonen som spores.",

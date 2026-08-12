@@ -13,6 +13,11 @@
     }
   },
   "options": {
+    "error": {
+      "credentials_incomplete": "Zadejte uživatelské jméno i heslo, nebo obě pole nechte prázdná.",
+      "invalid_auth": "Neplatné uživatelské jméno nebo heslo Flightradar24.",
+      "login_failed": "Přihlášení k Flightradar24 se nezdařilo. Zkontrolujte přihlašovací údaje a zkuste to znovu."
+    },
     "step": {
       "init": {
         "description": "Upravte parametry sledovaného místa.",

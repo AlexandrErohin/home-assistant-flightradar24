@@ -13,6 +13,11 @@
     }
   },
   "options": {
+    "error": {
+      "credentials_incomplete": "Anna sekä käyttäjänimi että salasana, tai jätä molemmat tyhjiksi.",
+      "invalid_auth": "Virheellinen Flightradar24-käyttäjänimi tai salasana.",
+      "login_failed": "Kirjautuminen Flightradar24-palveluun epäonnistui. Tarkista tunnuksesi ja yritä uudelleen."
+    },
     "step": {
       "init": {
         "description": "Muokkaa seurattavan sijainnin parametreja.",
