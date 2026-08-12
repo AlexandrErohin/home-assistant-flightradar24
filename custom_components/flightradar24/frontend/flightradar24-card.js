@@ -75,6 +75,8 @@ class Flightradar24Card extends HTMLElement {
     this._markers = null;
     this._tracks = null;
     this._areaRect = null;
+    this._homeMarker = null;
+    this._homeMarkerPos = null;
     this._markerById = new Map();
     this._selectedFlightId = null;
     this._openPopupFlightId = null;
@@ -95,6 +97,7 @@ class Flightradar24Card extends HTMLElement {
     this._config = {
       show_flights: true,
       show_tracks: true,
+      show_home: false,
       ...config,
     };
     if (prev && prev.entity !== this._config.entity) {
@@ -162,6 +165,8 @@ class Flightradar24Card extends HTMLElement {
     this._markers = null;
     this._tracks = null;
     this._areaRect = null;
+    this._homeMarker = null;
+    this._homeMarkerPos = null;
     this._markerById = new Map();
     this._selectedFlightId = null;
     this._openPopupFlightId = null;
@@ -472,6 +477,24 @@ class Flightradar24Card extends HTMLElement {
         height: 26px;
         fill: currentColor;
       }
+      .home-icon {
+        background: transparent;
+        border: none;
+      }
+      .home-marker {
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--error-color, #e53935);
+        filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.45));
+      }
+      .home-marker svg {
+        width: 22px;
+        height: 22px;
+        fill: currentColor;
+      }
       .leaflet-popup-content {
         margin: 8px 10px;
         font-size: 0.85rem;
@@ -604,6 +627,56 @@ class Flightradar24Card extends HTMLElement {
         </div>
       `,
     });
+  }
+
+  _homeIcon(L) {
+    return L.divIcon({
+      className: "home-icon",
+      iconSize: [24, 24],
+      iconAnchor: [12, 12],
+      html: `
+        <div class="home-marker">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+          </svg>
+        </div>
+      `,
+    });
+  }
+
+  /**
+   * Marker at the centre of the observed area - the latitude/longitude this
+   * device is configured with. Deliberately not zone.home: with several
+   * Flightradar24 devices watching different points, only the bounds centre
+   * is correct for the device this card is showing.
+   */
+  _syncHomeMarker(L, map, parsed) {
+    if (this._config.show_home !== true) {
+      if (this._homeMarker) {
+        map.removeLayer(this._homeMarker);
+        this._homeMarker = null;
+        this._homeMarkerPos = null;
+      }
+      return;
+    }
+    // parsed is non-null and numeric here: _parseBounds rejects both, and
+    // _syncMap is not reached otherwise.
+    const posKey = `${parsed.lat},${parsed.lon}`;
+    if (this._homeMarker) {
+      if (posKey !== this._homeMarkerPos) {
+        this._homeMarker.setLatLng([parsed.lat, parsed.lon]);
+        this._homeMarkerPos = posKey;
+      }
+      return;
+    }
+    this._homeMarker = L.marker([parsed.lat, parsed.lon], {
+      icon: this._homeIcon(L),
+      keyboard: false,
+      // Above aircraft: a fixed reference point should stay findable inside
+      // a dense cluster of markers.
+      zIndexOffset: 1000,
+    }).addTo(map);
+    this._homeMarkerPos = posKey;
   }
 
   _flightId(flight) {
@@ -800,6 +873,8 @@ class Flightradar24Card extends HTMLElement {
       [parsed.south, parsed.west],
       [parsed.north, parsed.east]
     );
+
+    this._syncHomeMarker(L, map, parsed);
 
     const boundsKey = `${parsed.south},${parsed.west},${parsed.north},${parsed.east}`;
     if (boundsKey !== this._lastBoundsKey) {
@@ -1121,6 +1196,10 @@ class Flightradar24CardEditor extends HTMLElement {
         <input type="checkbox" id="show_tracks" ${this._config.show_tracks !== false ? "checked" : ""} />
         <span>Show flight tracks</span>
       </div>
+      <div class="row check">
+        <input type="checkbox" id="show_home" ${this._config.show_home === true ? "checked" : ""} />
+        <span>Show home marker</span>
+      </div>
     `;
 
     const mount = this.shadowRoot.getElementById("entity-picker");
@@ -1161,6 +1240,13 @@ class Flightradar24CardEditor extends HTMLElement {
       this._fireConfigChanged({
         ...this._config,
         show_tracks: event.target.checked,
+      });
+    });
+
+    this.shadowRoot.getElementById("show_home").addEventListener("change", (event) => {
+      this._fireConfigChanged({
+        ...this._config,
+        show_home: event.target.checked,
       });
     });
   }
