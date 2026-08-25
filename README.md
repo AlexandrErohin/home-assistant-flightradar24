@@ -444,25 +444,6 @@ This example for `sensor.flightradar24_current_in_area` which shows flights in y
 
 All available fields for flight you can check [here](#flight)
 
-# 🧾 Recorder Database Optimization
-To decrease data stored by [Recorder](https://www.home-assistant.io/integrations/recorder/) in database add following lines to your `configuration.yaml` file.
-
-> **⚠️ WARNING**  
-> Do **not** exclude `sensor.flightradar24_additional_tracked` from Recorder. That sensor restores its tracked flights from the last recorded state after a Home Assistant restart. Excluding it (for example with `sensor.flightradar24*`) will clear Additional tracked on every reboot.
->
-> Heavy `flights` attributes on other sensors are already excluded from Recorder by the integration itself (`_unrecorded_attributes`).
-
-Example that keeps Additional tracked restorable:
-
-```yaml
-recorder:
-  exclude:
-    entities:
-      - sensor.flightradar24_current_in_area
-      - sensor.flightradar24_entered_area
-      - sensor.flightradar24_exited_area
-```
-
 ## <a id="flight">Flight fields</a>
 | Field                               | Description                                                                                                                                                                                                 |
 |-------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|

@@ -1,6 +1,6 @@
 from __future__ import annotations
 from datetime import timedelta
-from time import monotonic
+from time import monotonic, sleep
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from homeassistant.helpers.device_registry import DeviceInfo
@@ -13,6 +13,7 @@ from .const import (
     SESSION_GUARD_EMPTY_SECONDS,
     SESSION_GUARD_CHECK_THROTTLE,
     SESSION_SETUP_MAX_TRIES,
+    SESSION_RENEW_RETRY_DELAY,
 )
 from .api.client import FlightRadarClient
 from .api.event import EventManager, Event
@@ -183,20 +184,50 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
         Without this, a bad session replaced by another bad session (the dice
         roll is ~1 in 5 per fresh session) would sit unnoticed until the guard's
         next throttle window - half an hour of zeros. Bounded like setup.
+
+        Back-to-back authenticated logins (when credentials are configured) can
+        trip FR24's HTTP 429, so failed/empty replacements pause before the next
+        try and keep the current client if create/login itself fails (#254).
         """
-        client = None
+        fallback_client = self.flight.client
+        client = fallback_client
+
         for attempt in range(1, SESSION_SETUP_MAX_TRIES + 1):
-            client = self._renew_client()
+            try:
+                client = self._renew_client()
+            except Exception as e:
+                self.logger.warning(
+                    'FlightRadar24: could not create replacement session - %s; '
+                    'keeping current session',
+                    e,
+                )
+                return fallback_client, False
+
             try:
                 if is_session_healthy(client):
                     return client, True
             except Exception as e:
-                self.logger.warning('FlightRadar24: could not verify the replacement session - %s', e)
-                return client, False
-            self.logger.warning(
-                'FlightRadar24: replacement session is empty as well (bot mitigation), recreating (%d/%d)',
-                attempt, SESSION_SETUP_MAX_TRIES,
-            )
+                self.logger.warning(
+                    'FlightRadar24: could not verify the replacement session - %s; '
+                    'keeping current session',
+                    e,
+                )
+                return fallback_client, False
+
+            if attempt < SESSION_SETUP_MAX_TRIES:
+                self.logger.warning(
+                    'FlightRadar24: replacement session is empty as well '
+                    '(bot mitigation), retrying in %d seconds (%d/%d)',
+                    SESSION_RENEW_RETRY_DELAY, attempt, SESSION_SETUP_MAX_TRIES,
+                )
+                sleep(SESSION_RENEW_RETRY_DELAY)
+            else:
+                self.logger.warning(
+                    'FlightRadar24: replacement session is empty as well '
+                    '(bot mitigation), giving up (%d/%d)',
+                    attempt, SESSION_SETUP_MAX_TRIES,
+                )
+
         return client, False
 
     async def _check_session(self) -> None:

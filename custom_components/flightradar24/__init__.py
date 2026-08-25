@@ -5,7 +5,7 @@ from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant, CoreState, EVENT_HOMEASSISTANT_STARTED
 from homeassistant.exceptions import ConfigEntryNotReady
 from .api.client import FlightRadarClient
-from .const import DOMAIN, SESSION_SETUP_MAX_TRIES
+from .const import DOMAIN, SESSION_SETUP_MAX_TRIES, SESSION_RENEW_RETRY_DELAY
 from .coordinator import FlightRadar24Coordinator, is_session_healthy
 from .frontend import JSModuleRegistration
 from homeassistant.const import (
@@ -27,6 +27,7 @@ from .const import (
     CONF_AUTO_CLEANUP_DEFAULT,
 )
 from FlightRadarAPI import FlightRadar24API, Entity
+from asyncio import sleep as async_sleep
 
 PLATFORMS: list[Platform] = [
     Platform.DEVICE_TRACKER,
@@ -78,12 +79,29 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             raise ConfigEntryNotReady('FlightRadar24 is not reachable: {}'.format(e)) from e
         if session_verified:
             break
-        _LOGGER.warning(
-            'FlightRadar24: got an empty session (bot mitigation), recreating (%d/%d)',
-            attempt, SESSION_SETUP_MAX_TRIES,
-        )
-        client = await create_client()
-
+        if attempt < SESSION_SETUP_MAX_TRIES:
+            _LOGGER.warning(
+                'FlightRadar24: got an empty session (bot mitigation), '
+                'recreating in %d seconds (%d/%d)',
+                SESSION_RENEW_RETRY_DELAY, attempt, SESSION_SETUP_MAX_TRIES,
+            )
+            await async_sleep(SESSION_RENEW_RETRY_DELAY)
+            try:
+                client = await create_client()
+            except Exception as e:
+                # Login 429 during setup should not abort forever; continue with
+                # the last session and let the runtime guard recover (#254).
+                _LOGGER.warning(
+                    'FlightRadar24: could not recreate session during setup - %s; '
+                    'continuing with current session',
+                    e,
+                )
+                break
+        else:
+            _LOGGER.warning(
+                'FlightRadar24: got an empty session (bot mitigation), giving up (%d/%d)',
+                attempt, SESSION_SETUP_MAX_TRIES,
+            )
     if not session_verified:
         # Deliberately not ConfigEntryNotReady: FR24 is reachable, only this
         # session is suspect. Failing setup would send HA into its 5/10/20/40s

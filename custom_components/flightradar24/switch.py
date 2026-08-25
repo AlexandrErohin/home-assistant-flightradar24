@@ -12,7 +12,6 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from .const import DOMAIN
-from homeassistant.util import dt as dt_util
 from .coordinator import FlightRadar24Coordinator
 
 
@@ -143,9 +142,11 @@ class FlightRadar24MostTrackedEntity(
 
     @callback
     def _handle_coordinator_update(self) -> None:
-        if self.coordinator.flight.most_tracked_enabled:
-            self._attr_extra_state_attributes = {
-                "flights": [dict(flight) for flight in self.coordinator.flight.most_tracked_list],
-                "last_updated": dt_util.now().isoformat()
-            }
-            self.async_write_ha_state()
+        if not self.coordinator.flight.most_tracked_enabled:
+            return
+        new_flights = [dict(flight) for flight in self.coordinator.flight.most_tracked_list]
+        previous = (getattr(self, "_attr_extra_state_attributes", None) or {}).get("flights")
+        if previous == new_flights:
+            return
+        self._attr_extra_state_attributes = {"flights": new_flights}
+        self.async_write_ha_state()

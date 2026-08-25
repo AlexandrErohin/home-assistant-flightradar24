@@ -63,6 +63,10 @@ CANARY_BOUNDS = [
 # and an unverified session is no longer a reason to fail setup - the runtime
 # guard below recovers it without leaving every entity unavailable meanwhile.
 SESSION_SETUP_MAX_TRIES = 2
+# Pause between back-to-back session create/login attempts so FR24 does not
+# answer with HTTP 429 when an empty/bot-mitigated session is immediately
+# replaced by another login (#254).
+SESSION_RENEW_RETRY_DELAY = 2
 # Runtime guard: only canary-check when the area feed has been empty this long,
 # and at most once per throttle window, to keep extra API calls negligible.
 SESSION_GUARD_EMPTY_SECONDS = 1800
