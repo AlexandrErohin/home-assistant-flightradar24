@@ -229,13 +229,6 @@ When it is enabled - this integration creates device_tracker with static name `d
 this device_tracker updates when there is a live flight in the additional tracked list.
 It works ONLY with one live flight from the additional tracked list at a time!
 
-
-### <a id="entity-id">ENTITY IDs & TRANSLATIONS</a>
-> **⚠️ IMPORTANT NOTE ON ENTITY IDs & TRANSLATIONS ⚠️**  
-> Home Assistant automatically generates the underlying `entity_id` for your sensors based on your system's default language at the time of installation. For example, `sensor.flightradar24_current_in_area` might automatically become `sensor.flightradar24_bereich_betreten` on a German system.
->
-> **Before copying and pasting any YAML or Lovelace code from this README**, please verify your exact entity IDs under **Settings → Devices & Services → Entities** and update the examples to match your localized IDs.
-
 ---
 
 ## Uses
@@ -303,8 +296,6 @@ automation:
 ### <a id="automation">Automation</a>
 To automatically add a flight to additional tracking add following lines to your `configuration.yaml` file:
 
-> **Note:** If your Home Assistant system is not in English, your sensor names may be translated. Please replace all instances of `text.flightradar24_add_to_track` below with your exact [local entity ID!](#entity-id)
-
 ```yaml
 automation:
   - alias: "Track flights"
@@ -358,7 +349,7 @@ template:
 ### <a id="flightradar24-card">Flightradar24 Map Card</a>
 Built-in Lovelace card with an OpenStreetMap of your monitored area, aircraft markers, optional flight tracks, an optional marker at the centre of the area, and a list of flights currently in the area.
 
-> **Note:** The map card currently supports only the **Current in area** sensor (typically `sensor.flightradar24_current_in_area`, or your localized equivalent). Other Flightradar24 sensors — tracked flights, entered/exited, airport boards, and so on — are not supported yet. The card needs the `bounds` and `flights` attributes, which only the in-area sensor provides.
+> **Note:** The map card currently supports only the **Current in area** sensor (`sensor.flightradar24_current_in_area`). Other Flightradar24 sensors — tracked flights, entered/exited, airport boards, and so on — are not supported yet. The card needs the `bounds` and `flights` attributes, which only the in-area sensor provides.
 
 The card is registered automatically when the integration is loaded — no manual Lovelace resource setup is required.
 
@@ -377,8 +368,6 @@ The card is registered automatically when the integration is loaded — no manua
 2. In the top right corner, select the three-dot menu, then select **Edit dashboard**
 3. Click **+ ADD CARD**, search for `Manual`, click on **Manual**
 4. Add the following code and click **SAVE**
-
-> **Note:** If your Home Assistant system is not in English, your sensor names may be translated. Please replace `sensor.flightradar24_current_in_area` with your exact [local entity ID!](#entity-id)
 
 ```yaml
 type: custom:flightradar24-card
@@ -409,8 +398,6 @@ You can add flight table to your [Home Assistant dashboard](https://www.home-ass
 2. In the top right corner, select the three-dot menu, then select Edit dashboard
 3. Click on `+ ADD CARD`, search for `Manual`, click on `Manual`. 
 4. Add following code to the input window and click `SAVE`
-
-> **Note:** If your Home Assistant system is not in English, your sensor names may be translated. Please replace all instances of `sensor.flightradar24_current_in_area` below with your exact [local entity ID!](#entity-id)
 
 ```yaml
 type: vertical-stack
@@ -530,8 +517,6 @@ Switch `Most tracked` when is enabled - shows top 10 most tracked flights on Fli
 4. Add the following code and click **SAVE**
 5. Turn on the **Most tracked** switch on the card (or under **Settings → Devices & Services → Entities**) to start fetching data
 
-> **Note:** If your Home Assistant system is not in English, your entity names may be translated. Please replace `switch.flightradar24_most_tracked` with your exact [local entity ID!](#entity-id)
-
 ```yaml
 type: vertical-stack
 title: Flightradar24 Most Tracked
@@ -568,8 +553,6 @@ To start receiving data for an airport - Pass IATA or ICAO airport code to `text
 2. In the top right corner, select the three-dot menu, then select Edit dashboard
 3. Click on `+ ADD CARD`, search for `Manual`, click on `Manual`. 
 4. Add following code to the input window and click `SAVE`
-
-> **Note:** If your Home Assistant system is not in English, your sensor names may be translated. Please replace all instances of `sensor.flightradar24_airport_ ...` below with your exact [local entity ID!](#entity-id)
 
 ```yaml
 type: vertical-stack

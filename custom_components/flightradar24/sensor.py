@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from collections.abc import Callable
 from typing import Any
 from homeassistant.components.sensor import (
+    ENTITY_ID_FORMAT,
     SensorStateClass,
     SensorEntity,
     RestoreSensor,
@@ -13,6 +14,7 @@ from .const import DOMAIN
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from .coordinator import FlightRadar24Coordinator
+from .entity_ids import suggest_entity_id
 
 
 @dataclass
@@ -230,6 +232,7 @@ class FlightRadar24Sensor(CoordinatorEntity[FlightRadar24Coordinator], SensorEnt
         super().__init__(coordinator)
         self._attr_device_info = coordinator.device_info
         self._attr_unique_id = f"{entry_id}_{DOMAIN}_{description.key}"
+        self.entity_id = suggest_entity_id(coordinator.hass, ENTITY_ID_FORMAT, description.key)
         self._attr_native_value = self.entity_description.value(coordinator)
         # Publish static attributes (e.g. bounds) immediately so Lovelace cards
         # can render the map before the first refresh finishes.

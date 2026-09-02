@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from typing import Any
 from homeassistant.const import EntityCategory
 from homeassistant.components.button import (
+    ENTITY_ID_FORMAT,
     ButtonDeviceClass,
     ButtonEntity,
     ButtonEntityDescription,
@@ -15,6 +16,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from .coordinator import FlightRadar24Coordinator
 from .const import DOMAIN
+from .entity_ids import suggest_entity_id
 
 
 @dataclass
@@ -74,6 +76,7 @@ class FlightRadar24ButtonEntity(CoordinatorEntity[FlightRadar24Coordinator], But
         self._attr_device_info = coordinator.device_info
         self._attr_unique_id = f"{coordinator.unique_id}_{DOMAIN}_{description.key}"
         self.entity_description = description
+        self.entity_id = suggest_entity_id(coordinator.hass, ENTITY_ID_FORMAT, description.key)
 
     async def async_press(self) -> None:
         await self.entity_description.method(self.coordinator)

@@ -2,6 +2,7 @@ from __future__ import annotations
 from typing import Any
 
 from homeassistant.components.switch import (
+    ENTITY_ID_FORMAT,
     SwitchEntity,
     SwitchEntityDescription,
 )
@@ -13,6 +14,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from .const import DOMAIN
 from .coordinator import FlightRadar24Coordinator
+from .entity_ids import suggest_entity_id
 
 
 async def async_setup_entry(
@@ -56,6 +58,9 @@ class FlightRadar24ScanEntity(
         # FIXED: Lock down the unique ID using the entry_id
         self._attr_unique_id = (
             f"{entry_id}_{DOMAIN}_{self.entity_description.key}"
+        )
+        self.entity_id = suggest_entity_id(
+            coordinator.hass, ENTITY_ID_FORMAT, self.entity_description.key
         )
 
     async def async_added_to_hass(self) -> None:
@@ -117,6 +122,9 @@ class FlightRadar24MostTrackedEntity(
         )
         self._attr_unique_id = (
             f"{entry_id}_{DOMAIN}_{self.entity_description.key}"
+        )
+        self.entity_id = suggest_entity_id(
+            coordinator.hass, ENTITY_ID_FORMAT, self.entity_description.key
         )
 
     async def async_added_to_hass(self) -> None:

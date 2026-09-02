@@ -4,12 +4,19 @@ from collections.abc import Callable
 from typing import Any
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EntityCategory
-from homeassistant.components.text import TextEntity, TextEntityDescription, TextMode, RestoreEntity
+from homeassistant.components.text import (
+    ENTITY_ID_FORMAT,
+    TextEntity,
+    TextEntityDescription,
+    TextMode,
+    RestoreEntity,
+)
 from homeassistant.core import HomeAssistant
 from .const import DOMAIN
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from .coordinator import FlightRadar24Coordinator
+from .entity_ids import suggest_entity_id
 
 _LOGGER = getLogger(__name__)
 
@@ -83,6 +90,7 @@ class FlightRadar24TextFlight(
         self._attr_device_info = coordinator.device_info
         self._attr_unique_id = f"{coordinator.unique_id}_{DOMAIN}_{description.key}"
         self.entity_description = description
+        self.entity_id = suggest_entity_id(coordinator.hass, ENTITY_ID_FORMAT, description.key)
 
     async def async_set_value(self, value: str) -> None:
         self._attr_native_value = value
@@ -107,6 +115,7 @@ class FlightRadar24TextAirport(
         self._attr_device_info = coordinator.device_info
         self._attr_unique_id = f"{coordinator.unique_id}_{DOMAIN}_{description.key}"
         self.entity_description = description
+        self.entity_id = suggest_entity_id(coordinator.hass, ENTITY_ID_FORMAT, description.key)
         self._attr_mode = TextMode.TEXT
         self._attr_native_min = 0
         self._attr_native_max = 10
