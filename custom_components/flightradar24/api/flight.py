@@ -619,7 +619,14 @@ class FlightProcessor:
         est = flight.get('time_estimated_arrival')
         updated = flight.get('details_updated_at')
 
-        return (f_num is not None and
-                ((sched is not None and est is not None) or
-                 # flight times are updated rarely so no need to get them every scan
-                 (updated is not None and updated > (time() - randint(2, 6) * 60))))
+        # Do not require flight_number for the freshness branch: GA/private
+        # aircraft often never get one, and gating on it re-fetches details
+        # every scan until HTTP 429 (#254).
+        return (
+            (f_num is not None and sched is not None and est is not None)
+            or (
+                # flight times are updated rarely so no need to get them every scan
+                updated is not None
+                and updated > (time() - randint(2, 6) * 60)
+            )
+        )

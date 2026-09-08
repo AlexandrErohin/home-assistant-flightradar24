@@ -59,6 +59,7 @@ class Flightradar24Card extends HTMLElement {
       "";
     return {
       entity,
+      show_header: true,
       show_flights: true,
       show_tracks: true,
       show_area_center: true,
@@ -99,6 +100,7 @@ class Flightradar24Card extends HTMLElement {
     }
     const prev = this._config;
     const next = {
+      show_header: true,
       show_flights: true,
       show_tracks: true,
       show_area_center: true,
@@ -146,7 +148,9 @@ class Flightradar24Card extends HTMLElement {
     this._renderShell();
     if (
       prev &&
-      (prev.show_area_center !== this._config.show_area_center ||
+      (prev.show_header !== this._config.show_header ||
+        prev.show_flights !== this._config.show_flights ||
+        prev.show_area_center !== this._config.show_area_center ||
         prev.show_tracks !== this._config.show_tracks ||
         prev.zoom !== this._config.zoom ||
         prev.icon_size !== this._config.icon_size)
@@ -161,8 +165,9 @@ class Flightradar24Card extends HTMLElement {
   }
 
   getCardSize() {
+    const header = this._config?.show_header !== false ? 1 : 0;
     const flights = this._config?.show_flights !== false ? 2 : 0;
-    return 4 + flights;
+    return 3 + header + flights;
   }
 
   getGridOptions() {
@@ -1787,11 +1792,17 @@ class Flightradar24Card extends HTMLElement {
       return;
     }
 
+    const headerEl = this.shadowRoot.querySelector(".header");
     const titleEl = this.shadowRoot.getElementById("title");
     const countEl = this.shadowRoot.getElementById("count");
     const warningEl = this.shadowRoot.getElementById("warning");
     const flightsEl = this.shadowRoot.getElementById("flights");
     const mapWrap = this.shadowRoot.querySelector(".map-wrap");
+
+    if (headerEl) {
+      headerEl.style.display =
+        this._config.show_header === false ? "none" : "flex";
+    }
 
     const state = this._hass.states[this._config.entity];
     if (this._lastEntity !== this._config.entity) {
@@ -1928,6 +1939,10 @@ class Flightradar24CardEditor extends HTMLElement {
         <input type="text" id="title" value="${this._escape(this._config.title || "")}" />
       </div>
       <div class="row check">
+        <input type="checkbox" id="show_header" ${this._config.show_header !== false ? "checked" : ""} />
+        <span>Show header</span>
+      </div>
+      <div class="row check">
         <input type="checkbox" id="show_flights" ${this._config.show_flights !== false ? "checked" : ""} />
         <span>Show flights list</span>
       </div>
@@ -1990,6 +2005,13 @@ class Flightradar24CardEditor extends HTMLElement {
         delete newConfig.title;
       }
       this._fireConfigChanged(newConfig);
+    });
+
+    this.shadowRoot.getElementById("show_header").addEventListener("change", (event) => {
+      this._fireConfigChanged({
+        ...this._config,
+        show_header: event.target.checked,
+      });
     });
 
     this.shadowRoot.getElementById("show_flights").addEventListener("change", (event) => {

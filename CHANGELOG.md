@@ -2,6 +2,20 @@
 
 All notable changes to this project are documented in this file.
 
+## [2.2.0] - 2026-09-08
+
+### Added
+
+- Map card option `show_header` to hide the title/count bar above the map (combine with `show_flights: false` for a map-only card)
+
+### Changed
+
+- Reverted dependency `pycountry` from `26.2.16` (introduced in 2.1.2) back to `24.6.1` to match Home Assistant core (e.g. `radio_browser`), fixing the install conflict with HA 2026.9.0 ([#313](https://github.com/AlexandrErohin/home-assistant-flightradar24/issues/313))
+
+### Fixed
+
+- Stop re-fetching flight details every scan for aircraft without a `flight_number` (common for GA/private); recent details now count as valid for the 2–6 minute window, reducing HTTP 429 near airports ([#254](https://github.com/AlexandrErohin/home-assistant-flightradar24/issues/254))
+
 ## [2.1.2] - 2026-09-02
 
 ### Changed

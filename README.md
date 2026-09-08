@@ -373,6 +373,7 @@ The card is registered automatically when the integration is loaded — no manua
 type: custom:flightradar24-card
 entity: sensor.flightradar24_current_in_area
 title: Flights Nearby
+show_header: true
 show_flights: true
 show_tracks: true
 ```
@@ -383,6 +384,7 @@ show_tracks: true
 | ------ | ---- | ------- | ----------- |
 | `entity` | string | — | **Required.** Use the **Current in area** sensor only (typically `sensor.flightradar24_current_in_area`) |
 | `title` | string | — | Optional card title |
+| `show_header` | boolean | `true` | Show the title/count header above the map. Set to `false` together with `show_flights: false` for a map-only card |
 | `show_flights` | boolean | `true` | Show the flights list under the map |
 | `show_tracks` | boolean | `true` | Draw flight tracks on the map from each flight's `coordinates` history |
 | `show_area_center` | boolean | `true` | Mark the centre of the observed area — the latitude/longitude this device is configured with (not `zone.home`) |
