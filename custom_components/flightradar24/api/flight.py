@@ -233,6 +233,43 @@ class FlightProcessor:
                         self._entered.append(flight)
                         self._event_manager.add_event(EVENT_ENTRY, flight)
 
+    @staticmethod
+    def _has_arrived_evidence(flight: dict[str, Any]) -> bool:
+        """True when the tracked flight has actually landed this segment.
+
+        Presence in the live feed alone is not enough: ADS-B gaps (e.g. Bay of
+        Bengal) make flights disappear mid-air. Private/GA often lack
+        time_real_arrival, so has_landed (from on_ground after being airborne)
+        is the primary signal; time_real_arrival is an airline-only bonus.
+        """
+        if flight.get('has_landed'):
+            return True
+        if flight.get('time_real_arrival') is not None:
+            return True
+        return False
+
+    @staticmethod
+    def _reset_gate_lifecycle(flight: dict[str, Any], on_ground=None) -> None:
+        """Start a new departure segment after leaving the gate."""
+        flight['has_landed'] = False
+        flight['gate_arrived_sent'] = False
+        if on_ground is None:
+            on_ground = flight.get('on_ground')
+        flight['was_airborne'] = to_int(on_ground) == 0
+
+    def _maybe_fire_left_gate(
+            self,
+            previous_type: str | None,
+            flight: dict[str, Any],
+    ) -> None:
+        """Fire left_gate only on schedule/aircraft → live (not live reappear)."""
+        if flight.get('tracked_type') != 'live':
+            return
+        if previous_type not in ('schedule', 'aircraft'):
+            return
+        self._event_manager.add_event(EVENT_TRACKED_LEFT_GATE, flight)
+        self._reset_gate_lifecycle(flight)
+
     def update_flights_tracked(self) -> None:
         if not self._tracked:
             return
@@ -246,15 +283,35 @@ class FlightProcessor:
         if reg_to_id:
             flights = self._client.get_flights(registration=','.join(reg_to_id.keys()))
             for obj in flights:
-                flight = self._update_flights_data(obj, self._tracked.get(obj.id, {}), FlightType.TRACKED)
+                previous = self._tracked.get(obj.id, {})
+                registration = getattr(obj, 'registration', None)
+                old_flight_id = reg_to_id.get(registration) if registration else None
+                if not previous and old_flight_id:
+                    previous = self._tracked.get(old_flight_id, {})
+                # New FR24 flight id for the same registration: keep tracking meta
+                # only (lifecycle flags belong to the previous segment).
+                if previous and previous.get('id') not in (None, obj.id):
+                    previous = {
+                        key: previous.get(key)
+                        for key in ('tracked_by', 'tracked_type')
+                        if previous.get(key) is not None
+                    }
+                previous_type = previous.get('tracked_type')
+                flight = self._update_flights_data(obj, previous, FlightType.TRACKED)
                 if flight:
-                    old_flight_id = reg_to_id.pop(flight.get('aircraft_registration'))
-                    if old_flight_id != flight.get('id'):
-                        del self._tracked[old_flight_id]
+                    registration = flight.get('aircraft_registration')
+                    if registration in reg_to_id:
+                        old_flight_id = reg_to_id.pop(registration)
+                    if old_flight_id and old_flight_id != flight.get('id'):
+                        self._tracked.pop(old_flight_id, None)
                     # mark that flight has updated
                     flight['live_attempt'] = 1
+                    if not flight.get('tracked_type'):
+                        flight['tracked_type'] = 'live'
                     self._tracked[obj.id] = flight
-                    flight_ids.remove(old_flight_id)
+                    flight_ids.discard(old_flight_id)
+                    flight_ids.discard(obj.id)
+                    self._maybe_fire_left_gate(previous_type, flight)
                     if flight.get('flight_number'):
                         current_flights.append(flight.get('flight_number'))
                     if flight.get('callsign'):
@@ -266,21 +323,31 @@ class FlightProcessor:
             # move to next update to re-check if this flight ends
             if flight.get('live_attempt'):
                 del self._tracked[flight_id]['live_attempt']
-                flight_ids.remove(flight_id)
+                flight_ids.discard(flight_id)
                 continue
 
             # Logic for recent live flights that now is ended
             if flight.get('tracked_type') != 'live':
                 # fr24 search doesnt show schedule for aircraft registration - waiting live flight
                 if flight.get('tracked_type') == 'aircraft':
-                    flight_ids.remove(flight_id)
+                    flight_ids.discard(flight_id)
                 continue
-            # Fire an event when a flight no more live
-            self._event_manager.add_event(EVENT_TRACKED_ARRIVED_GATE, flight)
+
+            # Still airborne (or never took off): treat missing live data as a
+            # coverage gap / taxi flicker, not gate arrival (#315).
+            if not self._has_arrived_evidence(flight):
+                flight_ids.discard(flight_id)
+                continue
+
+            if not flight.get('gate_arrived_sent'):
+                self._event_manager.add_event(EVENT_TRACKED_ARRIVED_GATE, flight)
+                flight['gate_arrived_sent'] = True
+                self._tracked[flight_id] = flight
+
             # --- AUTO-CLEANUP LOGIC WRAPPED IN CONFIG CHECK ---
             if self._auto_cleanup:
                 del self._tracked[flight_id]
-                flight_ids.remove(flight_id)
+                flight_ids.discard(flight_id)
                 continue
 
             if flight.get('tracked_by') == 'aircraft_registration':
@@ -317,16 +384,25 @@ class FlightProcessor:
                             'tracked_by': 'aircraft_registration',
                             'tracked_type': 'aircraft',
                 }
-                flight_ids.remove(flight_id)
+                flight_ids.discard(flight_id)
+                continue
+
+            # Flight-number tracking: allow phase 3 to refresh schedule, but do
+            # not re-enter search while still marked live without a schedule yet
+            # in a way that would pair with left_gate on a live flicker.
+            # Phase 3 left_gate is gated on previous_type schedule/aircraft.
 
         # Thirdly checking scheduled flights
-        for flight_id in flight_ids:
-            flight = self._tracked[flight_id]
+        for flight_id in list(flight_ids):
+            flight = self._tracked.get(flight_id)
+            if not flight:
+                continue
 
             number = flight.get('flight_number') or flight.get('callsign')
             if not number or number in current_flights:
                 del self._tracked[flight_id]
                 continue
+            previous_type = flight.get('tracked_type')
             found = self._find_flight(number)
             if found:
                 if found.get('tracked_type') == 'schedule':
@@ -345,12 +421,17 @@ class FlightProcessor:
                     for key in keys_to_copy:
                         if key in flight:
                             found[key] = flight[key]
+                    # Schedule stub for the next segment - clear gate lifecycle.
+                    self._reset_gate_lifecycle(found, on_ground=1)
                 if flight_id != found.get('id'):
                     del self._tracked[flight_id]
-                self._tracked[found.get('id')] = found
-                # Fire an event when a flight changes from 'schedule' to 'live'
+                # Carry airline arrival evidence onto a still-live search hit
                 if found.get('tracked_type') == 'live':
-                    self._event_manager.add_event(EVENT_TRACKED_LEFT_GATE, found)
+                    for key in ('was_airborne', 'has_landed', 'gate_arrived_sent'):
+                        if flight.get(key) and not found.get(key):
+                            found[key] = flight.get(key)
+                self._tracked[found.get('id')] = found
+                self._maybe_fire_left_gate(previous_type, found)
 
     def _find_flight(self, number: str) -> dict[str, Any] | None:
         flights = self._client.search(number)
@@ -487,9 +568,36 @@ class FlightProcessor:
                 flight['tracked_by'] = previous.get('tracked_by')
             if previous.get('tracked_type'):
                 flight['tracked_type'] = 'live'
+            self._apply_gate_lifecycle(flight, previous, obj.on_ground)
             self._takeoff_and_landing(flight, last_position, obj.on_ground, sensor_type)
 
         return flight
+
+    @staticmethod
+    def _apply_gate_lifecycle(
+            flight: dict[str, Any],
+            previous: dict[str, Any],
+            on_ground,
+    ) -> None:
+        """Track airborne/landed sticky flags for gate events (#315).
+
+        was_airborne: seen in the air this segment (or restored mid-flight).
+        has_landed: back on ground after being airborne (works for private/GA
+        without time_real_arrival). Pre-departure taxi keeps both false so a
+        live-feed flicker cannot look like arrived_gate.
+        """
+        was_airborne = bool(previous.get('was_airborne'))
+        has_landed = bool(previous.get('has_landed'))
+        ground = to_int(on_ground)
+
+        if ground == 0:
+            was_airborne = True
+        elif ground == 1 and was_airborne:
+            has_landed = True
+
+        flight['was_airborne'] = was_airborne
+        flight['has_landed'] = has_landed
+        flight['gate_arrived_sent'] = bool(previous.get('gate_arrived_sent'))
 
     def _coordinates_from_trail(self, trail: list | None) -> list[list[float]]:
         """Build chronological [lat, lon] history from FR24 details trail.
@@ -551,6 +659,12 @@ class FlightProcessor:
 
         event_type = event_map.get((sensor_type, current))
         if event_type:
+            if sensor_type == FlightType.TRACKED:
+                if current == 0:
+                    flight['was_airborne'] = True
+                elif current == 1:
+                    flight['was_airborne'] = True
+                    flight['has_landed'] = True
             self._event_manager.add_event(event_type, flight)
 
     def _get_flight_data(self, flight: dict) -> dict[str, Any] | None:
