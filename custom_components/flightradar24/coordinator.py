@@ -9,6 +9,7 @@ from .const import (
     DOMAIN,
     URL,
     DEFAULT_NAME,
+    DEFAULT_SCAN_INTERVAL,
     CANARY_BOUNDS,
     SESSION_GUARD_EMPTY_SECONDS,
     SESSION_GUARD_CHECK_THROTTLE,
@@ -74,6 +75,13 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
             manufacturer=DEFAULT_NAME,
             name=DEFAULT_NAME,
         )
+
+        if update_interval <= 0:
+            logger.warning(
+                "FlightRadar24: scan interval %s must be positive; using %s seconds",
+                update_interval, DEFAULT_SCAN_INTERVAL,
+            )
+            update_interval = DEFAULT_SCAN_INTERVAL
 
         super().__init__(
             hass,
