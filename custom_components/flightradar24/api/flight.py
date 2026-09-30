@@ -371,7 +371,7 @@ class FlightProcessor:
                             'airline_iata': flight.get('airline_iata'),
                             'airline_icao': flight.get('airline_icao'),
                             'airport_origin_name': flight.get('airport_destination_name'),
-                            'airport_origin_code_iata': flight.get('airport_destination_name'),
+                            'airport_origin_code_iata': flight.get('airport_destination_code_iata'),
                             'airport_origin_code_icao': flight.get('airport_destination_code_icao'),
                             'airport_origin_country_name': flight.get('airport_destination_country_name'),
                             'airport_origin_country_code': flight.get('airport_destination_country_code'),
