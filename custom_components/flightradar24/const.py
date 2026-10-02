@@ -2,6 +2,7 @@ from pathlib import Path
 import json
 
 DEFAULT_NAME = "FlightRadar24"
+DEFAULT_SCAN_INTERVAL = 20
 DOMAIN = "flightradar24"
 URL = 'https://www.flightradar24.com/'
 
