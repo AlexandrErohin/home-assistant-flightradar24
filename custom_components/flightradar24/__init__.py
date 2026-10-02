@@ -25,9 +25,12 @@ from .const import (
     MAX_ALTITUDE,
     CONF_AUTO_CLEANUP,
     CONF_AUTO_CLEANUP_DEFAULT,
+    DEFAULT_SCAN_INTERVAL,
+    MIN_SCAN_INTERVAL,
 )
 from FlightRadarAPI import FlightRadar24API, Entity
 from asyncio import sleep as async_sleep
+import homeassistant.helpers.config_validation as cv
 
 PLATFORMS: list[Platform] = [
     Platform.DEVICE_TRACKER,
@@ -36,6 +39,8 @@ PLATFORMS: list[Platform] = [
     Platform.TEXT,
     Platform.BUTTON,
 ]
+
+CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
 _LOGGER = getLogger(__name__)
 
@@ -123,11 +128,28 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     min_altitude = entry.data.get(CONF_MIN_ALTITUDE)
     max_altitude = entry.data.get(CONF_MAX_ALTITUDE)
 
+    # Old entries may still hold a scan_interval below the current minimum.
+    # Rewrite once so coordinator recovery does not warn on every reload.
+    scan_interval = entry.data[CONF_SCAN_INTERVAL]
+    if (
+        not isinstance(scan_interval, int)
+        or isinstance(scan_interval, bool)
+        or scan_interval < MIN_SCAN_INTERVAL
+    ):
+        _LOGGER.warning(
+            "FlightRadar24: scan interval %s must be at least %s; storing %s seconds",
+            scan_interval, MIN_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL,
+        )
+        scan_interval = DEFAULT_SCAN_INTERVAL
+        hass.config_entries.async_update_entry(
+            entry, data={**entry.data, CONF_SCAN_INTERVAL: scan_interval}
+        )
+
     coordinator = FlightRadar24Coordinator(
         hass,
         bounds,
         FlightRadarClient(client, _LOGGER),
-        entry.data[CONF_SCAN_INTERVAL],
+        scan_interval,
         _LOGGER,
         entry.entry_id,
         MIN_ALTITUDE if min_altitude is None else int(min_altitude),

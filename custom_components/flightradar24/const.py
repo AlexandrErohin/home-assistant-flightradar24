@@ -3,7 +3,17 @@ import json
 
 DEFAULT_NAME = "FlightRadar24"
 DEFAULT_SCAN_INTERVAL = 20
+MIN_SCAN_INTERVAL = 10
 DOMAIN = "flightradar24"
+
+
+def scan_interval_form_default(value) -> int:
+    """Return a form default that already satisfies MIN_SCAN_INTERVAL."""
+    if isinstance(value, int) and not isinstance(value, bool) and value >= MIN_SCAN_INTERVAL:
+        return value
+    return DEFAULT_SCAN_INTERVAL
+
+
 URL = 'https://www.flightradar24.com/'
 
 with open(Path(__file__).parent / "manifest.json", encoding="utf-8") as _manifest:
