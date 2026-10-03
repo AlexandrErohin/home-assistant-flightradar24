@@ -1,4 +1,5 @@
 from __future__ import annotations
+from copy import deepcopy
 from homeassistant.components.device_tracker import TrackerEntity
 from homeassistant.components.device_tracker.const import SourceType
 from homeassistant.config_entries import ConfigEntry
@@ -24,40 +25,47 @@ async def async_setup_entry(
     if not coordinator.enable_tracker:
         return
 
-    tracked = FlightRadar24Tracker(coordinator)
-    async_add_entities([tracked])
-
-    @callback
-    def coordinator_updated():
-        """Update the status of the device."""
-        update_items(coordinator, tracked)
-
-    entry.async_on_unload(coordinator.async_add_listener(coordinator_updated))
-    coordinator_updated()
-
-
-@callback
-def update_items(coordinator: FlightRadar24Coordinator, tracked: FlightRadar24Tracker) -> None:
-    if not coordinator.enable_tracker:
-        return
-
-    if not tracked.info:
-        for flight in coordinator.flight.tracked.values():
-            if flight.get('tracked_type') == 'live':
-                tracked.info = flight
-                break
-    else:
-        flight = coordinator.flight.tracked.get(tracked.info['id'])
-        if flight and flight.get('tracked_type') == 'live':
-            tracked.info = coordinator.flight.tracked.get(tracked.info['id'])
-        else:
-            tracked.info = {}
+    async_add_entities([FlightRadar24Tracker(coordinator)])
 
 
 class FlightRadar24Tracker(CoordinatorEntity, TrackerEntity):
     def __init__(self, coordinator: FlightRadar24Coordinator) -> None:
         self.info = {}
+        self._info_snapshot = {}
         super().__init__(coordinator)
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Write tracker state only when its flight data changes.
+
+        TrackerEntity forces writes for every coordinator notification. The
+        integration publishes intermediate values several times per scan, so
+        keep a snapshot to suppress identical writes (the tracked flight dict
+        itself is updated in place).
+        """
+        if not self.coordinator.enable_tracker:
+            return
+
+        info = self.info
+        if not info:
+            info = next(
+                (
+                    flight
+                    for flight in self.coordinator.flight.tracked.values()
+                    if flight.get("tracked_type") == "live"
+                ),
+                {},
+            )
+        else:
+            flight = self.coordinator.flight.tracked.get(info.get("id"))
+            info = flight if flight and flight.get("tracked_type") == "live" else {}
+
+        if info == self._info_snapshot:
+            return
+
+        self.info = info
+        self._info_snapshot = deepcopy(info)
+        self.async_write_ha_state()
 
     @property
     def source_type(self) -> SourceType:
