@@ -63,6 +63,7 @@ class Flightradar24Card extends HTMLElement {
       show_flights: true,
       show_tracks: true,
       show_area_center: true,
+      interactive_map: false,
     };
   }
 
@@ -104,6 +105,7 @@ class Flightradar24Card extends HTMLElement {
       show_flights: true,
       show_tracks: true,
       show_area_center: true,
+      interactive_map: false,
       ...config,
     };
     if (next.zoom != null && next.zoom !== "") {
@@ -146,9 +148,13 @@ class Flightradar24Card extends HTMLElement {
       this._lastFlightsKey = null;
     }
     this._renderShell();
+    if (prev && prev.interactive_map !== next.interactive_map) {
+      this._configureMapInteraction();
+    }
     if (
       prev &&
-      (prev.show_header !== this._config.show_header ||
+      (prev.interactive_map !== this._config.interactive_map ||
+        prev.show_header !== this._config.show_header ||
         prev.show_flights !== this._config.show_flights ||
         prev.show_area_center !== this._config.show_area_center ||
         prev.show_tracks !== this._config.show_tracks ||
@@ -946,6 +952,27 @@ class Flightradar24Card extends HTMLElement {
         background: var(--divider-color);
         z-index: 0;
       }
+      .map-actions {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        z-index: 1000;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        max-width: calc(100% - 64px);
+      }
+      .map-actions[hidden], .map-actions button[hidden] { display: none; }
+      .map-actions button {
+        min-height: 44px;
+        padding: 8px 12px;
+        border: 1px solid var(--divider-color);
+        border-radius: 4px;
+        background: var(--card-background-color, white);
+        color: var(--primary-text-color, black);
+        cursor: pointer;
+        font: inherit;
+      }
       #map {
         width: 100%;
         height: 100%;
@@ -1199,11 +1226,53 @@ class Flightradar24Card extends HTMLElement {
         </div>
         <div class="map-wrap">
           <div id="map"></div>
+          <div class="map-actions" id="map-actions" hidden>
+            <button id="close-details" type="button" hidden>Close details</button>
+            <button id="reset-view" type="button">Reset view</button>
+          </div>
         </div>
         <div class="warning" id="warning" style="display:none;"></div>
         <div class="flights" id="flights"></div>
       </ha-card>
     `;
+    this.shadowRoot.getElementById("close-details").addEventListener("click", () => {
+      this._map?.closePopup();
+    });
+    this.shadowRoot.getElementById("reset-view").addEventListener("click", () => {
+      this._resetMapView();
+    });
+    this._syncMapControls();
+  }
+
+  _syncMapControls() {
+    const actions = this.shadowRoot?.getElementById("map-actions");
+    const close = this.shadowRoot?.getElementById("close-details");
+    if (actions) actions.hidden = this._config?.interactive_map !== true;
+    if (close) close.hidden = !this._openPopupFlightId;
+  }
+
+  _configureMapInteraction() {
+    const map = this._map;
+    const interactive = this._config?.interactive_map === true;
+    if (map) {
+      for (const handler of [map.dragging, map.touchZoom]) {
+        if (interactive) handler.enable();
+        else handler.disable();
+      }
+      map.setMaxBounds(interactive ? null : this._areaMaxBounds);
+      if (!interactive) this._lockMapToArea(map);
+    }
+    this._syncMapControls();
+  }
+
+  _resetMapView() {
+    const map = this._map;
+    if (!map || !this._areaBounds) return;
+    map.closePopup();
+    map.invalidateSize();
+    const zoom = this._configuredZoom();
+    if (zoom != null) map.setView(this._areaBounds.getCenter(), zoom);
+    else map.fitBounds(this._areaBounds, { padding: [0, 0] });
   }
 
   async _ensureMap() {
@@ -1245,13 +1314,14 @@ class Flightradar24Card extends HTMLElement {
     this._map = L.map(mapEl, {
       zoomControl: true,
       attributionControl: false,
-      dragging: false,
+      dragging: this._config?.interactive_map === true,
       scrollWheelZoom: true,
       doubleClickZoom: false,
       boxZoom: false,
       keyboard: false,
-      touchZoom: false,
+      touchZoom: this._config?.interactive_map === true,
     });
+    this._syncMapControls();
     L.control
       .attribution({
         prefix: false,
@@ -1518,7 +1588,9 @@ class Flightradar24Card extends HTMLElement {
   }
 
   _lockMapToArea(map, { animate = false } = {}) {
-    if (!map) {
+    this._syncMapControls();
+    // Interactive navigation survives popup close and flight updates.
+    if (!map || this._config?.interactive_map === true) {
       return;
     }
     this._maxBoundsSuspended = false;
@@ -1645,7 +1717,7 @@ class Flightradar24Card extends HTMLElement {
 
         this._areaBounds = areaBounds;
         this._areaMaxBounds = areaBounds.pad(0.02);
-        if (!this._openPopupFlightId) {
+        if (!this._openPopupFlightId && this._config?.interactive_map !== true) {
           map.setMaxBounds(this._areaMaxBounds);
           map.options.maxBoundsViscosity = 1.0;
         }
@@ -1741,8 +1813,11 @@ class Flightradar24Card extends HTMLElement {
         });
         marker.on("popupopen", (event) => {
           this._openPopupFlightId = flightId;
+          this._syncMapControls();
           this._selectedFlightId = flightId;
-          this._syncFlightListSelection({ scrollToSelected: true });
+          this._syncFlightListSelection({
+            scrollToSelected: this._config?.interactive_map !== true,
+          });
           // Unlock immediately so Leaflet auto-pan is not clamped.
           this._unlockMapForPopup(map);
           this._keepPopupInView(map, marker, event.popup);
@@ -1758,7 +1833,9 @@ class Flightradar24Card extends HTMLElement {
         });
         marker.on("click", (event) => {
           L.DomEvent.stopPropagation(event);
-          this._selectFlight(flightId, { scrollList: true });
+          this._selectFlight(flightId, {
+            scrollList: this._config?.interactive_map !== true,
+          });
         });
         marker._frHeading = String(flight.heading ?? "");
         marker._frPopupHtml = popupHtml;
@@ -1954,6 +2031,10 @@ class Flightradar24CardEditor extends HTMLElement {
         <input type="checkbox" id="show_area_center" ${this._config.show_area_center !== false ? "checked" : ""} />
         <span>Show area centre marker</span>
       </div>
+      <div class="row check">
+        <input type="checkbox" id="interactive_map" ${this._config.interactive_map === true ? "checked" : ""} />
+        <span>Enable map dragging and pinch zoom</span>
+      </div>
       <div class="row">
         <label>Zoom (optional, 1–19)</label>
         <input
@@ -2033,6 +2114,10 @@ class Flightradar24CardEditor extends HTMLElement {
         ...this._config,
         show_area_center: event.target.checked,
       });
+    });
+
+    this.shadowRoot.getElementById("interactive_map").addEventListener("change", (event) => {
+      this._fireConfigChanged({ ...this._config, interactive_map: event.target.checked });
     });
 
     this.shadowRoot.getElementById("zoom").addEventListener("change", (event) => {
