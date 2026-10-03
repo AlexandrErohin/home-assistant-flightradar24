@@ -3,6 +3,17 @@ on:
   push:
   pull_request:
 jobs:
+  card-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check card syntax and navigation regressions
+        run: |
+          node --check custom_components/flightradar24/frontend/flightradar24-card.js
+          node --test tests/test_card_navigation.cjs
   ci:
     runs-on: ubuntu-latest
     steps:
