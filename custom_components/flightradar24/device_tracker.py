@@ -33,10 +33,13 @@ class FlightRadar24Tracker(CoordinatorEntity, TrackerEntity):
         self.info = {}
         self._info_snapshot = {}
         super().__init__(coordinator)
+        self.info = self._current_flight_info()
+        self._info_snapshot = deepcopy(self.info)
+        self._available_snapshot = self.available
 
     @callback
     def _handle_coordinator_update(self) -> None:
-        """Write tracker state only when its flight data changes.
+        """Write tracker state when flight data or availability changes.
 
         TrackerEntity forces writes for every coordinator notification. The
         integration publishes intermediate values several times per scan, so
@@ -46,6 +49,18 @@ class FlightRadar24Tracker(CoordinatorEntity, TrackerEntity):
         if not self.coordinator.enable_tracker:
             return
 
+        info = self._current_flight_info()
+        available = self.available
+        if info == self._info_snapshot and available == self._available_snapshot:
+            return
+
+        self.info = info
+        self._info_snapshot = deepcopy(info)
+        self._available_snapshot = available
+        self.async_write_ha_state()
+
+    def _current_flight_info(self) -> dict:
+        """Resolve initial and subsequent flight data without writing state."""
         info = self.info
         if not info:
             info = next(
@@ -60,12 +75,7 @@ class FlightRadar24Tracker(CoordinatorEntity, TrackerEntity):
             flight = self.coordinator.flight.tracked.get(info.get("id"))
             info = flight if flight and flight.get("tracked_type") == "live" else {}
 
-        if info == self._info_snapshot:
-            return
-
-        self.info = info
-        self._info_snapshot = deepcopy(info)
-        self.async_write_ha_state()
+        return info
 
     @property
     def source_type(self) -> SourceType:
