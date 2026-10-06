@@ -18,12 +18,15 @@ function fixture(interactive = false) {
     fitBounds: value => calls.push(['fit', value]),
     invalidateSize: () => calls.push('size'),
     closePopup: () => { card._openPopupFlightId = null; card._lockMapToArea(map); calls.push('close'); },
+    removeLayer: value => calls.push(['remove', value]),
   };
   const markers = new Map();
   const layer = () => ({ addTo() { return this; }, removeLayer(marker) { marker.removed = true; } });
   const L = {
     map: (_el, options) => { calls.push(['init', options]); return map; },
-    control: { attribution: () => layer() }, tileLayer: () => layer(), layerGroup: layer,
+    control: { attribution: () => layer() },
+    tileLayer: (url, options) => { calls.push(['tiles', url, options]); return layer(); },
+    layerGroup: layer,
     latLngBounds: () => bounds, rectangle: () => ({ addTo() { return this; } }),
     marker: position => {
       const events = {};
@@ -125,4 +128,45 @@ test('interactive plane selection does not scroll map controls out of the viewpo
     assert.equal(selections.at(-1), !interactive);
     assert.equal(f.elements.get('close-details').hidden, false);
   }
+});
+
+test('stub and configuration defaults retain both basemap and interaction options', () => {
+  const f = fixture();
+  const stub = f.card.constructor.getStubConfig({}, [], []);
+  assert.equal(stub.map_style, 'osm');
+  assert.equal(stub.interactive_map, false);
+  f.card._renderShell = () => {};
+  f.card._update = () => {};
+  f.card.setConfig({ entity: 'sensor.test' });
+  assert.equal(f.card._config.map_style, 'osm');
+  assert.equal(f.card._config.interactive_map, false);
+});
+
+test('live basemap changes preserve the interactive camera and gesture handlers', () => {
+  const f = fixture(true);
+  f.card._renderShell = () => {};
+  f.card._update = () => {};
+  for (const [style, host] of [['osm', 'openstreetmap.org'], ['satellite', 'arcgisonline.com'], ['topo', 'opentopomap.org']]) {
+    f.card.setConfig({ entity: 'sensor.test', interactive_map: true, map_style: style });
+    const tiles = f.calls.filter(call => call[0] === 'tiles').at(-1);
+    assert.ok(tiles[1].includes(host));
+    assert.equal(f.card._config.interactive_map, true);
+    assert.equal(f.calls.some(call => ['fit', 'view', 'bounds', 'drag:off', 'pinch:off'].includes(call[0])), false);
+  }
+  assert.equal(f.calls.filter(call => call[0] === 'tiles').at(-1)[2].maxZoom, 17);
+  assert.equal(f.calls.filter(call => call[0] === 'remove').length, 2);
+});
+
+test('combined editor changes apply gestures and basemap independently', () => {
+  const f = fixture();
+  f.card._renderShell = () => {};
+  f.card._update = () => {};
+  f.card.setConfig({ entity: 'sensor.test', interactive_map: true, map_style: 'satellite' });
+  assert.ok(f.calls.includes('drag:on'));
+  assert.ok(f.calls.includes('pinch:on'));
+  assert.ok(f.calls.find(call => call[0] === 'tiles')[1].includes('arcgisonline.com'));
+  f.card.setConfig({ entity: 'sensor.test', interactive_map: false, map_style: 'topo' });
+  assert.ok(f.calls.includes('drag:off'));
+  assert.ok(f.calls.includes('pinch:off'));
+  assert.equal(f.card._config.map_style, 'topo');
 });
