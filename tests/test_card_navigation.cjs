@@ -130,6 +130,43 @@ test('interactive plane selection does not scroll map controls out of the viewpo
   }
 });
 
+test('interactive popup open does not auto-pan; legacy mode still adjusts', () => {
+  const interactive = fixture(true);
+  const interactivePans = [];
+  interactive.map.panBy = (offset) => interactivePans.push(offset);
+  interactive.card._keepPopupInView(
+    interactive.map,
+    { getLatLng: () => ({ lat: 10, lng: 20 }) },
+    {
+      isOpen: () => true,
+      update() {},
+      getElement: () => ({ offsetWidth: 120, offsetHeight: 80 }),
+      _adjustPan: () => interactivePans.push('adjust'),
+      options: {},
+    }
+  );
+  assert.equal(interactivePans.length, 0);
+
+  const legacy = fixture(false);
+  const legacyPans = [];
+  legacy.map.panBy = (offset) => legacyPans.push(offset);
+  legacy.map.getSize = () => ({ x: 200, y: 200 });
+  legacy.map.latLngToContainerPoint = () => ({ x: 100, y: 100 });
+  legacy.card._keepPopupInView(
+    legacy.map,
+    { getLatLng: () => ({ lat: 10, lng: 20 }) },
+    {
+      isOpen: () => true,
+      update() {},
+      getElement: () => null,
+      _adjustPan: () => legacyPans.push('adjust'),
+      options: {},
+    }
+  );
+  assert.equal(legacyPans.length, 1);
+  assert.equal(legacyPans[0], 'adjust');
+});
+
 test('stub and configuration defaults retain both basemap and interaction options', () => {
   const f = fixture();
   const stub = f.card.constructor.getStubConfig({}, [], []);

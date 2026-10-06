@@ -397,16 +397,17 @@ show_tracks: true
 For a touchscreen, enable **Enable map dragging and pinch zoom** in the editor,
 or add `interactive_map: true` to the card configuration. Drag with one finger
 to pan; pinch with two fingers to zoom. Mouse dragging and the existing +/−
-and wheel zoom controls also work. Tap a plane for details. **Close details**
-stays at the map's upper right even if the aircraft popup's own X is offscreen;
+and wheel zoom controls also work. Tap a plane for details without the map
+auto-panning away from your chosen view. **Close details** stays at the map's
+upper right even if the aircraft popup's own X is offscreen after you pan;
 **Reset view** closes details and returns to the configured monitored area and
 initial zoom. Plane selection does not scroll the page down to its flight row.
 
 Interactive mode permits navigation outside the outlined monitored area, but
-does not increase flight coverage or make additional API requests. Closing
-details and normal flight updates preserve the current view. Changing the
-monitored bounds or card zoom refits the map. Without this option, the existing
-static map and popup-close recentering behavior are unchanged.
+does not increase flight coverage or make additional API requests. Opening or
+closing details and normal flight updates preserve the current view. Changing
+the monitored bounds or card zoom refits the map. Without this option, the
+existing static map and popup-close recentering behavior are unchanged.
 
 ### <a id="lovelace">Lovelace Card</a>
 You can add flight table to your [Home Assistant dashboard](https://www.home-assistant.io/dashboards/)

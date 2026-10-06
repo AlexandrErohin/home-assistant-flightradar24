@@ -1675,6 +1675,10 @@ class Flightradar24Card extends HTMLElement {
     if (!map || !popup || !marker) {
       return;
     }
+    // Interactive mode keeps the user's camera; Close details / Reset view recover.
+    if (this._config?.interactive_map === true) {
+      return;
+    }
     const adjust = () => {
       if (!popup.isOpen()) {
         return;
