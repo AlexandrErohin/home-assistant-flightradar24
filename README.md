@@ -390,8 +390,23 @@ show_tracks: true
 | `show_flights` | boolean | `true` | Show the flights list under the map |
 | `show_tracks` | boolean | `true` | Draw flight tracks on the map from each flight's `coordinates` history |
 | `show_area_center` | boolean | `true` | Mark the centre of the observed area — the latitude/longitude this device is configured with (not `zone.home`) |
+| `interactive_map` | boolean | `false` | Enable mouse/touch dragging and two-finger pinch zoom. Show fixed Close details and Reset view controls; preserve manual navigation when details close or flights update |
 | `zoom` | number | — | Fixed map zoom level (1–19). When omitted, the map auto-fits the monitored area. Useful for static dashboards and e-ink displays where manual zoom is not available |
 | `icon_size` | number | `28` | Aircraft marker size in pixels (12–64). Increase for wall displays or e-ink dashboards where planes are hard to see at the default size |
+
+For a touchscreen, enable **Enable map dragging and pinch zoom** in the editor,
+or add `interactive_map: true` to the card configuration. Drag with one finger
+to pan; pinch with two fingers to zoom. Mouse dragging and the existing +/−
+and wheel zoom controls also work. Tap a plane for details. **Close details**
+stays at the map's upper right even if the aircraft popup's own X is offscreen;
+**Reset view** closes details and returns to the configured monitored area and
+initial zoom. Plane selection does not scroll the page down to its flight row.
+
+Interactive mode permits navigation outside the outlined monitored area, but
+does not increase flight coverage or make additional API requests. Closing
+details and normal flight updates preserve the current view. Changing the
+monitored bounds or card zoom refits the map. Without this option, the existing
+static map and popup-close recentering behavior are unchanged.
 
 ### <a id="lovelace">Lovelace Card</a>
 You can add flight table to your [Home Assistant dashboard](https://www.home-assistant.io/dashboards/)
