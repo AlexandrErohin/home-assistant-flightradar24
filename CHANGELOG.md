@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented in this file.
 
+## [2.3.0] - 2026-10-05
+
+### Added
+
+- Map card option `map_style` to switch basemap without an API key: `osm` (default), `satellite` (Esri), `topo` (OpenTopoMap)
+
 ## [2.2.2] - 2026-10-02
 
 ### Fixed
