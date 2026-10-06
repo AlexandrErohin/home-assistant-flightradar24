@@ -8,6 +8,10 @@ All notable changes to this project are documented in this file.
 
 - Map card option `map_style` to switch basemap without an API key: `osm` (default), `satellite` (Esri), `topo` (OpenTopoMap)
 
+### Fixed
+
+- Adding or removing a tracked flight updates `Additional tracked` and clears the Add/Remove text inputs immediately, instead of waiting for the next poll ([#318](https://github.com/AlexandrErohin/home-assistant-flightradar24/issues/318), [#323](https://github.com/AlexandrErohin/home-assistant-flightradar24/pull/323))
+
 ## [2.2.2] - 2026-10-02
 
 ### Fixed
