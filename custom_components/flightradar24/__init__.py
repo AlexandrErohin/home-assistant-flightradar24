@@ -71,7 +71,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             await hass.async_add_executor_job(new_client.login, username, password)
         return new_client
 
-    client = await create_client()
+    try:
+        client = await create_client()
+    except Exception as e:
+        # FR24 rate limits the login endpoint itself (HTTP 429). Without this the
+        # entry is parked in setup_error until reloaded by hand; let HA retry (#301).
+        raise ConfigEntryNotReady('FlightRadar24 login failed: {}'.format(e)) from e
 
     # FR24's bot mitigation randomly hands out sessions that only ever receive
     # valid but empty feed responses, and a session keeps that fate for its
