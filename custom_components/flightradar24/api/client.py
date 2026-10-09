@@ -1,5 +1,6 @@
 from FlightRadarAPI import FlightRadar24API, Flight
 from ..const import (
+    HTTP_TOO_MANY_REQUESTS,
     REQUEST_INTERVAL,
     REQUEST_ATTEMPTS,
     RETRY_BASE_DELAY,
@@ -7,6 +8,16 @@ from ..const import (
 from logging import Logger
 from threading import Lock
 from time import sleep, monotonic
+
+
+def http_status(error: BaseException) -> int | None:
+    """Return the HTTP status carried by *error*, or None if it carries none.
+
+    curl_cffi raises HTTPError with the response attached, so the status is
+    readable without matching on the message text.
+    """
+    status = getattr(getattr(error, 'response', None), 'status_code', None)
+    return status if isinstance(status, int) else None
 
 
 class FlightRadarClient:
@@ -48,7 +59,12 @@ class FlightRadarClient:
                 return method(*args, **kwargs)
             except Exception as e:
                 if attempt == REQUEST_ATTEMPTS - 1:
-                    self._logger.warning('FlightRadar24: Could not get details for %s - %s', method_name, e)
+                    # Rate limiting is expected on the public feed - keep it out
+                    # of the error log, but still raise so the caller backs off.
+                    log = (self._logger.debug
+                           if http_status(e) == HTTP_TOO_MANY_REQUESTS
+                           else self._logger.warning)
+                    log('FlightRadar24: Could not get details for %s - %s', method_name, e)
                     raise e
                 sleep(RETRY_BASE_DELAY * (2 ** attempt))
 
