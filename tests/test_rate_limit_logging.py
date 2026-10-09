@@ -13,10 +13,12 @@ from curl_cffi.requests.exceptions import HTTPError
 import pytest
 
 from custom_components.flightradar24.api.client import (
+    FeedCooldown,
     FlightRadarClient,
     http_status,
 )
 from custom_components.flightradar24.const import (
+    FAILURE_COOLDOWN,
     HTTP_TOO_MANY_REQUESTS,
     REQUEST_ATTEMPTS,
 )
@@ -119,3 +121,100 @@ def test_rate_limit_never_reaches_the_error_log() -> None:
         logger.removeHandler(handler)
 
     assert [record.levelname for record in records] == ['DEBUG']
+
+
+def test_breaker_skips_the_endpoint_during_cooldown(monkeypatch) -> None:
+    """A throttled endpoint is skipped instead of burning its backoff again."""
+    monkeypatch.setattr(
+        'custom_components.flightradar24.api.client.sleep', lambda _seconds: None
+    )
+    api = MagicMock()
+    api.get_flights.side_effect = _http_error(429)
+    client = FlightRadarClient(api, MagicMock())
+
+    with pytest.raises(HTTPError):
+        client.get_flights(bounds='1,2,3,4')
+    assert api.get_flights.call_count == REQUEST_ATTEMPTS
+
+    # Second call must not reach FR24 at all.
+    with pytest.raises(FeedCooldown):
+        client.get_flights(bounds='1,2,3,4')
+    assert api.get_flights.call_count == REQUEST_ATTEMPTS
+
+
+def test_cooldown_is_per_endpoint(monkeypatch) -> None:
+    """A throttled details endpoint must not take the area feed down with it."""
+    monkeypatch.setattr(
+        'custom_components.flightradar24.api.client.sleep', lambda _seconds: None
+    )
+    api = MagicMock()
+    api.get_flight_details.side_effect = _http_error(429)
+    api.get_flights.return_value = {'full_count': 1}
+    client = FlightRadarClient(api, MagicMock())
+
+    with pytest.raises(HTTPError):
+        client.get_flight_details(MagicMock())
+
+    assert client.get_flights(bounds='1,2,3,4') == {'full_count': 1}
+
+
+def test_cooldown_expires(monkeypatch) -> None:
+    clock = {'now': 1000.0}
+    monkeypatch.setattr(
+        'custom_components.flightradar24.api.client.sleep', lambda _seconds: None
+    )
+    monkeypatch.setattr(
+        'custom_components.flightradar24.api.client.monotonic',
+        lambda: clock['now'],
+    )
+    api = MagicMock()
+    api.get_flights.side_effect = _http_error(429)
+    client = FlightRadarClient(api, MagicMock())
+
+    with pytest.raises(HTTPError):
+        client.get_flights(bounds='1,2,3,4')
+    with pytest.raises(FeedCooldown):
+        client.get_flights(bounds='1,2,3,4')
+
+    clock['now'] += FAILURE_COOLDOWN + 1
+    api.get_flights.side_effect = None
+    api.get_flights.return_value = {'full_count': 2}
+    assert client.get_flights(bounds='1,2,3,4') == {'full_count': 2}
+
+
+def test_success_clears_the_cooldown(monkeypatch) -> None:
+    """A recovered endpoint must not stay broken for the rest of the session."""
+    monkeypatch.setattr(
+        'custom_components.flightradar24.api.client.sleep', lambda _seconds: None
+    )
+    api = MagicMock()
+    api.get_flights.return_value = {'full_count': 3}
+    client = FlightRadarClient(api, MagicMock())
+
+    client._broken_until['get_flights'] = 0.0
+    assert client.get_flights(bounds='1,2,3,4') == {'full_count': 3}
+    assert 'get_flights' not in client._broken_until
+
+
+def test_cooldown_stays_out_of_the_error_log() -> None:
+    """The breaker firing is the fix working, not a new fault."""
+    coordinator = MagicMock()
+    coordinator.logger = MagicMock()
+
+    FlightRadar24Coordinator._log_api_error(
+        coordinator, FeedCooldown('get_flights is in cooldown after repeated failures')
+    )
+
+    assert coordinator.logger.debug.call_count == 1
+    assert coordinator.logger.error.call_count == 0
+
+
+def test_a_real_connection_error_still_reaches_the_error_log() -> None:
+    """FeedCooldown subclasses ConnectionError; only the subclass goes quiet."""
+    coordinator = MagicMock()
+    coordinator.logger = MagicMock()
+
+    FlightRadar24Coordinator._log_api_error(coordinator, ConnectionError('no route to host'))
+
+    assert coordinator.logger.error.call_count == 1
+    assert coordinator.logger.debug.call_count == 0

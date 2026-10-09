@@ -18,7 +18,7 @@ from .const import (
     SESSION_SETUP_MAX_TRIES,
     SESSION_RENEW_RETRY_DELAY,
 )
-from .api.client import FlightRadarClient, http_status
+from .api.client import FeedCooldown, FlightRadarClient, http_status
 from .api.event import EventManager, Event
 from .api.flight import FlightProcessor
 from .api.airport import AirportProcessor
@@ -137,13 +137,15 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
         self.async_set_updated_data(self.data)
 
     def _log_api_error(self, error: Exception) -> None:
-        """Log an API failure, demoting the routine rate limit to debug.
+        """Log an API failure, demoting the routine ones to debug.
 
-        FR24 answers 429 continuously once the feed is throttled; at error
-        level that fills the Home Assistant log and raises repair notices for
-        something the next cycle recovers from on its own.
+        FR24 answers 429 continuously once the feed is throttled, and the
+        circuit breaker then skips that endpoint for FAILURE_COOLDOWN seconds.
+        Both are expected and recover on their own, so at error level they only
+        fill the Home Assistant log and raise repair notices for a non-fault.
         """
-        if http_status(error) == HTTP_TOO_MANY_REQUESTS:
+        if (isinstance(error, FeedCooldown)
+                or http_status(error) == HTTP_TOO_MANY_REQUESTS):
             self.logger.debug('FlightRadar24: %s', error)
         else:
             self.logger.error('FlightRadar24: %s', error)
