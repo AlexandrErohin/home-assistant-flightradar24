@@ -7,6 +7,7 @@ const path = require('node:path');
 
 function fixture(interactive = false) {
   const calls = [];
+  const observers = [];
   const elements = new Map(['map', 'map-actions', 'close-details'].map(id => [id, { hidden: true }]));
   const bounds = { getCenter: () => [10, 20], pad() { return this; } };
   const map = {
@@ -41,6 +42,11 @@ function fixture(interactive = false) {
   const registry = new Map();
   const context = vm.createContext({ HTMLElement: class {}, window: { L },
     customElements: { define: (name, cls) => registry.set(name, cls) },
+    ResizeObserver: class {
+      constructor(callback) { this.callback = callback; observers.push(this); }
+      observe(element) { this.element = element; }
+      disconnect() { this.disconnected = true; }
+    },
     requestAnimationFrame: callback => callback(), console,
   });
   vm.runInContext(fs.readFileSync(path.join(__dirname, '../custom_components/flightradar24/frontend/flightradar24-card.js'), 'utf8'), context);
@@ -56,7 +62,7 @@ function fixture(interactive = false) {
   card._planeIcon = () => ({});
   card._popupHtml = flight => flight.id;
   card._markers = { addLayer() {}, removeLayer(marker) { marker.removed = true; } };
-  return { card, calls, elements, bounds, map, markers };
+  return { card, calls, elements, bounds, map, markers, observers };
 }
 
 test('initialization keeps legacy gestures disabled and opt-in enables drag/pinch', async () => {
@@ -206,4 +212,32 @@ test('combined editor changes apply gestures and basemap independently', () => {
   assert.ok(f.calls.includes('drag:off'));
   assert.ok(f.calls.includes('pinch:off'));
   assert.equal(f.card._config.map_style, 'topo');
+});
+
+
+test('container resize invalidates the existing map without changing its viewport', async () => {
+  const f = fixture(true); f.card._map = null;
+  await f.card._ensureMap();
+  assert.equal(f.observers.length, 1);
+  assert.equal(f.observers[0].element, f.elements.get('map'));
+  f.calls.length = 0;
+  f.observers[0].callback();
+  assert.deepEqual(f.calls, ['size']);
+  await f.card._ensureMap();
+  assert.equal(f.observers.length, 1);
+});
+
+test('disconnect removes resize observation and reinitialization observes again', async () => {
+  const f = fixture(true); f.card._map = null;
+  await f.card._ensureMap();
+  const first = f.observers[0];
+  f.card.disconnectedCallback();
+  assert.equal(first.disconnected, true);
+  assert.equal(f.card._resizeObserver, null);
+  f.calls.length = 0;
+  first.callback();
+  assert.deepEqual(f.calls, []);
+  await f.card._ensureMap();
+  assert.equal(f.observers.length, 2);
+  assert.equal(f.observers[1].element, f.elements.get('map'));
 });
