@@ -393,6 +393,26 @@ show_tracks: true
 | `interactive_map` | boolean | `false` | Enable mouse/touch dragging and two-finger pinch zoom. Show fixed Close details and Reset view controls; preserve manual navigation when details close or flights update |
 | `zoom` | number | — | Fixed map zoom level (1–19). When omitted, the map auto-fits the monitored area. Useful for static dashboards and e-ink displays where manual zoom is not available |
 | `icon_size` | number | `28` | Aircraft marker size in pixels (12–64). Increase for wall displays or e-ink dashboards where planes are hard to see at the default size |
+| `altitude_unit` | string | `both` | Altitude display: `both` (meters and feet), `m`, or `ft` |
+| `distance_unit` | string | `m` | Current and closest distance display: `m`, `km`, `mi` (miles), or `nmi` (nautical miles) |
+| `speed_unit` | string | `both` | Ground speed display: `both` (km/h and knots), `km/h`, `mph`, or `kts` |
+
+Choose altitude, distance, and speed units independently in the card editor.
+For example, use feet for altitude, kilometers for distance, and knots for speed:
+
+```yaml
+type: custom:flightradar24-card
+entity: sensor.flightradar24_current_in_area
+altitude_unit: ft
+distance_unit: km
+speed_unit: kts
+```
+
+These options apply to the flight list and map popups. They only change the
+card's display; flight attributes, altitude filters, and automation inputs keep
+their existing units. Existing cards retain the same display when the options
+are omitted. Distances in kilometers, miles, and nautical miles use two decimal
+places; meters, altitude, and speed use whole numbers.
 
 For a touchscreen, enable **Enable map dragging and pinch zoom** in the editor,
 or add `interactive_map: true` to the card configuration. Drag with one finger

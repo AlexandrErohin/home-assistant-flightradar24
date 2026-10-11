@@ -33,6 +33,34 @@ const MAP_STYLES = {
 };
 const DEFAULT_MAP_STYLE = "osm";
 
+const DISPLAY_UNITS = {
+  altitude_unit: {
+    label: "Altitude units",
+    default: "both",
+    options: { both: "Meters and feet", m: "Meters", ft: "Feet" },
+  },
+  distance_unit: {
+    label: "Distance units",
+    default: "m",
+    options: { m: "Meters", km: "Kilometers", mi: "Miles", nmi: "Nautical miles" },
+  },
+  speed_unit: {
+    label: "Speed units",
+    default: "both",
+    options: { both: "km/h and knots", "km/h": "km/h", mph: "mph", kts: "Knots" },
+  },
+};
+const DEFAULT_DISPLAY_UNITS = Object.fromEntries(
+  Object.entries(DISPLAY_UNITS).map(([key, units]) => [key, units.default])
+);
+
+function resolveDisplayUnit(key, value) {
+  const unit = typeof value === "string" ? value.trim().toLowerCase() : "";
+  return Object.keys(DISPLAY_UNITS[key].options).includes(unit)
+    ? unit
+    : DISPLAY_UNITS[key].default;
+}
+
 function resolveMapStyle(value) {
   const key = typeof value === "string" ? value.trim().toLowerCase() : "";
   return MAP_STYLES[key] ? key : DEFAULT_MAP_STYLE;
@@ -97,6 +125,7 @@ class Flightradar24Card extends HTMLElement {
       show_area_center: true,
       interactive_map: false,
       map_style: DEFAULT_MAP_STYLE,
+      ...DEFAULT_DISPLAY_UNITS,
     };
   }
 
@@ -141,9 +170,16 @@ class Flightradar24Card extends HTMLElement {
       show_area_center: true,
       interactive_map: false,
       map_style: DEFAULT_MAP_STYLE,
+      ...DEFAULT_DISPLAY_UNITS,
       ...config,
     };
     next.map_style = resolveMapStyle(next.map_style);
+    for (const key of Object.keys(DISPLAY_UNITS)) {
+      next[key] = resolveDisplayUnit(key, next[key]);
+    }
+    const unitsChanged = prev && Object.keys(DISPLAY_UNITS).some(
+      (key) => prev[key] !== next[key]
+    );
     if (next.zoom != null && next.zoom !== "") {
       const zoom = Number(next.zoom);
       if (Number.isNaN(zoom)) {
@@ -183,6 +219,10 @@ class Flightradar24Card extends HTMLElement {
     } else if (prev && prev.icon_size !== this._config.icon_size) {
       this._lastFlightsKey = null;
     }
+    if (unitsChanged) {
+      // Refresh popup content even if the aircraft position has not changed.
+      this._lastFlightsKey = null;
+    }
     this._renderShell();
     if (prev && prev.interactive_map !== next.interactive_map) {
       this._configureMapInteraction();
@@ -196,7 +236,8 @@ class Flightradar24Card extends HTMLElement {
         prev.show_tracks !== this._config.show_tracks ||
         prev.zoom !== this._config.zoom ||
         prev.icon_size !== this._config.icon_size ||
-        prev.map_style !== this._config.map_style)
+        prev.map_style !== this._config.map_style ||
+        unitsChanged)
     ) {
       if (prev.map_style !== this._config.map_style) {
         this._syncTileLayer();
@@ -345,42 +386,67 @@ class Flightradar24Card extends HTMLElement {
     return number.toFixed(digits);
   }
 
-  /** Ground speed: km/h with knots in parentheses. Source unit is knots. */
+  /** Ground speed. Source unit is knots. */
   _formatSpeed(knots) {
     if (knots == null || knots === "") {
       return null;
     }
     const kts = Number(knots);
-    if (Number.isNaN(kts)) {
+    if (!Number.isFinite(kts)) {
       return null;
     }
     const kmh = Math.round(kts * 1.852);
-    return `${kmh} km/h (${Math.round(kts)} kts)`;
+    switch (this._config?.speed_unit) {
+      case "km/h":
+        return `${kmh} km/h`;
+      case "mph":
+        return `${Math.round(kts * 1.852 / 1.609344)} mph`;
+      case "kts":
+        return `${Math.round(kts)} kts`;
+      default:
+        return `${kmh} km/h (${Math.round(kts)} kts)`;
+    }
   }
 
-  /** Altitude: meters with feet in parentheses. Source unit is feet. */
+  /** Altitude. Source unit is feet. */
   _formatAltitude(feet) {
     if (feet == null || feet === "") {
       return null;
     }
     const ft = Number(feet);
-    if (Number.isNaN(ft)) {
+    if (!Number.isFinite(ft)) {
       return null;
     }
     const meters = Math.round(ft * 0.3048);
-    return `${meters} m (${Math.round(ft)} ft)`;
+    switch (this._config?.altitude_unit) {
+      case "m":
+        return `${meters} m`;
+      case "ft":
+        return `${Math.round(ft)} ft`;
+      default:
+        return `${meters} m (${Math.round(ft)} ft)`;
+    }
   }
 
-  /** Distance: meters. Source unit is kilometers. */
+  /** Distance. Source unit is kilometers. */
   _formatDistance(kilometers) {
     if (kilometers == null || kilometers === "") {
       return null;
     }
     const km = Number(kilometers);
-    if (Number.isNaN(km)) {
+    if (!Number.isFinite(km)) {
       return null;
     }
-    return `${Math.round(km * 1000)} m`;
+    switch (this._config?.distance_unit) {
+      case "km":
+        return `${km.toFixed(2)} km`;
+      case "mi":
+        return `${(km / 1.609344).toFixed(2)} mi`;
+      case "nmi":
+        return `${(km / 1.852).toFixed(2)} nmi`;
+      default:
+        return `${Math.round(km * 1000)} m`;
+    }
   }
 
   /** Display snapshot used to patch flight rows without rebuilding the list. */
@@ -2146,6 +2212,21 @@ class Flightradar24CardEditor extends HTMLElement {
           value="${this._config.icon_size != null ? this._escape(String(this._config.icon_size)) : ""}"
         />
       </div>
+      ${Object.entries(DISPLAY_UNITS)
+        .map(([key, units]) => `
+          <div class="row">
+            <label for="${key}">${units.label}</label>
+            <select id="${key}">
+              ${Object.entries(units.options)
+                .map(([unit, label]) => {
+                  const selected = resolveDisplayUnit(key, this._config[key]) === unit ? "selected" : "";
+                  return `<option value="${unit}" ${selected}>${label}</option>`;
+                })
+                .join("")}
+            </select>
+          </div>
+        `)
+        .join("")}
     `;
 
     const mount = this.shadowRoot.getElementById("entity-picker");
@@ -2213,6 +2294,15 @@ class Flightradar24CardEditor extends HTMLElement {
         map_style: resolveMapStyle(event.target.value),
       });
     });
+
+    for (const key of Object.keys(DISPLAY_UNITS)) {
+      this.shadowRoot.getElementById(key).addEventListener("change", (event) => {
+        this._fireConfigChanged({
+          ...this._config,
+          [key]: resolveDisplayUnit(key, event.target.value),
+        });
+      });
+    }
 
     this.shadowRoot.getElementById("zoom").addEventListener("change", (event) => {
       const newConfig = { ...this._config };

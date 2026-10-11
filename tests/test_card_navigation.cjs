@@ -30,8 +30,8 @@ function fixture(interactive = false) {
     latLngBounds: () => bounds, rectangle: () => ({ addTo() { return this; } }),
     marker: position => {
       const events = {};
-      const popup = { setContent() {}, isOpen: () => true, getElement: () => null };
-      const marker = { position, events, bindPopup() { return this; }, on(name, fn) { events[name] = fn; return this; },
+      const popup = { setContent(content) { this.content = content; }, isOpen: () => true, getElement: () => null };
+      const marker = { position, events, bindPopup(content) { popup.content = content; return this; }, on(name, fn) { events[name] = fn; return this; },
         getPopup: () => popup, setLatLng(value) { this.position = value; }, setIcon() {} };
       markers.set(position.join(','), marker);
       return marker;
@@ -206,4 +206,97 @@ test('combined editor changes apply gestures and basemap independently', () => {
   assert.ok(f.calls.includes('drag:off'));
   assert.ok(f.calls.includes('pinch:off'));
   assert.equal(f.card._config.map_style, 'topo');
+});
+
+test('unit defaults preserve existing displays and unsupported values fall back', () => {
+  const { card } = fixture();
+  card._renderShell = () => {};
+  card._update = () => {};
+  for (const config of [{}, { altitude_unit: 'unknown', distance_unit: null, speed_unit: 42 }]) {
+    card.setConfig({ entity: 'sensor.test', ...config });
+    assert.equal(card._formatAltitude(10000), '3048 m (10000 ft)');
+    assert.equal(card._formatDistance(1.234), '1234 m');
+    assert.equal(card._formatSpeed(100), '185 km/h (100 kts)');
+  }
+  const stub = card.constructor.getStubConfig({}, [], []);
+  assert.equal(stub.altitude_unit, 'both');
+  assert.equal(stub.distance_unit, 'm');
+  assert.equal(stub.speed_unit, 'both');
+});
+
+test('altitude, distance and speed can each use a single chosen unit', () => {
+  const { card } = fixture();
+  card._renderShell = () => {};
+  card._update = () => {};
+  for (const [key, method, source, unit, expected] of [
+    ['altitude_unit', '_formatAltitude', 10000, 'm', '3048 m'],
+    ['altitude_unit', '_formatAltitude', 10000, 'ft', '10000 ft'],
+    ['distance_unit', '_formatDistance', 1.234, 'km', '1.23 km'],
+    ['distance_unit', '_formatDistance', 1.609344, 'mi', '1.00 mi'],
+    ['distance_unit', '_formatDistance', 1.852, 'nmi', '1.00 nmi'],
+    ['speed_unit', '_formatSpeed', 100, 'km/h', '185 km/h'],
+    ['speed_unit', '_formatSpeed', 100, 'mph', '115 mph'],
+    ['speed_unit', '_formatSpeed', 100, 'kts', '100 kts'],
+  ]) {
+    card.setConfig({ entity: 'sensor.test', [key]: unit });
+    assert.equal(card[method](source), expected);
+  }
+});
+
+test('unit formatting retains zero and negative altitude, and omits missing or non-finite values', () => {
+  const { card } = fixture();
+  card._config = { altitude_unit: 'ft', distance_unit: 'mi', speed_unit: 'mph' };
+  assert.equal(card._formatAltitude(0), '0 ft');
+  assert.equal(card._formatAltitude(-100), '-100 ft');
+  assert.equal(card._formatDistance('0'), '0.00 mi');
+  assert.equal(card._formatSpeed('0'), '0 mph');
+  for (const method of ['_formatAltitude', '_formatDistance', '_formatSpeed']) {
+    for (const value of [undefined, null, '', 'unavailable', NaN, Infinity]) {
+      assert.equal(card[method](value), null);
+    }
+  }
+});
+
+test('mixed units appear in rows and popups without mutating flight attributes', () => {
+  const { card } = fixture();
+  card._config = { altitude_unit: 'ft', distance_unit: 'km', speed_unit: 'kts' };
+  const flight = Object.freeze({ id: 'test', altitude: 10000, ground_speed: 100, distance: 1.25, closest_distance: 0.5 });
+  const snapshot = card._flightRowSnapshot(flight);
+  assert.equal(snapshot.altitude, '10000 ft');
+  assert.equal(snapshot.speed, '100 kts');
+  assert.equal(snapshot.distance, '1.25 km');
+  assert.equal(snapshot.closest, '0.50 km');
+  const html = card.constructor.prototype._popupHtml.call(card, flight);
+  for (const value of ['10000 ft', '100 kts', 'Dist 1.25 km', 'Min 0.50 km']) {
+    assert.ok(html.includes(value), value);
+  }
+});
+
+test('changing units refreshes existing popup content even while flight position is unchanged', async () => {
+  const f = fixture(true);
+  f.card._renderShell = () => {};
+  f.card._popupHtml = f.card.constructor.prototype._popupHtml;
+  f.card.setConfig({ entity: 'sensor.test', interactive_map: true, show_tracks: false });
+  f.card._selectedFlightId = 'test';
+  const parsed = { north: 10.1, south: 9.9, west: 19.9, east: 20.1, lat: 10, lon: 20 };
+  const flights = [{ id: 'test', latitude: 10, longitude: 20, altitude: 10000, ground_speed: 100, distance: 1.25 }];
+  await f.card._syncMap(parsed, flights);
+  const marker = f.card._markerById.get('test');
+  const popup = marker.getPopup();
+  assert.ok(popup.content.includes('3048 m (10000 ft)'));
+  f.card._openPopupFlightId = 'test';
+  const updates = [];
+  f.card._update = () => { updates.push(f.card._syncMap(parsed, flights)); };
+  f.calls.length = 0;
+  f.card.setConfig({ entity: 'sensor.test', interactive_map: true, show_tracks: false, altitude_unit: 'ft', distance_unit: 'km', speed_unit: 'kts' });
+  assert.equal(updates.length, 1);
+  await updates[0];
+  assert.equal(f.card._markerById.get('test'), marker);
+  assert.equal(f.card._openPopupFlightId, 'test');
+  assert.equal(f.card._selectedFlightId, 'test');
+  assert.ok(popup.content.includes('10000 ft'));
+  assert.ok(popup.content.includes('Dist 1.25 km'));
+  assert.ok(popup.content.includes('100 kts'));
+  assert.ok(!popup.content.includes('3048 m'));
+  assert.equal(f.calls.some(call => ['fit', 'view', 'close'].includes(call[0])), false);
 });
