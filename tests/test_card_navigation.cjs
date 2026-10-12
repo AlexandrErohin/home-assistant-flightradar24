@@ -207,3 +207,33 @@ test('combined editor changes apply gestures and basemap independently', () => {
   assert.ok(f.calls.includes('pinch:off'));
   assert.equal(f.card._config.map_style, 'topo');
 });
+
+
+test('area overlay defaults on and can start hidden without losing bounds', async () => {
+  const parsed = { north: 10.1, south: 9.9, west: 19.9, east: 20.1, lat: 10, lon: 20 };
+  for (const show_area of [undefined, false]) {
+    const f = fixture(); f.card._config.show_area = show_area;
+    await f.card._syncMap(parsed, []);
+    assert.equal(!!f.card._areaRect, show_area !== false);
+    assert.ok(f.card._areaBounds); assert.ok(f.card._areaMaxBounds);
+  }
+});
+test('area overlay toggles at unchanged bounds without moving the camera', async () => {
+  const f = fixture(true);
+  const parsed = { north: 10.1, south: 9.9, west: 19.9, east: 20.1, lat: 10, lon: 20 };
+  await f.card._syncMap(parsed, []); const old = f.card._areaRect; f.calls.length = 0;
+  f.card._config.show_area = false; await f.card._syncMap(parsed, []);
+  assert.equal(f.card._areaRect, null);
+  assert.ok(f.calls.some(call => call[0] === 'remove' && call[1] === old));
+  f.card._config.show_area = true; await f.card._syncMap(parsed, []);
+  assert.ok(f.card._areaRect); assert.notEqual(f.card._areaRect, old);
+  assert.equal(f.calls.some(call => ['fit', 'view', 'bounds'].includes(call[0])), false);
+});
+test('setConfig applies area overlay edits immediately', () => {
+  const f = fixture(); f.card._renderShell = () => {}; let updates = 0; f.card._update = () => updates++;
+  f.card.setConfig({ entity: 'sensor.test' }); updates = 0;
+  assert.equal(f.card._config.show_area, true);
+  f.card.setConfig({ entity: 'sensor.test', show_area: false });
+  assert.equal(updates, 1);
+  assert.equal(f.card.constructor.getStubConfig({}, [], []).show_area, true);
+});
