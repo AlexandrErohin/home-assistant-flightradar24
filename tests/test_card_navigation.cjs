@@ -27,11 +27,13 @@ function fixture(interactive = false) {
     control: { attribution: () => layer() },
     tileLayer: (url, options) => { calls.push(['tiles', url, options]); return layer(); },
     layerGroup: layer,
-    latLngBounds: () => bounds, rectangle: () => ({ addTo() { return this; } }),
+    latLngBounds: (...corners) => ({ corners, getCenter: () => [10, 20], pad() { return this; } }),
+    rectangle: areaBounds => ({ bounds: areaBounds, addTo() { return this; } }),
+    divIcon: options => options,
     marker: position => {
       const events = {};
       const popup = { setContent() {}, isOpen: () => true, getElement: () => null };
-      const marker = { position, events, bindPopup() { return this; }, on(name, fn) { events[name] = fn; return this; },
+      const marker = { position, events, addTo() { return this; }, bindPopup() { return this; }, on(name, fn) { events[name] = fn; return this; },
         getPopup: () => popup, setLatLng(value) { this.position = value; }, setIcon() {} };
       markers.set(position.join(','), marker);
       return marker;
@@ -236,4 +238,50 @@ test('setConfig applies area overlay edits immediately', () => {
   f.card.setConfig({ entity: 'sensor.test', show_area: false });
   assert.equal(updates, 1);
   assert.equal(f.card.constructor.getStubConfig({}, [], []).show_area, true);
+});
+
+
+test('visible area rectangle follows changed bounds and reuses unchanged bounds', async () => {
+  const f = fixture(true);
+  const first = { north: 10.1, south: 9.9, west: 19.9, east: 20.1, lat: 10, lon: 20 };
+  const next = { ...first, north: 11, east: 21 };
+  await f.card._syncMap(first, []);
+  const original = f.card._areaRect;
+  await f.card._syncMap(first, []);
+  assert.equal(f.card._areaRect, original);
+  await f.card._syncMap(next, []);
+  assert.notEqual(f.card._areaRect, original);
+  assert.ok(f.calls.some(call => call[0] === 'remove' && call[1] === original));
+  assert.equal(JSON.stringify(f.card._areaRect.bounds.corners), JSON.stringify([[9.9, 19.9], [11, 21]]));
+});
+
+test('bounds changed while hidden are used when the area is shown again', async () => {
+  const f = fixture(true);
+  const first = { north: 10.1, south: 9.9, west: 19.9, east: 20.1, lat: 10, lon: 20 };
+  await f.card._syncMap(first, []);
+  f.card._config.show_area = false;
+  const next = { ...first, north: 11, east: 21 };
+  await f.card._syncMap(next, []);
+  assert.equal(f.card._areaRect, null);
+  assert.equal(JSON.stringify(f.card._areaBounds.corners), JSON.stringify([[9.9, 19.9], [11, 21]]));
+  f.calls.length = 0;
+  f.card._config.show_area = true;
+  await f.card._syncMap(next, []);
+  assert.equal(JSON.stringify(f.card._areaRect.bounds.corners), JSON.stringify([[9.9, 19.9], [11, 21]]));
+  assert.equal(f.calls.some(call => ['fit', 'view', 'bounds'].includes(call[0])), false);
+});
+
+test('area overlay visibility leaves the real center-marker sync independent', async () => {
+  const f = fixture(true);
+  delete f.card._syncAreaCenterMarker;
+  f.card._config.show_area_center = true;
+  const parsed = { north: 10.1, south: 9.9, west: 19.9, east: 20.1, lat: 10, lon: 20 };
+  await f.card._syncMap(parsed, []);
+  const center = f.card._areaCenterMarker;
+  assert.ok(center);
+  f.card._config.show_area = false;
+  await f.card._syncMap(parsed, []);
+  assert.equal(f.card._areaCenterMarker, center);
+  assert.equal(f.card._areaRect, null);
+  assert.equal(f.calls.some(call => call[0] === 'remove' && call[1] === center), false);
 });
