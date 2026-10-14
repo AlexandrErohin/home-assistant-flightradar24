@@ -141,7 +141,7 @@ def test_cooldown_is_per_endpoint(clock):
 
     with pytest.raises(FakeHTTPError):
         client.get_flights()
-    assert client.search('LX38') == {'live': []}
+    assert client.search('BA117') == {'live': []}
 
 
 def test_cooldown_survives_a_new_session(clock):
@@ -166,7 +166,7 @@ def test_empty_area_costs_one_feed_request():
     response.get_json_content.return_value = {'full_count': 14990, 'version': 4}
     inner = api._FlightRadar24API__client
     with patch.object(inner, 'request', return_value=response) as request:
-        assert api.get_flights(bounds='47.010,47.001,-30.007,-30.000') == []
+        assert api.get_flights(bounds='0.010,0.001,-30.007,-30.000') == []
     assert request.call_count == 1
 
 
@@ -235,7 +235,7 @@ async def test_setup_survives_a_rate_limited_canary(hass, status):
     api.get_flights.side_effect = FakeHTTPError(status)
     api.get_bounds_by_point.return_value = '1,-1,-1,1'
     entry = MockConfigEntry(domain=DOMAIN, data={
-        CONF_LATITUDE: 47.0, CONF_LONGITUDE: 11.0, CONF_RADIUS: 1000.0, CONF_SCAN_INTERVAL: 10,
+        CONF_LATITUDE: 51.5, CONF_LONGITUDE: -0.12, CONF_RADIUS: 1000.0, CONF_SCAN_INTERVAL: 10,
     })
     entry.add_to_hass(hass)
 
