@@ -17,7 +17,7 @@ from .const import (
     SESSION_SETUP_MAX_TRIES,
     SESSION_RENEW_RETRY_DELAY,
 )
-from .api.client import FlightRadarClient
+from .api.client import FlightRadarClient, EndpointCooldown
 from .api.event import EventManager, Event
 from .api.flight import FlightProcessor
 from .api.airport import AirportProcessor
@@ -140,29 +140,32 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
             return
 
         if self._first_start:
-            try:
-                await self._update_most_tracked_and_airport()
-            except Exception as e:
-                self.logger.error("FlightRadar24: %s", e)
+            await self._run(self._update_most_tracked_and_airport)
 
-            try:
-                await self._update_area_and_tracked()
-                await self._check_session()
-            except Exception as e:
-                self.logger.error("FlightRadar24: %s", e)
-        else:
-            try:
-                await self._update_area_and_tracked()
-            except Exception as e:
-                self.logger.error("FlightRadar24: %s", e)
+        # Tracked flights first and on their own: a failing area feed used to
+        # abort the cycle before the tracked flights were even requested, and
+        # after a rate limit pause they now get the first request.
+        await self._run(self._update_tracked)
+        area_ok = await self._run(self._update_area)
 
-            try:
-                await self._update_most_tracked_and_airport()
-                await self._check_session()
-            except Exception as e:
-                self.logger.error("FlightRadar24: %s", e)
+        if not self._first_start:
+            await self._run(self._update_most_tracked_and_airport)
+        # The guard judges the area count, which is stale after a failed update.
+        if area_ok:
+            await self._run(self._check_session)
 
         self._first_start = False
+
+    async def _run(self, step) -> bool:
+        try:
+            await step()
+            return True
+        except EndpointCooldown as e:
+            # The 429 that opened the pause was logged once as a warning.
+            self.logger.debug("FlightRadar24: %s", e)
+        except Exception as e:
+            self.logger.error("FlightRadar24: %s", e)
+        return False
 
     async def _update_most_tracked_and_airport(self) -> None:
         await self.hass.async_add_executor_job(self.flight.update_most_tracked)
@@ -172,13 +175,14 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
         await self.hass.async_add_executor_job(self.airport.update_airport_info)
         self.async_set_updated_data(self.airport)
 
-    async def _update_area_and_tracked(self) -> None:
+    async def _update_area(self) -> None:
         await self.hass.async_add_executor_job(self.flight.update_flights_in_area)
         self.async_set_updated_data(self.flight.in_area_list)
         self.async_set_updated_data(self.flight.entered_list)
         self.async_set_updated_data(self.flight.exited_list)
         self.event_manager.fire_events(self.config_entry.title, self._fire)
 
+    async def _update_tracked(self) -> None:
         await self.hass.async_add_executor_job(self.flight.update_flights_tracked)
         self.async_set_updated_data(self.flight.tracked)
         self.async_set_updated_data(self.flight.tracked_list)
