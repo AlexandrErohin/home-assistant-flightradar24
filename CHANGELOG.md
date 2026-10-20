@@ -7,6 +7,7 @@ All notable changes to this project are documented in this file.
 ### Added
 
 - Map card option `show_area` to hide the monitored area outline and tint; default remains visible ([#336](https://github.com/AlexandrErohin/home-assistant-flightradar24/issues/336), [#339](https://github.com/AlexandrErohin/home-assistant-flightradar24/pull/339))
+- Map card options `altitude_unit`, `distance_unit`, and `speed_unit` for independent display units in the flight list and popups ([#326](https://github.com/AlexandrErohin/home-assistant-flightradar24/issues/326), [#337](https://github.com/AlexandrErohin/home-assistant-flightradar24/pull/337))
 - Local brand assets under `custom_components/flightradar24/brand/` for Home Assistant 2026.3+ ([#344](https://github.com/AlexandrErohin/home-assistant-flightradar24/pull/344))
 
 ### Fixed
