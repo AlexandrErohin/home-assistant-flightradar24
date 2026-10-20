@@ -12,6 +12,7 @@ All notable changes to this project are documented in this file.
 
 ### Fixed
 
+- Map card calls `invalidateSize` when its container resizes (e.g. sections `column_span`), so tiles fill the full width without needing a manual zoom ([#327](https://github.com/AlexandrErohin/home-assistant-flightradar24/issues/327), [#334](https://github.com/AlexandrErohin/home-assistant-flightradar24/pull/334))
 - HTTP 429 storms after v2.1.2: disable FlightRadarAPI empty-feed rerolls (`FEED_EMPTY_RETRIES=0`), do not retry 429, and pause the affected endpoint with exponential back-off up to 15 minutes (honours `Retry-After` when present) ([#254](https://github.com/AlexandrErohin/home-assistant-flightradar24/issues/254), [#330](https://github.com/AlexandrErohin/home-assistant-flightradar24/issues/330), [#332](https://github.com/AlexandrErohin/home-assistant-flightradar24/issues/332), [#333](https://github.com/AlexandrErohin/home-assistant-flightradar24/pull/333), [#341](https://github.com/AlexandrErohin/home-assistant-flightradar24/pull/341))
 - Tracked flights keep updating when the area feed fails or is rate-limited ([#341](https://github.com/AlexandrErohin/home-assistant-flightradar24/pull/341))
 - Setup continues with an unverified session on canary HTTP 429 instead of leaving every entity unavailable; login 429 becomes `ConfigEntryNotReady` so Home Assistant retries, while 401/403 stay auth failures ([#301](https://github.com/AlexandrErohin/home-assistant-flightradar24/issues/301), [#328](https://github.com/AlexandrErohin/home-assistant-flightradar24/pull/328))

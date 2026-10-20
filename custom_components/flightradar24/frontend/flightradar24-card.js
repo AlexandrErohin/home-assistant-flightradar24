@@ -164,6 +164,7 @@ class Flightradar24Card extends HTMLElement {
     super();
     this._map = null;
     this._mapInitPromise = null;
+    this._resizeObserver = null;
     this._tileLayer = null;
     this._markers = null;
     this._tracks = null;
@@ -303,6 +304,8 @@ class Flightradar24Card extends HTMLElement {
   }
 
   _destroyMap() {
+    this._resizeObserver?.disconnect();
+    this._resizeObserver = null;
     if (this._map) {
       try {
         this._map.remove();
@@ -1464,6 +1467,13 @@ class Flightradar24Card extends HTMLElement {
     this._markers = L.layerGroup().addTo(this._map);
     this._tracks = L.layerGroup().addTo(this._map);
     this._markerById = new Map();
+    // Observe #map (fills .map-wrap): section layout and aspect-ratio changes
+    // resize the map node itself, so wrap-level observation is unnecessary.
+    this._resizeObserver?.disconnect();
+    this._resizeObserver = new ResizeObserver(() => {
+      this._map?.invalidateSize({ debounceMoveend: true });
+    });
+    this._resizeObserver.observe(mapEl);
     // Leaflet needs a tick after being inserted into shadow DOM.
     requestAnimationFrame(() => this._map?.invalidateSize());
     return this._map;
