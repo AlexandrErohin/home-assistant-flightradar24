@@ -3,9 +3,15 @@ from logging import getLogger
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant, CoreState, EVENT_HOMEASSISTANT_STARTED
-from homeassistant.exceptions import ConfigEntryNotReady
+from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 from .api.client import FlightRadarClient
-from .const import DOMAIN, SESSION_SETUP_MAX_TRIES, SESSION_RENEW_RETRY_DELAY
+from .api.helper import http_status, is_login_auth_error
+from .const import (
+    DOMAIN,
+    SESSION_SETUP_MAX_TRIES,
+    SESSION_RENEW_RETRY_DELAY,
+    HTTP_TOO_MANY_REQUESTS,
+)
 from .coordinator import FlightRadar24Coordinator, is_session_healthy
 from .frontend import JSModuleRegistration
 from homeassistant.const import (
@@ -65,13 +71,28 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     username = entry.data.get(CONF_USERNAME)
     password = entry.data.get(CONF_PASSWORD)
 
-    async def create_client() -> FlightRadar24API:
+    async def create_api() -> FlightRadar24API:
         new_client = FlightRadar24API()
         if username and password:
             await hass.async_add_executor_job(new_client.login, username, password)
         return new_client
 
-    client = await create_client()
+    try:
+        api = await create_api()
+    except Exception as e:
+        # Bad credentials must not become an endless NotReady loop (#328).
+        if is_login_auth_error(e):
+            raise ConfigEntryAuthFailed(
+                'FlightRadar24 login rejected: {}'.format(e)
+            ) from e
+        # FR24 rate limits the login endpoint itself (HTTP 429). Without this
+        # the entry is parked in setup_error until reloaded by hand; let HA
+        # retry (#301).
+        raise ConfigEntryNotReady('FlightRadar24 login failed: {}'.format(e)) from e
+
+    # Wrap before the canary so setup respects the same cooldown / spacing as
+    # runtime polling (#254).
+    client = FlightRadarClient(api, _LOGGER)
 
     # FR24's bot mitigation randomly hands out sessions that only ever receive
     # valid but empty feed responses, and a session keeps that fate for its
@@ -81,6 +102,15 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         try:
             session_verified = await hass.async_add_executor_job(is_session_healthy, client)
         except Exception as e:
+            # A rate limited IP is reachable. Failing setup would leave every
+            # entity unavailable - and the tracked flight services unusable -
+            # until FR24 lets a request through; the coordinator backs off instead.
+            if http_status(e) == HTTP_TOO_MANY_REQUESTS:
+                _LOGGER.warning(
+                    'FlightRadar24: rate limited during setup, '
+                    'continuing with an unverified session'
+                )
+                break
             raise ConfigEntryNotReady('FlightRadar24 is not reachable: {}'.format(e)) from e
         if session_verified:
             break
@@ -92,8 +122,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             )
             await async_sleep(SESSION_RENEW_RETRY_DELAY)
             try:
-                client = await create_client()
+                api = await create_api()
+                client = FlightRadarClient(api, _LOGGER)
             except Exception as e:
+                if is_login_auth_error(e):
+                    raise ConfigEntryAuthFailed(
+                        'FlightRadar24 login rejected: {}'.format(e)
+                    ) from e
                 # Login 429 during setup should not abort forever; continue with
                 # the last session and let the runtime guard recover (#254).
                 _LOGGER.warning(
@@ -121,7 +156,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     latitude = entry.data[CONF_LATITUDE]
     longitude = entry.data[CONF_LONGITUDE]
 
-    bounds = client.get_bounds_by_point(latitude, longitude, entry.data[CONF_RADIUS])
+    bounds = api.get_bounds_by_point(latitude, longitude, entry.data[CONF_RADIUS])
 
     # A cleared optional field is stored as None, and `None <= altitude` raises -
     # which used to abort the whole area update and pin the counts to 0.
@@ -148,7 +183,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     coordinator = FlightRadar24Coordinator(
         hass,
         bounds,
-        FlightRadarClient(client, _LOGGER),
+        client,
         scan_interval,
         _LOGGER,
         entry.entry_id,

@@ -3,7 +3,7 @@ from typing import Any, Optional
 from enum import Enum
 from time import time
 from random import randint
-from .client import FlightRadarClient
+from .client import FlightRadarClient, endpoint_in_cooldown
 from FlightRadarAPI import Flight, Entity
 from .helper import to_int, get_value
 from .event import EventManager
@@ -515,6 +515,22 @@ class FlightProcessor:
         self._most_tracked = current
         self._event_manager.add_events(EVENT_MOST_TRACKED_NEW, entries)
 
+    def _fetch_details(self, obj: Flight) -> dict[str, Any] | None:
+        """Fetch details for one flight.
+
+        Returns None on failure (429 / EndpointCooldown / other) so the caller
+        can keep a previous full record; new flights without details are not
+        published as stubs. Skips the call while get_flight_details is paused
+        so a busy area does not raise EndpointCooldown once per remaining flight.
+        """
+        if endpoint_in_cooldown('get_flight_details'):
+            return None
+        try:
+            return self._get_flight_data(self._client.get_flight_details(obj))
+        except Exception:
+            # Client already logged and opened the endpoint cooldown.
+            return None
+
     def _update_flights_data(self,
                              obj: Flight,
                              previous: dict[str, Any],
@@ -532,8 +548,14 @@ class FlightProcessor:
                 and to_int(last_position) == obj.on_ground):
             flight = previous
         else:
-            data = self._client.get_flight_details(obj)
-            flight = self._get_flight_data(data)
+            # Prefer fresh details; otherwise keep the last full record. Never
+            # invent a feed-only stub for a new flight — ENTRY / attributes must
+            # wait until get_flight_details succeeds (next cycle if cooldown).
+            flight = self._fetch_details(obj)
+            if flight is None and previous:
+                flight = previous
+            if flight is None:
+                return None
         if flight is not None:
             flight['latitude'] = obj.latitude
             flight['longitude'] = obj.longitude

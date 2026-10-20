@@ -26,6 +26,7 @@ from .const import (
     TRACKER_NAME_CALLSIGN,
     TRACKER_NAME_CALLSIGN_ROUTE,
     TRACKER_NAME_REG_ROUTE,
+    HTTP_TOO_MANY_REQUESTS,
 )
 from FlightRadarAPI import FlightRadar24API
 import homeassistant.helpers.config_validation as cv
@@ -39,31 +40,15 @@ from homeassistant.const import (
     CONF_PASSWORD,
     CONF_USERNAME,
 )
+from .api.helper import http_status, is_login_auth_error
 
 _LOGGER = getLogger(__name__)
 
 
-def _http_status_code(error: Exception) -> int | None:
-    code = getattr(error, "status_code", None)
-    if code is not None:
-        return int(code)
-    response = getattr(error, "response", None)
-    if response is not None:
-        code = getattr(response, "status_code", None)
-        if code is not None:
-            return int(code)
-    return None
-
-
 def _is_login_rate_limited(error: Exception) -> bool:
-    if _http_status_code(error) == 429:
+    if http_status(error) == HTTP_TOO_MANY_REQUESTS:
         return True
-    message = str(error)
-    return "429" in message
-
-
-def _is_login_auth_error(error: Exception) -> bool:
-    return _http_status_code(error) in (401, 403)
+    return "429" in str(error)
 
 
 class FlightRadarConfigFlow(ConfigFlow, domain=DOMAIN):
@@ -118,7 +103,7 @@ class FlightRadarOptionsFlow(OptionsFlowWithConfigEntry):
                         "credentials stored, integration will retry login on reload",
                         error,
                     )
-                elif _is_login_auth_error(error):
+                elif is_login_auth_error(error):
                     _LOGGER.error("FlightRadar24: login rejected - %s", error)
                     errors["base"] = "invalid_auth"
                 else:

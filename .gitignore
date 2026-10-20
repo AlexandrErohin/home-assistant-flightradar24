@@ -3,3 +3,4 @@ venv
 .venv
 test.py
 example.json
+__pycache__/
