@@ -3,7 +3,7 @@ from typing import Any, Optional
 from enum import Enum
 from time import time
 from random import randint
-from .client import FlightRadarClient
+from .client import FlightRadarClient, endpoint_in_cooldown
 from FlightRadarAPI import Flight, Entity
 from .helper import to_int, get_value
 from .event import EventManager
@@ -520,9 +520,11 @@ class FlightProcessor:
 
         Returns None on failure (429 / EndpointCooldown / other) so the caller
         can keep a previous full record; new flights without details are not
-        published as stubs. Further lookups in this cycle hit the client
-        cooldown and skip HTTP without a separate processor flag.
+        published as stubs. Skips the call while get_flight_details is paused
+        so a busy area does not raise EndpointCooldown once per remaining flight.
         """
+        if endpoint_in_cooldown('get_flight_details'):
+            return None
         try:
             return self._get_flight_data(self._client.get_flight_details(obj))
         except Exception:

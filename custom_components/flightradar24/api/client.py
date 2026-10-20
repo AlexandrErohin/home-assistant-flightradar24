@@ -156,8 +156,7 @@ class FlightRadarClient:
                 if attempt == REQUEST_ATTEMPTS - 1:
                     delay, _ = _open_cooldown(method_name, rate_limited=False)
                     self._logger.warning(
-                        'FlightRadar24: Could not get details for %s - %s; '
-                        'pausing it for %d seconds',
+                        'FlightRadar24: %s failed - %s; pausing it for %d seconds',
                         method_name, e, delay,
                     )
                     raise e
