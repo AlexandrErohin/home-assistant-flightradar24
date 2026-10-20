@@ -116,8 +116,8 @@ The default data is preset already
 
 > **⚠️ <a id="notes">IMPORTANT NOTE</a> ⚠️**  
 > 1. After integration installation or reload and after every HA restart Current in area sensor may stay at 0 for some minutes or show less than real amount of flights in your area for a while. It is because of downloading information from FR24. Downloading information for a flight takes time. The more flights in your area the more time it takes to load all of them
-> 2. Log messages such as `FlightRadar24: got an empty session (bot mitigation), recreating (1/5)` or `HTTP 429` are **expected** and do **not** indicate a broken integration. FlightRadar24 actively rate-limits and blocks automated requests; the integration detects this and retries (for example by recreating the session). Occasional appearances of these messages in the Home Assistant log are normal
-> 3. Decreasing scan interval may lead to more of these responses from FR24
+> 2. Log messages such as `FlightRadar24: got an empty session (bot mitigation)...` or `rate limited (HTTP 429)... pausing` are **expected** and do **not** indicate a broken integration. FlightRadar24 actively rate-limits automated requests; on HTTP 429 the integration **pauses** that endpoint with exponential back-off (up to 15 minutes) and resumes when FR24 lifts the limit. Occasional appearances of these messages in the Home Assistant log are normal
+> 3. Prefer a scan interval of **20–60 seconds**. Values near the 10-second minimum, and multiple config entries all polling quickly on the same IP, make rate limits more likely
 > 4. Increasing the radius means more flights will be in your area, which may also trigger more rate-limiting or bot-mitigation responses from FR24
 > 5. If your airport sensors stay Unavailable - check if you [track the airport](#lovelace-airport)
 

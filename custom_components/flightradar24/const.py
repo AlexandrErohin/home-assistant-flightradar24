@@ -89,11 +89,19 @@ SESSION_GUARD_CHECK_THROTTLE = 1800
 REQUEST_INTERVAL = 0.2
 REQUEST_ATTEMPTS = 3
 RETRY_BASE_DELAY = 2
-# Once a request has exhausted its retries, fail fast for this long instead of
-# letting every remaining call of the cycle burn its own backoff (circuit breaker).
-# The cooldown is kept per endpoint - a rate limited details endpoint must not
-# take the area feed (and with it every count sensor) down with it.
+# A throttled feed answers 429 continuously, so it is routine rather than a
+# fault. Logged at warning once when the pause opens; later skips are debug.
+HTTP_TOO_MANY_REQUESTS = 429
+# Once a request has exhausted its retries (or a 429 arrives), fail fast for
+# this long instead of letting every remaining call of the cycle burn its own
+# backoff. The cooldown is kept per endpoint - a rate limited details endpoint
+# must not take the area feed (and with it every count sensor) down with it.
 FAILURE_COOLDOWN = 30
+# An HTTP 429 is not retried. It pauses its endpoint for FAILURE_COOLDOWN, and
+# every further 429 in a row doubles the pause up to this cap (30 s, 1, 2, 4,
+# 8 min, then 15 min); a success resets it. Polling on at the scan interval is
+# what kept a rate limited IP from ever getting out of the limit (#330).
+RATE_LIMIT_MAX_COOLDOWN = 900
 
 # Per-flight position history stored on each flight dict as `coordinates`
 # ([[lat, lon], ...]). Capped so sensor attributes stay bounded.
