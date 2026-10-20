@@ -4,6 +4,11 @@ All notable changes to this project are documented in this file.
 
 ## Unreleased
 
+### Added
+
+- Map card option `show_area` to hide the monitored area outline and tint; default remains visible ([#336](https://github.com/AlexandrErohin/home-assistant-flightradar24/issues/336), [#339](https://github.com/AlexandrErohin/home-assistant-flightradar24/pull/339))
+- Local brand assets under `custom_components/flightradar24/brand/` for Home Assistant 2026.3+ ([#344](https://github.com/AlexandrErohin/home-assistant-flightradar24/pull/344))
+
 ### Fixed
 
 - HTTP 429 storms after v2.1.2: disable FlightRadarAPI empty-feed rerolls (`FEED_EMPTY_RETRIES=0`), do not retry 429, and pause the affected endpoint with exponential back-off up to 15 minutes (honours `Retry-After` when present) ([#254](https://github.com/AlexandrErohin/home-assistant-flightradar24/issues/254), [#330](https://github.com/AlexandrErohin/home-assistant-flightradar24/issues/330), [#332](https://github.com/AlexandrErohin/home-assistant-flightradar24/issues/332), [#333](https://github.com/AlexandrErohin/home-assistant-flightradar24/pull/333), [#341](https://github.com/AlexandrErohin/home-assistant-flightradar24/pull/341))

@@ -1438,6 +1438,13 @@ class Flightradar24Card extends HTMLElement {
     this._areaCenterMarkerPos = null;
   }
 
+  _removeAreaRect(map = this._map) {
+    if (this._areaRect && map) {
+      map.removeLayer(this._areaRect);
+    }
+    this._areaRect = null;
+  }
+
   _areaCenterIcon(L) {
     return L.divIcon({
       className: "area-center-icon",
@@ -1482,6 +1489,26 @@ class Flightradar24Card extends HTMLElement {
       zIndexOffset: 1000,
     }).addTo(map);
     this._areaCenterMarkerPos = posKey;
+  }
+
+  /**
+   * Optional blue outline/tint for the monitored area. Geographic bounds and
+   * the viewport still update when this overlay is hidden.
+   */
+  _syncAreaOverlay(L, map, areaBounds, boundsKey) {
+    if (this._config.show_area === false) {
+      this._removeAreaRect(map);
+      return;
+    }
+    if (this._areaRect && boundsKey === this._lastBoundsKey) {
+      return;
+    }
+    this._removeAreaRect(map);
+    this._areaRect = L.rectangle(areaBounds, {
+      color: "#03a9f4",
+      weight: 2,
+      fillOpacity: 0.06,
+    }).addTo(map);
   }
 
   _flightId(flight) {
@@ -1758,20 +1785,7 @@ class Flightradar24Card extends HTMLElement {
     this._syncAreaCenterMarker(L, map, parsed);
 
     const boundsKey = `${parsed.south},${parsed.west},${parsed.north},${parsed.east}`;
-    // The overlay is optional; geographic bounds still control the viewport.
-    if (this._config.show_area === false) {
-      if (this._areaRect) {
-        map.removeLayer(this._areaRect);
-        this._areaRect = null;
-      }
-    } else if (!this._areaRect || boundsKey !== this._lastBoundsKey) {
-      if (this._areaRect) map.removeLayer(this._areaRect);
-      this._areaRect = L.rectangle(areaBounds, {
-        color: "#03a9f4",
-        weight: 2,
-        fillOpacity: 0.06,
-      }).addTo(map);
-    }
+    this._syncAreaOverlay(L, map, areaBounds, boundsKey);
 
     const configuredZoom = this._configuredZoom();
     const viewportKey = `${boundsKey}|zoom:${configuredZoom ?? "auto"}`;

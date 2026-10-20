@@ -347,7 +347,7 @@ template:
 ```
 
 ### <a id="flightradar24-card">Flightradar24 Map Card</a>
-Built-in Lovelace card with a map of your monitored area, aircraft markers, optional flight tracks, an optional marker at the centre of the area, and a list of flights currently in the area. Basemap styles (OpenStreetMap, satellite, topographic) are selectable without an API key.
+Built-in Lovelace card with a map of your monitored area, aircraft markers, optional flight tracks, an optional monitored-area outline, an optional marker at the centre of the area, and a list of flights currently in the area. Basemap styles (OpenStreetMap, satellite, topographic) are selectable without an API key.
 
 > **Note:** The map card currently supports only the **Current in area** sensor (`sensor.flightradar24_current_in_area`). Other Flightradar24 sensors — tracked flights, entered/exited, airport boards, and so on — are not supported yet. The card needs the `bounds` and `flights` attributes, which only the in-area sensor provides.
 
@@ -389,8 +389,8 @@ show_tracks: true
 | `show_header` | boolean | `true` | Show the title/count header above the map. Set to `false` together with `show_flights: false` for a map-only card |
 | `show_flights` | boolean | `true` | Show the flights list under the map |
 | `show_tracks` | boolean | `true` | Draw flight tracks on the map from each flight's `coordinates` history |
-| `show_area_center` | boolean | `true` | Mark the centre of the observed area — the latitude/longitude this device is configured with (not `zone.home`) |
 | `show_area` | boolean | `true` | Show the monitored area outline and tint. Hiding it preserves map bounds, zoom and the area centre marker |
+| `show_area_center` | boolean | `true` | Mark the centre of the observed area — the latitude/longitude this device is configured with (not `zone.home`) |
 | `interactive_map` | boolean | `false` | Enable mouse/touch dragging and two-finger pinch zoom. Show fixed Close details and Reset view controls; preserve manual navigation when details close or flights update |
 | `zoom` | number | — | Fixed map zoom level (1–19). When omitted, the map auto-fits the monitored area. Useful for static dashboards and e-ink displays where manual zoom is not available |
 | `icon_size` | number | `28` | Aircraft marker size in pixels (12–64). Increase for wall displays or e-ink dashboards where planes are hard to see at the default size |
