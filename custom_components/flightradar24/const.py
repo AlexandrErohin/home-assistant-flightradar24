@@ -83,6 +83,10 @@ SESSION_RENEW_RETRY_DELAY = 2
 SESSION_GUARD_EMPTY_SECONDS = 1800
 SESSION_GUARD_CHECK_THROTTLE = 1800
 
+# A throttled feed answers 429 continuously, so it is routine rather than a
+# fault and is logged at debug instead of error.
+HTTP_TOO_MANY_REQUESTS = 429
+
 # Flightradar24 rate limits clients that request flight details too quickly.
 # Space the per-flight detail lookups out and retry them with a backoff instead
 # of letting a single failure abort the whole update cycle.

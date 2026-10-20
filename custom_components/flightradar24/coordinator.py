@@ -7,6 +7,7 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 from .const import (
     DOMAIN,
+    HTTP_TOO_MANY_REQUESTS,
     URL,
     DEFAULT_NAME,
     DEFAULT_SCAN_INTERVAL,
@@ -17,7 +18,7 @@ from .const import (
     SESSION_SETUP_MAX_TRIES,
     SESSION_RENEW_RETRY_DELAY,
 )
-from .api.client import FlightRadarClient
+from .api.client import FeedCooldown, FlightRadarClient, http_status
 from .api.event import EventManager, Event
 from .api.flight import FlightProcessor
 from .api.airport import AirportProcessor
@@ -106,7 +107,7 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
             else:
                 self.async_update_listeners()
         except Exception as e:
-            self.logger.error("FlightRadar24: %s", e)
+            self._log_api_error(e)
 
     async def remove_flight_track(self, number: str) -> None:
         if not self.scanning:
@@ -130,10 +131,24 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
             else:
                 await self.hass.async_add_executor_job(self.airport.set_track, code)
         except Exception as e:
-            self.logger.error("FlightRadar24: %s", e)
+            self._log_api_error(e)
             return
 
         self.async_set_updated_data(self.data)
+
+    def _log_api_error(self, error: Exception) -> None:
+        """Log an API failure, demoting the routine ones to debug.
+
+        FR24 answers 429 continuously once the feed is throttled, and the
+        circuit breaker then skips that endpoint for FAILURE_COOLDOWN seconds.
+        Both are expected and recover on their own, so at error level they only
+        fill the Home Assistant log and raise repair notices for a non-fault.
+        """
+        if (isinstance(error, FeedCooldown)
+                or http_status(error) == HTTP_TOO_MANY_REQUESTS):
+            self.logger.debug('FlightRadar24: %s', error)
+        else:
+            self.logger.error('FlightRadar24: %s', error)
 
     async def _async_update_data(self):
         if not self.scanning:
@@ -143,24 +158,24 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
             try:
                 await self._update_most_tracked_and_airport()
             except Exception as e:
-                self.logger.error("FlightRadar24: %s", e)
+                self._log_api_error(e)
 
             try:
                 await self._update_area_and_tracked()
                 await self._check_session()
             except Exception as e:
-                self.logger.error("FlightRadar24: %s", e)
+                self._log_api_error(e)
         else:
             try:
                 await self._update_area_and_tracked()
             except Exception as e:
-                self.logger.error("FlightRadar24: %s", e)
+                self._log_api_error(e)
 
             try:
                 await self._update_most_tracked_and_airport()
                 await self._check_session()
             except Exception as e:
-                self.logger.error("FlightRadar24: %s", e)
+                self._log_api_error(e)
 
         self._first_start = False
 
