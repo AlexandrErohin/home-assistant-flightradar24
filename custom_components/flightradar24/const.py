@@ -98,6 +98,11 @@ RETRY_BASE_DELAY = 2
 # The cooldown is kept per endpoint - a rate limited details endpoint must not
 # take the area feed (and with it every count sensor) down with it.
 FAILURE_COOLDOWN = 30
+# An HTTP 429 is not retried. It pauses its endpoint for FAILURE_COOLDOWN, and
+# every further 429 in a row doubles the pause up to this cap (30 s, 1, 2, 4,
+# 8 min, then 15 min); a success resets it. Polling on at the scan interval is
+# what kept a rate limited IP from ever getting out of the limit (#330).
+RATE_LIMIT_MAX_COOLDOWN = 900
 
 # Per-flight position history stored on each flight dict as `coordinates`
 # ([[lat, lon], ...]). Capped so sensor attributes stay bounded.

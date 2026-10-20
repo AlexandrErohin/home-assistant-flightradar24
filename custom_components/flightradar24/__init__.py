@@ -4,7 +4,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant, CoreState, EVENT_HOMEASSISTANT_STARTED
 from homeassistant.exceptions import ConfigEntryNotReady
-from .api.client import FlightRadarClient
+from .api.client import FlightRadarClient, http_status, HTTP_TOO_MANY_REQUESTS
 from .const import DOMAIN, SESSION_SETUP_MAX_TRIES, SESSION_RENEW_RETRY_DELAY
 from .coordinator import FlightRadar24Coordinator, is_session_healthy
 from .frontend import JSModuleRegistration
@@ -86,6 +86,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         try:
             session_verified = await hass.async_add_executor_job(is_session_healthy, client)
         except Exception as e:
+            # A rate limited IP is reachable. Failing setup would leave every
+            # entity unavailable - and the tracked flight services unusable -
+            # until FR24 lets a request through; the coordinator backs off instead.
+            if http_status(e) == HTTP_TOO_MANY_REQUESTS:
+                _LOGGER.warning('FlightRadar24: rate limited during setup, continuing with an unverified session')
+                break
             raise ConfigEntryNotReady('FlightRadar24 is not reachable: {}'.format(e)) from e
         if session_verified:
             break

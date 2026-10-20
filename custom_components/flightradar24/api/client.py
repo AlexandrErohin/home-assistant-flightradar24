@@ -1,14 +1,75 @@
 from FlightRadarAPI import FlightRadar24API, Flight
+import FlightRadarAPI.api as _flightradar_api
 from ..const import (
     FAILURE_COOLDOWN,
     HTTP_TOO_MANY_REQUESTS,
     REQUEST_INTERVAL,
     REQUEST_ATTEMPTS,
     RETRY_BASE_DELAY,
+    FAILURE_COOLDOWN,
+    RATE_LIMIT_MAX_COOLDOWN,
 )
 from logging import Logger
 from threading import Lock
 from time import sleep, monotonic
+
+HTTP_TOO_MANY_REQUESTS = 429
+
+# FlightRadarAPI >= 1.5.2 re-requests an empty feed answer up to
+# FEED_EMPTY_RETRIES more times whenever the feed's `full_count` is above zero.
+# `full_count` is the worldwide total, not the count inside the requested
+# bounds, so a small area that is simply empty costs 1 + 4 back-to-back feed
+# requests on every scan (#330). The sticky-empty session that retry targets is
+# already handled by the session guard in coordinator.py (#278).
+if hasattr(_flightradar_api, 'FEED_EMPTY_RETRIES'):
+    _flightradar_api.FEED_EMPTY_RETRIES = 0
+
+
+class EndpointCooldown(ConnectionError):
+    """Raised instead of sending a request while its endpoint is paused."""
+
+
+def http_status(error: Exception) -> int | None:
+    """Status code of the HTTP response attached to the error, if any."""
+    response = getattr(error, 'response', None)
+    return getattr(response, 'status_code', None)
+
+
+# FR24 rate limits the IP, not the session. The cooldowns are therefore shared
+# by every client in the process: a renewed session or a second config entry
+# must not start from a clean slate and hit the limit again.
+# endpoint -> (paused until, consecutive HTTP 429 answers)
+_cooldowns: dict[str, tuple[float, int]] = {}
+_cooldowns_lock = Lock()
+
+
+def _cooldown_remaining(endpoint: str) -> float:
+    with _cooldowns_lock:
+        until, _ = _cooldowns.get(endpoint, (0.0, 0))
+    return until - monotonic()
+
+
+def _open_cooldown(endpoint: str, rate_limited: bool) -> tuple[int, int]:
+    """Pause the endpoint; return (seconds, consecutive 429 answers).
+
+    A 429 doubles the pause on every further 429 in a row, up to
+    RATE_LIMIT_MAX_COOLDOWN, so a rate limited IP actually goes quiet and
+    gets out of the limit. Any other failure pauses for FAILURE_COOLDOWN.
+    """
+    with _cooldowns_lock:
+        _, strikes = _cooldowns.get(endpoint, (0.0, 0))
+        if rate_limited:
+            strikes += 1
+            delay = min(FAILURE_COOLDOWN * 2 ** (strikes - 1), RATE_LIMIT_MAX_COOLDOWN)
+        else:
+            delay = FAILURE_COOLDOWN
+        _cooldowns[endpoint] = (monotonic() + delay, strikes)
+    return delay, strikes
+
+
+def _clear_cooldown(endpoint: str) -> None:
+    with _cooldowns_lock:
+        _cooldowns.pop(endpoint, None)
 
 
 class FeedCooldown(ConnectionError):
@@ -59,12 +120,12 @@ class FlightRadarClient:
         return self._request('get_most_tracked')
 
     def _request(self, method_name: str, *args, **kwargs) -> dict:
-        # Skip an endpoint that just exhausted its retries instead of letting
-        # every remaining call of the cycle burn its own backoff. While FR24
-        # throttles, that is what keeps the feed throttled.
-        if monotonic() < self._broken_until.get(method_name, 0.0):
-            raise FeedCooldown(
-                '{} is in cooldown after repeated failures'.format(method_name)
+        # The cooldown is kept per endpoint: a paused details endpoint must not
+        # take the feed (and with it the tracked flights) down with it.
+        remaining = _cooldown_remaining(method_name)
+        if remaining > 0:
+            raise EndpointCooldown(
+                '{} paused for another {:.0f} seconds'.format(method_name, remaining)
             )
 
         for attempt in range(REQUEST_ATTEMPTS):
@@ -80,18 +141,24 @@ class FlightRadarClient:
                 method = getattr(self._client, method_name)
                 result = method(*args, **kwargs)
             except Exception as e:
+                # Retrying a 429 within seconds only extends the rate limit.
+                if http_status(e) == HTTP_TOO_MANY_REQUESTS:
+                    delay, strikes = _open_cooldown(method_name, rate_limited=True)
+                    self._logger.warning(
+                        'FlightRadar24: %s is rate limited (HTTP 429, %d in a row), pausing it for %d seconds',
+                        method_name, strikes, delay,
+                    )
+                    raise e
                 if attempt == REQUEST_ATTEMPTS - 1:
-                    self._broken_until[method_name] = monotonic() + FAILURE_COOLDOWN
-                    # Rate limiting is expected on the public feed - keep it out
-                    # of the error log, but still raise so the caller backs off.
-                    log = (self._logger.debug
-                           if http_status(e) == HTTP_TOO_MANY_REQUESTS
-                           else self._logger.warning)
-                    log('FlightRadar24: Could not get details for %s - %s', method_name, e)
+                    delay, _ = _open_cooldown(method_name, rate_limited=False)
+                    self._logger.warning(
+                        'FlightRadar24: Could not get details for %s - %s; pausing it for %d seconds',
+                        method_name, e, delay,
+                    )
                     raise e
                 sleep(RETRY_BASE_DELAY * (2 ** attempt))
             else:
-                self._broken_until.pop(method_name, None)
+                _clear_cooldown(method_name)
                 return result
 
         return None
