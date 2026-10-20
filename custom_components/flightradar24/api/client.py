@@ -1,26 +1,24 @@
 from FlightRadarAPI import FlightRadar24API, Flight
 import FlightRadarAPI.api as _flightradar_api
 from ..const import (
-    FAILURE_COOLDOWN,
-    HTTP_TOO_MANY_REQUESTS,
     REQUEST_INTERVAL,
     REQUEST_ATTEMPTS,
     RETRY_BASE_DELAY,
     FAILURE_COOLDOWN,
     RATE_LIMIT_MAX_COOLDOWN,
+    HTTP_TOO_MANY_REQUESTS,
 )
+from .helper import http_status
 from logging import Logger
 from threading import Lock
 from time import sleep, monotonic
-
-HTTP_TOO_MANY_REQUESTS = 429
 
 # FlightRadarAPI >= 1.5.2 re-requests an empty feed answer up to
 # FEED_EMPTY_RETRIES more times whenever the feed's `full_count` is above zero.
 # `full_count` is the worldwide total, not the count inside the requested
 # bounds, so a small area that is simply empty costs 1 + 4 back-to-back feed
-# requests on every scan (#330). The sticky-empty session that retry targets is
-# already handled by the session guard in coordinator.py (#278).
+# requests on every scan (#330 / #254). The sticky-empty session that retry
+# targets is already handled by the session guard in coordinator.py (#278).
 if hasattr(_flightradar_api, 'FEED_EMPTY_RETRIES'):
     _flightradar_api.FEED_EMPTY_RETRIES = 0
 
@@ -29,42 +27,71 @@ class EndpointCooldown(ConnectionError):
     """Raised instead of sending a request while its endpoint is paused."""
 
 
-def http_status(error: Exception) -> int | None:
-    """Status code of the HTTP response attached to the error, if any."""
-    response = getattr(error, 'response', None)
-    return getattr(response, 'status_code', None)
-
-
-# FR24 rate limits the IP, not the session. The cooldowns are therefore shared
-# by every client in the process: a renewed session or a second config entry
-# must not start from a clean slate and hit the limit again.
+# FR24 rate limits the IP, not the session. Cooldowns and request spacing are
+# therefore shared by every client in the process: a renewed session or a
+# second config entry must not start from a clean slate and hit the limit again.
 # endpoint -> (paused until, consecutive HTTP 429 answers)
 _cooldowns: dict[str, tuple[float, int]] = {}
 _cooldowns_lock = Lock()
+_last_request: float = 0.0
+_request_lock = Lock()
+
+
+def endpoint_in_cooldown(endpoint: str) -> bool:
+    """True while *endpoint* is paused after a failure or HTTP 429."""
+    return _cooldown_remaining(endpoint) > 0
 
 
 def _cooldown_remaining(endpoint: str) -> float:
     with _cooldowns_lock:
         until, _ = _cooldowns.get(endpoint, (0.0, 0))
-    return until - monotonic()
+        return until - monotonic()
 
 
-def _open_cooldown(endpoint: str, rate_limited: bool) -> tuple[int, int]:
+def _retry_after_seconds(error: BaseException) -> int | None:
+    """Parse Retry-After from the HTTP response, if FR24/Cloudflare sent one."""
+    response = getattr(error, 'response', None)
+    headers = getattr(response, 'headers', None)
+    if headers is None:
+        return None
+    raw = None
+    if hasattr(headers, 'get'):
+        raw = headers.get('Retry-After')
+        if raw is None:
+            raw = headers.get('retry-after')
+    if raw is None:
+        return None
+    try:
+        return max(0, int(float(str(raw).strip())))
+    except (TypeError, ValueError):
+        return None
+
+
+def _open_cooldown(
+        endpoint: str,
+        rate_limited: bool,
+        error: BaseException | None = None,
+) -> tuple[int, int]:
     """Pause the endpoint; return (seconds, consecutive 429 answers).
 
     A 429 doubles the pause on every further 429 in a row, up to
     RATE_LIMIT_MAX_COOLDOWN, so a rate limited IP actually goes quiet and
-    gets out of the limit. Any other failure pauses for FAILURE_COOLDOWN.
+    gets out of the limit. When Retry-After is present, the pause is at least
+    that long. Any other failure pauses for FAILURE_COOLDOWN.
     """
     with _cooldowns_lock:
         _, strikes = _cooldowns.get(endpoint, (0.0, 0))
         if rate_limited:
             strikes += 1
             delay = min(FAILURE_COOLDOWN * 2 ** (strikes - 1), RATE_LIMIT_MAX_COOLDOWN)
+            if error is not None:
+                retry_after = _retry_after_seconds(error)
+                if retry_after is not None:
+                    delay = max(delay, min(retry_after, RATE_LIMIT_MAX_COOLDOWN))
         else:
             delay = FAILURE_COOLDOWN
         _cooldowns[endpoint] = (monotonic() + delay, strikes)
-    return delay, strikes
+        return delay, strikes
 
 
 def _clear_cooldown(endpoint: str) -> None:
@@ -72,37 +99,12 @@ def _clear_cooldown(endpoint: str) -> None:
         _cooldowns.pop(endpoint, None)
 
 
-class FeedCooldown(ConnectionError):
-    """Raised instead of calling an endpoint that is still in cooldown.
-
-    It reports the circuit breaker doing its job, not a new fault, so it is
-    logged at debug like the rate limit that opened the breaker.
-    """
-
-
-def http_status(error: BaseException) -> int | None:
-    """Return the HTTP status carried by *error*, or None if it carries none.
-
-    curl_cffi raises HTTPError with the response attached, so the status is
-    readable without matching on the message text.
-    """
-    status = getattr(getattr(error, 'response', None), 'status_code', None)
-    return status if isinstance(status, int) else None
-
-
 class FlightRadarClient:
-    __slots__ = ('_client', '_logger', '_last_request', '_lock', '_broken_until')
+    __slots__ = ('_client', '_logger')
 
     def __init__(self, client: FlightRadar24API, logger: Logger) -> None:
         self._client = client
         self._logger = logger
-        self._last_request: float = 0.0
-        self._lock = Lock()
-        # Per endpoint, not global: the details endpoint is rate limited long
-        # before the area feed is, and a shared breaker would stop the feed as
-        # well - which is what leaves the in area / entered / exited sensors
-        # sitting at 0 for as long as the details endpoint is unhappy.
-        self._broken_until: dict[str, float] = {}
 
     def get_airport_details(self, code: str) -> dict:
         return self._request('get_airport_details', code)
@@ -128,14 +130,15 @@ class FlightRadarClient:
                 '{} paused for another {:.0f} seconds'.format(method_name, remaining)
             )
 
+        global _last_request
         for attempt in range(REQUEST_ATTEMPTS):
             # Hold the lock only for the spacing gate, not the HTTP call,
             # so a slow request does not serialize the other callers.
-            with self._lock:
-                elapsed = monotonic() - self._last_request
+            with _request_lock:
+                elapsed = monotonic() - _last_request
                 if elapsed < REQUEST_INTERVAL:
                     sleep(REQUEST_INTERVAL - elapsed)
-                self._last_request = monotonic()
+                _last_request = monotonic()
 
             try:
                 method = getattr(self._client, method_name)
@@ -143,16 +146,18 @@ class FlightRadarClient:
             except Exception as e:
                 # Retrying a 429 within seconds only extends the rate limit.
                 if http_status(e) == HTTP_TOO_MANY_REQUESTS:
-                    delay, strikes = _open_cooldown(method_name, rate_limited=True)
+                    delay, strikes = _open_cooldown(method_name, rate_limited=True, error=e)
                     self._logger.warning(
-                        'FlightRadar24: %s is rate limited (HTTP 429, %d in a row), pausing it for %d seconds',
+                        'FlightRadar24: %s is rate limited (HTTP 429, %d in a row), '
+                        'pausing it for %d seconds',
                         method_name, strikes, delay,
                     )
                     raise e
                 if attempt == REQUEST_ATTEMPTS - 1:
                     delay, _ = _open_cooldown(method_name, rate_limited=False)
                     self._logger.warning(
-                        'FlightRadar24: Could not get details for %s - %s; pausing it for %d seconds',
+                        'FlightRadar24: Could not get details for %s - %s; '
+                        'pausing it for %d seconds',
                         method_name, e, delay,
                     )
                     raise e

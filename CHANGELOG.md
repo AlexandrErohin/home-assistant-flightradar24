@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented in this file.
 
+## Unreleased
+
+### Fixed
+
+- HTTP 429 storms after v2.1.2: disable FlightRadarAPI empty-feed rerolls (`FEED_EMPTY_RETRIES=0`), do not retry 429, and pause the affected endpoint with exponential back-off up to 15 minutes ([#254](https://github.com/AlexandrErohin/home-assistant-flightradar24/issues/254), [#330](https://github.com/AlexandrErohin/home-assistant-flightradar24/issues/330), [#332](https://github.com/AlexandrErohin/home-assistant-flightradar24/issues/332))
+- Tracked flights keep updating when the area feed fails or is rate-limited
+- Setup continues with an unverified session on canary HTTP 429 instead of leaving every entity unavailable; login 429 becomes `ConfigEntryNotReady` so Home Assistant retries, while 401/403 stay auth failures ([#301](https://github.com/AlexandrErohin/home-assistant-flightradar24/issues/301))
+- Fetch `get_flight_details` for every flight that needs it until HTTP 429 pauses the endpoint for the rest of the cycle; share request spacing process-wide so multiple entries are less likely to re-trigger IP limits
+
 ## [2.3.0] - 2026-10-06
 
 ### Added

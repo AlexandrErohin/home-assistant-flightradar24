@@ -1,4 +1,4 @@
-"""Behaviour while FR24 rate limits the client (HTTP 429, #330)."""
+"""Behaviour while FR24 rate limits the client (HTTP 429, #330 / #254)."""
 
 from logging import getLogger
 from types import SimpleNamespace
@@ -12,8 +12,8 @@ from custom_components.flightradar24.api import client as client_module
 from custom_components.flightradar24.api.client import (
     EndpointCooldown,
     FlightRadarClient,
-    http_status,
 )
+from custom_components.flightradar24.api.helper import http_status
 from custom_components.flightradar24.const import (
     FAILURE_COOLDOWN,
     RATE_LIMIT_MAX_COOLDOWN,
@@ -25,9 +25,12 @@ from custom_components.flightradar24.coordinator import FlightRadar24Coordinator
 class FakeHTTPError(Exception):
     """Shaped like curl_cffi's HTTPError: the response hangs off the error."""
 
-    def __init__(self, status: int) -> None:
+    def __init__(self, status: int, retry_after: str | None = None) -> None:
         super().__init__('HTTP Error {}: '.format(status))
-        self.response = SimpleNamespace(status_code=status)
+        headers = {}
+        if retry_after is not None:
+            headers['Retry-After'] = retry_after
+        self.response = SimpleNamespace(status_code=status, headers=headers)
 
 
 class Clock:
@@ -41,8 +44,10 @@ class Clock:
 @pytest.fixture(autouse=True)
 def clean_cooldowns():
     client_module._cooldowns.clear()
+    client_module._last_request = 0.0
     yield
     client_module._cooldowns.clear()
+    client_module._last_request = 0.0
 
 
 @pytest.fixture
@@ -103,6 +108,17 @@ def test_consecutive_429_double_the_pause_up_to_the_cap(clock):
 
     assert pauses == [30, 60, 120, 240, 480, 900, 900, 900]
     assert RATE_LIMIT_MAX_COOLDOWN == 900
+
+
+def test_retry_after_extends_the_pause(clock):
+    api = MagicMock()
+    api.get_flights.side_effect = FakeHTTPError(429, retry_after='120')
+    client = make_client(api)
+
+    with pytest.raises(FakeHTTPError):
+        client.get_flights()
+    until, _ = client_module._cooldowns['get_flights']
+    assert until - clock.now == 120
 
 
 def test_success_resets_the_backoff(clock):
@@ -167,7 +183,7 @@ def test_empty_area_costs_one_feed_request():
     inner = api._FlightRadar24API__client
     with patch.object(inner, 'request', return_value=response) as request:
         assert api.get_flights(bounds='0.010,0.001,-30.007,-30.000') == []
-    assert request.call_count == 1
+        assert request.call_count == 1
 
 
 @pytest.fixture
@@ -204,7 +220,8 @@ async def test_failing_area_does_not_stop_the_tracked_flights(coordinator):
 
     assert calls == ['tracked', 'area']
     check_session.assert_not_called()
-    coordinator.logger.error.assert_called_once()
+    coordinator.logger.error.assert_not_called()
+    coordinator.logger.debug.assert_called()
 
 
 @pytest.mark.asyncio
@@ -249,4 +266,6 @@ async def test_setup_survives_a_rate_limited_canary(hass, status):
         else:
             with pytest.raises(ConfigEntryNotReady):
                 await async_setup_entry(hass, entry)
-    assert api.get_flights.call_count == 1
+            assert api.get_flights.call_count == REQUEST_ATTEMPTS
+            return
+        assert api.get_flights.call_count == 1
