@@ -544,7 +544,7 @@ class FlightProcessor:
             last_position = None
             previous_closest_distance = None
 
-        if (is_same_flight and self._is_valid(previous)
+        if (is_same_flight and self._is_valid(previous, sensor_type)
                 and to_int(last_position) == obj.on_ground):
             flight = previous
         else:
@@ -746,7 +746,7 @@ class FlightProcessor:
             'coordinates': self._coordinates_from_trail(flight.get('trail')),
         }
 
-    def _is_valid(self, flight: dict) -> bool:
+    def _is_valid(self, flight: dict, sensor_type: FlightType | None = None) -> bool:
         if is_helicopter(flight):
             return flight.get("id") is not None
 
@@ -755,14 +755,16 @@ class FlightProcessor:
         est = flight.get('time_estimated_arrival')
         updated = flight.get('details_updated_at')
 
+        # flight times are updated rarely so no need to get them every scan
+        is_fresh = updated is not None and updated > (time() - randint(2, 6) * 60)
+
+        # Tracked flights are few and their estimated times are what users
+        # follow, so complete details still expire - otherwise the ETA stays
+        # frozen at whatever it was when the details were first fetched.
+        if sensor_type == FlightType.TRACKED:
+            return is_fresh
+
         # Do not require flight_number for the freshness branch: GA/private
         # aircraft often never get one, and gating on it re-fetches details
         # every scan until HTTP 429 (#254).
-        return (
-            (f_num is not None and sched is not None and est is not None)
-            or (
-                # flight times are updated rarely so no need to get them every scan
-                updated is not None
-                and updated > (time() - randint(2, 6) * 60)
-            )
-        )
+        return (f_num is not None and sched is not None and est is not None) or is_fresh
