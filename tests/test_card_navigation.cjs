@@ -446,6 +446,37 @@ test('changing units patches existing flight list meta without recreating the ro
   assert.equal(spans[3].textContent, '10000 ft');
 });
 
+test('list and map icons use helicopter art when aircraft_category is Helicopter', async () => {
+  const f = fixture(true);
+  f.card._planeIcon = f.card.constructor.prototype._planeIcon;
+  const plane = { id: 'p1', heading: 45, aircraft_category: 'Airplane' };
+  const heli = { id: 'h1', heading: 45, aircraft_category: 'Helicopter' };
+  assert.equal(f.card._flightIcon(plane), 'mdi:airplane');
+  assert.equal(f.card._flightIcon(heli), 'mdi:helicopter');
+  assert.equal(f.card._flightIcon({ on_ground: 1, aircraft_category: 'Helicopter' }), 'mdi:helicopter');
+  const L = { divIcon: (options) => options };
+  const planeIcon = f.card._planeIcon(L, plane);
+  const heliIcon = f.card._planeIcon(L, heli);
+  assert.ok(planeIcon.html.includes('M21 16v-2l-8-5'));
+  assert.ok(heliIcon.html.includes('M3,3H17V5H3V3'));
+  assert.ok(planeIcon.html.includes('rotate(45deg)'));
+  assert.ok(heliIcon.html.includes('rotate(-45deg)'));
+  assert.equal(f.card._markerIconKey(heli), '1:45');
+  f.card._popupHtml = f.card.constructor.prototype._popupHtml;
+  const parsed = { north: 10.1, south: 9.9, west: 19.9, east: 20.1, lat: 10, lon: 20 };
+  await f.card._syncMap(parsed, [{
+    id: 'h1', latitude: 10, longitude: 20, heading: 10, aircraft_category: 'Airplane',
+  }]);
+  const marker = f.card._markerById.get('h1');
+  assert.equal(marker._frIconKey, '0:10');
+  f.calls.length = 0;
+  await f.card._syncMap(parsed, [{
+    id: 'h1', latitude: 10, longitude: 20, heading: 10, aircraft_category: 'Helicopter',
+  }]);
+  assert.equal(marker._frIconKey, '1:10');
+  assert.equal(f.card._markerById.get('h1'), marker);
+});
+
 test('container resize invalidates the existing map without changing its viewport', async () => {
   const f = fixture(true); f.card._map = null;
   await f.card._ensureMap();

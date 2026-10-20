@@ -347,7 +347,7 @@ template:
 ```
 
 ### <a id="flightradar24-card">Flightradar24 Map Card</a>
-Built-in Lovelace card with a map of your monitored area, aircraft markers, optional flight tracks, an optional monitored-area outline, an optional marker at the centre of the area, and a list of flights currently in the area. Basemap styles (OpenStreetMap, satellite, topographic) are selectable without an API key.
+Built-in Lovelace card with a map of your monitored area, aircraft markers (airplane or helicopter from `aircraft_category`), optional flight tracks, an optional monitored-area outline, an optional marker at the centre of the area, and a list of flights currently in the area. Basemap styles (OpenStreetMap, satellite, topographic) are selectable without an API key.
 
 > **Note:** The map card currently supports only the **Current in area** sensor (`sensor.flightradar24_current_in_area`). Other Flightradar24 sensors — tracked flights, entered/exited, airport boards, and so on — are not supported yet. The card needs the `bounds` and `flights` attributes, which only the in-area sensor provides.
 

@@ -384,10 +384,20 @@ class Flightradar24Card extends HTMLElement {
   }
 
   /**
-   * Icon by flight phase: on ground, climbing, descending, or level.
+   * Backend sets aircraft_category via is_helicopter() (callsign / model / ICAO).
+   */
+  _isHelicopter(flight) {
+    return String(flight?.aircraft_category || "").toLowerCase() === "helicopter";
+  }
+
+  /**
+   * List icon: helicopters use mdi:helicopter; airplanes use flight phase.
    * on_ground: 0 in air, 1 on ground. vertical_speed in ft/min.
    */
   _flightIcon(flight) {
+    if (this._isHelicopter(flight)) {
+      return "mdi:helicopter";
+    }
     if (Number(flight.on_ground) === 1 || flight.on_ground === true) {
       return "mdi:airplane-check";
     }
@@ -1508,12 +1518,25 @@ class Flightradar24Card extends HTMLElement {
     this._tileLayer = L.tileLayer(style.url, options).addTo(this._map);
   }
 
-  _planeIcon(L, heading) {
-    const rotation =
+  /**
+   * Map marker SVG. Airplane art points up (north); MDI helicopter points
+   * right (east), so helicopters get a -90° bias to match heading.
+   */
+  _planeIcon(L, flight) {
+    const heading = flight?.heading;
+    const helicopter = this._isHelicopter(flight);
+    let rotation =
       heading == null || Number.isNaN(Number(heading)) ? 0 : Number(heading);
+    if (helicopter) {
+      rotation -= 90;
+    }
     const size = this._configuredIconSize();
     const svgSize = Math.max(8, size - 2);
     const anchor = size / 2;
+    // Airplane: Material airplane. Helicopter: mdi-helicopter path.
+    const path = helicopter
+      ? "M3,3H17V5H3V3M23,6V10.5L14.75,12.2C14.91,12.6 15,13.04 15,13.5C15,14.9 14.18,16.1 13,16.66V17L13,19H16V21H4A3,3 0 0,1 1,18V17H3V18A1,1 0 0,0 4,19H5V16.74C3.25,16.13 2,14.46 2,12.5C2,10 4,8 6.5,8H9V6H11V8H21V6H23M11,19V17H7V19H11M7.5,10C6.12,10 5,10.9 5,12C5,13.1 6.12,14 7.5,14C8.88,14 10,13.1 10,12C10,10.9 8.88,10 7.5,10Z"
+      : "M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z";
     return L.divIcon({
       className: "ac-icon",
       iconSize: [size, size],
@@ -1521,11 +1544,16 @@ class Flightradar24Card extends HTMLElement {
       html: `
         <div class="ac-marker" style="width:${size}px;height:${size}px;transform: rotate(${rotation}deg)">
           <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="width:${svgSize}px;height:${svgSize}px">
-            <path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/>
+            <path d="${path}"/>
           </svg>
         </div>
       `,
     });
+  }
+
+  _markerIconKey(flight) {
+    const heli = this._isHelicopter(flight) ? "1" : "0";
+    return `${heli}:${String(flight?.heading ?? "")}`;
   }
 
   _removeAreaCenterMarker(map = this._map) {
@@ -1940,7 +1968,8 @@ class Flightradar24Card extends HTMLElement {
         const trackLen = Array.isArray(flight.coordinates)
           ? flight.coordinates.length
           : 0;
-        return `${this._flightId(flight)}:${flight.latitude}:${flight.longitude}:${flight.heading ?? ""}:${trackLen}`;
+        const heli = this._isHelicopter(flight) ? "1" : "0";
+        return `${this._flightId(flight)}:${flight.latitude}:${flight.longitude}:${flight.heading ?? ""}:${trackLen}:heli:${heli}`;
       }),
     ].join("|");
     if (flightsKey === this._lastFlightsKey) {
@@ -1989,7 +2018,7 @@ class Flightradar24Card extends HTMLElement {
 
       if (!marker) {
         marker = L.marker(latLng, {
-          icon: this._planeIcon(L, flight.heading),
+          icon: this._planeIcon(L, flight),
           title: this._flightLabel(flight),
         });
         marker.bindPopup(popupHtml, {
@@ -2025,16 +2054,16 @@ class Flightradar24Card extends HTMLElement {
             scrollList: this._config?.interactive_map !== true,
           });
         });
-        marker._frHeading = String(flight.heading ?? "");
+        marker._frIconKey = this._markerIconKey(flight);
         marker._frPopupHtml = popupHtml;
         this._markers.addLayer(marker);
         this._markerById.set(flightId, marker);
       } else {
         marker.setLatLng(latLng);
-        const headingKey = String(flight.heading ?? "");
-        if (marker._frHeading !== headingKey) {
-          marker._frHeading = headingKey;
-          marker.setIcon(this._planeIcon(L, flight.heading));
+        const iconKey = this._markerIconKey(flight);
+        if (marker._frIconKey !== iconKey) {
+          marker._frIconKey = iconKey;
+          marker.setIcon(this._planeIcon(L, flight));
         }
         // Update content without tearing down an open popup.
         if (marker._frPopupHtml !== popupHtml) {
