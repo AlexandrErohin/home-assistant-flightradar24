@@ -390,6 +390,7 @@ show_tracks: true
 | `show_flights` | boolean | `true` | Show the flights list under the map |
 | `show_tracks` | boolean | `true` | Draw flight tracks on the map from each flight's `coordinates` history |
 | `show_area_center` | boolean | `true` | Mark the centre of the observed area — the latitude/longitude this device is configured with (not `zone.home`) |
+| `show_area` | boolean | `true` | Show the monitored area outline and tint. Hiding it preserves map bounds, zoom and the area centre marker |
 | `interactive_map` | boolean | `false` | Enable mouse/touch dragging and two-finger pinch zoom. Show fixed Close details and Reset view controls; preserve manual navigation when details close or flights update |
 | `zoom` | number | — | Fixed map zoom level (1–19). When omitted, the map auto-fits the monitored area. Useful for static dashboards and e-ink displays where manual zoom is not available |
 | `icon_size` | number | `28` | Aircraft marker size in pixels (12–64). Increase for wall displays or e-ink dashboards where planes are hard to see at the default size |

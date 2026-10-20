@@ -95,6 +95,7 @@ class Flightradar24Card extends HTMLElement {
       show_flights: true,
       show_tracks: true,
       show_area_center: true,
+      show_area: true,
       interactive_map: false,
       map_style: DEFAULT_MAP_STYLE,
     };
@@ -139,6 +140,7 @@ class Flightradar24Card extends HTMLElement {
       show_flights: true,
       show_tracks: true,
       show_area_center: true,
+      show_area: true,
       interactive_map: false,
       map_style: DEFAULT_MAP_STYLE,
       ...config,
@@ -193,6 +195,7 @@ class Flightradar24Card extends HTMLElement {
         prev.show_header !== this._config.show_header ||
         prev.show_flights !== this._config.show_flights ||
         prev.show_area_center !== this._config.show_area_center ||
+        prev.show_area !== this._config.show_area ||
         prev.show_tracks !== this._config.show_tracks ||
         prev.zoom !== this._config.zoom ||
         prev.icon_size !== this._config.icon_size ||
@@ -1755,6 +1758,21 @@ class Flightradar24Card extends HTMLElement {
     this._syncAreaCenterMarker(L, map, parsed);
 
     const boundsKey = `${parsed.south},${parsed.west},${parsed.north},${parsed.east}`;
+    // The overlay is optional; geographic bounds still control the viewport.
+    if (this._config.show_area === false) {
+      if (this._areaRect) {
+        map.removeLayer(this._areaRect);
+        this._areaRect = null;
+      }
+    } else if (!this._areaRect || boundsKey !== this._lastBoundsKey) {
+      if (this._areaRect) map.removeLayer(this._areaRect);
+      this._areaRect = L.rectangle(areaBounds, {
+        color: "#03a9f4",
+        weight: 2,
+        fillOpacity: 0.06,
+      }).addTo(map);
+    }
+
     const configuredZoom = this._configuredZoom();
     const viewportKey = `${boundsKey}|zoom:${configuredZoom ?? "auto"}`;
     if (viewportKey !== this._lastViewportKey) {
@@ -1771,15 +1789,6 @@ class Flightradar24Card extends HTMLElement {
           const widthFactor = lonSpan * Math.cos((parsed.lat * Math.PI) / 180);
           mapWrap.style.aspectRatio = `${widthFactor} / ${latSpan}`;
         }
-
-        if (this._areaRect) {
-          map.removeLayer(this._areaRect);
-        }
-        this._areaRect = L.rectangle(areaBounds, {
-          color: "#03a9f4",
-          weight: 2,
-          fillOpacity: 0.06,
-        }).addTo(map);
 
         this._areaBounds = areaBounds;
         this._areaMaxBounds = areaBounds.pad(0.02);
@@ -2103,6 +2112,10 @@ class Flightradar24CardEditor extends HTMLElement {
         <span>Show flight tracks</span>
       </div>
       <div class="row check">
+        <input type="checkbox" id="show_area" ${this._config.show_area !== false ? "checked" : ""} />
+        <span>Show monitored area outline</span>
+      </div>
+      <div class="row check">
         <input type="checkbox" id="show_area_center" ${this._config.show_area_center !== false ? "checked" : ""} />
         <span>Show area centre marker</span>
       </div>
@@ -2194,6 +2207,10 @@ class Flightradar24CardEditor extends HTMLElement {
         ...this._config,
         show_tracks: event.target.checked,
       });
+    });
+
+    this.shadowRoot.getElementById("show_area").addEventListener("change", (event) => {
+      this._fireConfigChanged({ ...this._config, show_area: event.target.checked });
     });
 
     this.shadowRoot.getElementById("show_area_center").addEventListener("change", (event) => {
