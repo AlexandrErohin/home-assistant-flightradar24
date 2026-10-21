@@ -92,7 +92,7 @@ class FlightRadar24ScanEntity(
     def _disable(self) -> None:
         self.coordinator.flight.clear_live_data()
         self.coordinator.airport.clear_live_data()
-        self.coordinator.async_set_updated_data(None)
+        self.coordinator.async_update_listeners()
 
 
 class FlightRadar24MostTrackedEntity(

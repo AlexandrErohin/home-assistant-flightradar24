@@ -191,7 +191,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         MAX_ALTITUDE if max_altitude is None else int(max_altitude),
         Entity(latitude, longitude),
         session_verified,
-        entry.data.get(CONF_AUTO_CLEANUP, CONF_AUTO_CLEANUP_DEFAULT)
+        entry.data.get(CONF_AUTO_CLEANUP, CONF_AUTO_CLEANUP_DEFAULT),
+        entry,
     )
 
     coordinator.enable_tracker = entry.data.get(CONF_ENABLE_TRACKER, CONF_ENABLE_TRACKER_DEFAULT)
@@ -201,9 +202,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     entry.async_on_unload(entry.add_update_listener(update_listener))
 
-    # Kick off the first refresh without blocking setup - entities register
-    # immediately and fill as soon as the first cycle completes, instead of
-    # waiting up to scan_interval for the first scheduled tick.
+    # Prefetch most-tracked and airport before the first area/tracked poll so
+    # those sensors have data when the first refresh notifies once (#320).
+    # Errors (including 429) are absorbed and must not fail setup.
+    await coordinator.async_prefetch_most_tracked_and_airport()
+
+    # Kick off the first refresh without blocking setup further - entities
+    # register immediately and fill as soon as the first cycle completes.
     entry.async_create_background_task(hass, coordinator.async_refresh(), 'flightradar24_initial_refresh')
 
     return True

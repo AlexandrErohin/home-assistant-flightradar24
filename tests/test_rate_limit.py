@@ -200,7 +200,7 @@ def coordinator(hass):
         point=Entity(0, 0),
     )
     coordinator.config_entry = MagicMock(title='FlightRadar24')
-    coordinator._first_start = False
+    coordinator._first_poll = False
     return coordinator
 
 
@@ -209,6 +209,7 @@ async def test_failing_area_does_not_stop_the_tracked_flights(coordinator):
     calls = []
     coordinator.flight = MagicMock()
     coordinator.flight.update_flights_tracked.side_effect = lambda: calls.append('tracked')
+    coordinator.flight.update_most_tracked.side_effect = lambda: calls.append('most')
 
     def area():
         calls.append('area')
@@ -218,10 +219,37 @@ async def test_failing_area_does_not_stop_the_tracked_flights(coordinator):
     with patch.object(coordinator, '_check_session') as check_session:
         await coordinator._async_update_data()
 
-    assert calls == ['tracked', 'area']
+    assert calls == ['tracked', 'area', 'most']
     check_session.assert_not_called()
     coordinator.logger.error.assert_not_called()
     coordinator.logger.debug.assert_called()
+
+
+@pytest.mark.asyncio
+async def test_first_poll_skips_most_tracked_and_airport(coordinator):
+    """After setup prefetch, the first refresh only fetches area + tracked (#320)."""
+    calls = []
+    coordinator._first_poll = True
+    coordinator.flight = MagicMock()
+    coordinator.flight.update_flights_tracked.side_effect = lambda: calls.append('tracked')
+    coordinator.flight.update_flights_in_area.side_effect = lambda: calls.append('area')
+    coordinator.flight.update_most_tracked.side_effect = lambda: calls.append('most')
+    with patch.object(coordinator, '_check_session'):
+        await coordinator._async_update_data()
+        assert calls == ['tracked', 'area']
+        assert coordinator._first_poll is False
+        await coordinator._async_update_data()
+    assert calls == ['tracked', 'area', 'tracked', 'area', 'most']
+
+
+@pytest.mark.asyncio
+async def test_poll_does_not_call_async_set_updated_data(coordinator):
+    """One coordinator refresh must not publish intermediate set_updated_data (#320)."""
+    coordinator.flight = MagicMock()
+    with patch.object(coordinator, 'async_set_updated_data') as set_data, \
+            patch.object(coordinator, '_check_session'):
+        await coordinator._async_update_data()
+    set_data.assert_not_called()
 
 
 @pytest.mark.asyncio
@@ -229,13 +257,14 @@ async def test_a_paused_endpoint_is_not_logged_as_an_error_every_scan(coordinato
     coordinator.flight = MagicMock()
     coordinator.flight.update_flights_tracked.side_effect = EndpointCooldown('get_flights paused')
     coordinator.flight.update_flights_in_area.side_effect = EndpointCooldown('get_flights paused')
+    coordinator.flight.update_most_tracked.side_effect = EndpointCooldown('most_tracked paused')
 
     await coordinator._async_update_data()
 
     coordinator.logger.error.assert_not_called()
     paused = [c for c in coordinator.logger.debug.call_args_list
               if any(isinstance(a, EndpointCooldown) for a in c.args)]
-    assert len(paused) == 2
+    assert len(paused) == 3
 
 
 @pytest.mark.asyncio

@@ -1,6 +1,7 @@
 from __future__ import annotations
 from datetime import timedelta
 from time import monotonic, sleep
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from homeassistant.helpers.device_registry import DeviceInfo
@@ -55,6 +56,7 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
             point: Entity,
             session_verified: bool = True,
             auto_cleanup: bool = False,
+            config_entry: ConfigEntry | None = None,
     ) -> None:
         self.unique_id = unique_id
         self.event_manager = EventManager()
@@ -71,7 +73,9 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
             monotonic() if session_verified else monotonic() - SESSION_GUARD_EMPTY_SECONDS
         )
         self._guard_last_check: float = 0.0
-        self._first_start: bool = True
+        # First poll after setup only fetches area + tracked; most_tracked and
+        # airport are prefetched during setup (and on every later poll).
+        self._first_poll: bool = True
         self.device_info = DeviceInfo(
             configuration_url=URL,
             identifiers={(DOMAIN, self.unique_id)},
@@ -93,6 +97,7 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
         super().__init__(
             hass,
             logger,
+            config_entry=config_entry,
             name=DOMAIN,
             update_interval=timedelta(seconds=update_interval),
         )
@@ -135,14 +140,20 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
             self.logger.error("FlightRadar24: %s", e)
             return
 
-        self.async_set_updated_data(self.data)
+        self.async_update_listeners()
+
+    async def async_prefetch_most_tracked_and_airport(self) -> None:
+        """Warm most-tracked and airport during setup without notifying listeners.
+
+        Failures (including HTTP 429) are swallowed by `_run` so setup continues.
+        Entities pick up the data on the first refresh notify.
+        """
+        await self._run(self._update_most_tracked_and_airport)
+        self.event_manager.fire_events(self.config_entry.title, self._fire)
 
     async def _async_update_data(self):
         if not self.scanning:
-            return
-
-        if self._first_start:
-            await self._run(self._update_most_tracked_and_airport)
+            return self.data
 
         # Tracked flights first and on their own: a failing area feed used to
         # abort the cycle before the tracked flights were even requested, and
@@ -150,13 +161,21 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
         await self._run(self._update_tracked)
         area_ok = await self._run(self._update_area)
 
-        if not self._first_start:
+        # First poll after setup: area + tracked only (most/airport were
+        # prefetched). Later polls refresh all four feeds, then one notify.
+        if not self._first_poll:
             await self._run(self._update_most_tracked_and_airport)
         # The guard judges the area count, which is stale after a failed update.
         if area_ok:
             await self._run(self._check_session)
 
-        self._first_start = False
+        self._first_poll = False
+        # Drain the event queue once per cycle (events accumulate across steps).
+        self.event_manager.fire_events(self.config_entry.title, self._fire)
+        # Single listener notify for the whole cycle (see #320). Do not call
+        # async_set_updated_data from the poll steps — it resets the interval
+        # and forces TrackerEntity to write a recorder row every time.
+        return self.data
 
     async def _run(self, step) -> bool:
         try:
@@ -175,24 +194,13 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
 
     async def _update_most_tracked_and_airport(self) -> None:
         await self.hass.async_add_executor_job(self.flight.update_most_tracked)
-        self.async_set_updated_data(self.flight.most_tracked_list)
-        self.event_manager.fire_events(self.config_entry.title, self._fire)
-
         await self.hass.async_add_executor_job(self.airport.update_airport_info)
-        self.async_set_updated_data(self.airport)
 
     async def _update_area(self) -> None:
         await self.hass.async_add_executor_job(self.flight.update_flights_in_area)
-        self.async_set_updated_data(self.flight.in_area_list)
-        self.async_set_updated_data(self.flight.entered_list)
-        self.async_set_updated_data(self.flight.exited_list)
-        self.event_manager.fire_events(self.config_entry.title, self._fire)
 
     async def _update_tracked(self) -> None:
         await self.hass.async_add_executor_job(self.flight.update_flights_tracked)
-        self.async_set_updated_data(self.flight.tracked)
-        self.async_set_updated_data(self.flight.tracked_list)
-        self.event_manager.fire_events(self.config_entry.title, self._fire)
 
     def _fire(self, event: Event) -> None:
         self.hass.bus.fire(event.event, event.data)
