@@ -41,10 +41,9 @@ class FlightRadar24Tracker(CoordinatorEntity, TrackerEntity):
     def _handle_coordinator_update(self) -> None:
         """Write tracker state when flight data or availability changes.
 
-        TrackerEntity forces writes for every coordinator notification. The
-        integration publishes intermediate values several times per scan, so
-        keep a snapshot to suppress identical writes (the tracked flight dict
-        itself is updated in place).
+        TrackerEntity.force_update is True, so every async_write_ha_state becomes
+        a recorder row. Keep a snapshot to skip identical writes; the tracked
+        flight dict is mutated in place, so compare against a deep copy.
         """
         if not self.coordinator.enable_tracker:
             return
