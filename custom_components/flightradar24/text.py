@@ -8,9 +8,9 @@ from homeassistant.components.text import (
     ENTITY_ID_FORMAT,
     TextEntity,
     TextEntityDescription,
-    TextMode,
-    RestoreEntity,
+    TextMode
 )
+from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.core import HomeAssistant
 from .const import DOMAIN
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
