@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented in this file.
 
+## [Unreleased]
+
+### Fixed
+
+- Tracked flights refresh their details every few minutes, so the estimated arrival no longer stays at its take-off value for the whole flight
+
 ## [2.4.0] - 2026-10-21
 
 ### Added
