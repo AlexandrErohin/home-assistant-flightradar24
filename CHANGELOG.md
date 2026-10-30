@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented in this file.
 
+## [2.4.2] - 2026-10-30
+
+### Fixed
+
+- False `flightradar24_tracked_left_gate` / `flightradar24_tracked_arrived_gate` after a real arrival when the same flight briefly reappears in the live feed (parked ADS-B); arrival completion flags are kept on the aircraft stub, `left_gate` is blocked until a new segment, and after `left_gate` a sticky `time_real_arrival` is ignored until the segment is airborne again ([#276](https://github.com/AlexandrErohin/home-assistant-flightradar24/issues/276))
+- Missing `flightradar24_tracked_landed` when the live feed drops the aircraft before `on_ground` 0→1 is polled; arrival evidence now also emits `landed` once before `arrived_gate` ([#276](https://github.com/AlexandrErohin/home-assistant-flightradar24/issues/276))
+- Additional tracked entries by flight number/callsign no longer follow the aircraft registration onto the next sector (e.g. SQ306 → SQ305, QF2051 → QF2052); airframe-only tracking is unchanged ([#317](https://github.com/AlexandrErohin/home-assistant-flightradar24/issues/317))
+
 ## [2.4.1] - 2026-10-29
 
 ### Fixed
