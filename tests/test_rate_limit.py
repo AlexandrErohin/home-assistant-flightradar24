@@ -273,7 +273,7 @@ async def test_setup_survives_a_rate_limited_canary(hass, status):
     """A rate limited IP must not leave every entity unavailable after a restart."""
     from homeassistant.const import CONF_LATITUDE, CONF_LONGITUDE, CONF_RADIUS, CONF_SCAN_INTERVAL
     from homeassistant.exceptions import ConfigEntryNotReady
-    from pytest_homeassistant_custom_component.common import MockConfigEntry
+    from pytest_homeassistant.common import MockConfigEntry
     from custom_components.flightradar24 import async_setup_entry
     from custom_components.flightradar24.const import DOMAIN
 
