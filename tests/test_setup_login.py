@@ -13,7 +13,7 @@ from homeassistant.const import (
 )
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 import pytest
-from pytest_homeassistant_custom_component.common import MockConfigEntry
+from pytest_homeassistant.common import MockConfigEntry
 
 from custom_components.flightradar24 import async_setup_entry
 from custom_components.flightradar24.const import DOMAIN

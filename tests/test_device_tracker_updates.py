@@ -10,7 +10,7 @@ from homeassistant.helpers.update_coordinator import (
     UpdateFailed,
 )
 from homeassistant.helpers.entity_component import EntityComponent
-from pytest_homeassistant_custom_component.common import MockConfigEntry
+from pytest_homeassistant.common import MockConfigEntry
 
 from custom_components.flightradar24.device_tracker import FlightRadar24Tracker
 
