@@ -151,7 +151,7 @@ class Flightradar24Card extends HTMLElement {
       show_area_center: true,
       show_area: true,
       interactive_map: false,
-      clear_selection_on_popup_close: false,
+      clear_selection_on_popup_close: true,
       map_style: DEFAULT_MAP_STYLE,
       ...DEFAULT_DISPLAY_UNITS,
     };
@@ -199,7 +199,7 @@ class Flightradar24Card extends HTMLElement {
       show_area_center: true,
       show_area: true,
       interactive_map: false,
-      clear_selection_on_popup_close: false,
+      clear_selection_on_popup_close: true,
       map_style: DEFAULT_MAP_STYLE,
       ...DEFAULT_DISPLAY_UNITS,
       ...config,
@@ -2049,7 +2049,7 @@ class Flightradar24Card extends HTMLElement {
             this._openPopupFlightId = null;
           }
           if (
-            this._config.clear_selection_on_popup_close === true &&
+            this._config.clear_selection_on_popup_close !== false &&
             this._selectedFlightId === flightId
           ) {
             this._selectedFlightId = null;
@@ -2276,7 +2276,7 @@ class Flightradar24CardEditor extends HTMLElement {
         <span>Enable map dragging and pinch zoom</span>
       </div>
       <div class="row check">
-        <input type="checkbox" id="clear_selection_on_popup_close" ${this._config.clear_selection_on_popup_close === true ? "checked" : ""} />
+        <input type="checkbox" id="clear_selection_on_popup_close" ${this._config.clear_selection_on_popup_close !== false ? "checked" : ""} />
         <span>Clear selection when details close</span>
       </div>
       <div class="row">

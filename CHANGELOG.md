@@ -6,7 +6,11 @@ All notable changes to this project are documented in this file.
 
 ### Added
 
-- Map card option `clear_selection_on_popup_close` to clear the selected aircraft and its track when the details popup is closed; default keeps the previous persistent selection ([#349](https://github.com/AlexandrErohin/home-assistant-flightradar24/issues/349))
+- Map card option `clear_selection_on_popup_close` (default `true`) to clear the selected aircraft and its track when the details popup is closed; set to `false` to keep the previous persistent selection ([#349](https://github.com/AlexandrErohin/home-assistant-flightradar24/issues/349))
+
+### Fixed
+
+- Flight-number / callsign tracking no longer follows the airframe onto the next sector when the live feed omits number/callsign and flight details are unavailable (e.g. SQ237 → SQ106 on the same REG during a details cooldown) ([#317](https://github.com/AlexandrErohin/home-assistant-flightradar24/issues/317))
 
 ## [2.4.2] - 2026-10-30
 

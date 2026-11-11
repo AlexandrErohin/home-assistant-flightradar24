@@ -352,3 +352,100 @@ def test_flight_number_track_allows_same_number_new_fr24_id():
     assert old_id not in processor._tracked
     assert processor._tracked[new_id]['flight_number'] == 'SQ306'
     assert processor._tracked[new_id]['tracked_by'] == 'flight_number'
+
+
+def _live_obj_for_registration(new_id: str, registration: str, **overrides):
+    live_obj = MagicMock(
+        id=new_id,
+        registration=registration,
+        number=None,
+        callsign=None,
+        flight_number=None,
+        on_ground=0,
+        latitude=1.35,
+        longitude=103.99,
+        altitude=0,
+        heading=90,
+        ground_speed=0,
+        squawk='',
+        vertical_speed=0,
+    )
+    live_obj.get_distance_from.return_value = 1
+    for key, value in overrides.items():
+        setattr(live_obj, key, value)
+    return live_obj
+
+
+def test_flight_number_track_keeps_entry_when_details_missing_on_new_id():
+    """Empty feed identity + failed details must not replace SQ237 (#317)."""
+    processor = make_processor()
+    old_id = 'sq237-old'
+    new_id = 'sq106-new'
+    registration = '9V-SMN'
+    processor._tracked[old_id] = {
+        'id': old_id,
+        'flight_number': 'SQ237',
+        'callsign': 'SIA237',
+        'aircraft_registration': registration,
+        'tracked_by': 'flight_number',
+        'tracked_type': 'live',
+        'on_ground': 0,
+        'was_airborne': True,
+        'has_landed': False,
+        'gate_arrived_sent': False,
+        'landed_event_sent': False,
+    }
+    processor._client.get_flights.return_value = [
+        _live_obj_for_registration(new_id, registration),
+    ]
+
+    with patch.object(FlightProcessor, '_fetch_details', return_value=None):
+        processor.update_flights_tracked()
+
+    assert new_id not in processor._tracked
+    assert old_id in processor._tracked
+    tracked = processor._tracked[old_id]
+    assert tracked['flight_number'] == 'SQ237'
+    assert tracked['aircraft_registration'] == registration
+
+
+def test_flight_number_track_rejects_next_sector_after_empty_feed_details():
+    """Details revealing SQ106 must not replace tracked SQ237 on same REG."""
+    processor = make_processor()
+    old_id = 'sq237-old'
+    new_id = 'sq106-new'
+    registration = '9V-SMN'
+    processor._tracked[old_id] = {
+        'id': old_id,
+        'flight_number': 'SQ237',
+        'callsign': 'SIA237',
+        'aircraft_registration': registration,
+        'tracked_by': 'flight_number',
+        'tracked_type': 'live',
+        'on_ground': 1,
+        'was_airborne': True,
+        'has_landed': True,
+        'gate_arrived_sent': False,
+        'landed_event_sent': True,
+        'time_real_arrival': 1_700_000_000,
+    }
+    processor._client.get_flights.return_value = [
+        _live_obj_for_registration(new_id, registration, on_ground=1),
+    ]
+    details = {
+        'id': new_id,
+        'flight_number': 'SQ106',
+        'callsign': 'SIA106',
+        'aircraft_registration': registration,
+        'on_ground': 1,
+    }
+
+    with patch.object(FlightProcessor, '_fetch_details', return_value=details):
+        processor.update_flights_tracked()
+
+    assert new_id not in processor._tracked
+    assert old_id in processor._tracked
+    tracked = processor._tracked[old_id]
+    assert tracked['flight_number'] == 'SQ237'
+    assert 'aircraft_registration' not in tracked
+    assert EVENT_TRACKED_ARRIVED_GATE in event_names(processor)

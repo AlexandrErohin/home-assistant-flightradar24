@@ -339,12 +339,19 @@ class FlightProcessor:
             previous: dict[str, Any],
             obj: Flight,
             live_flight: dict[str, Any] | None = None,
+            *,
+            require_identity: bool = False,
     ) -> bool:
         """Whether a live feed hit for this registration may replace *previous*.
 
         aircraft_registration tracking follows the airframe across sectors.
         flight_number / callsign tracking must keep the same service — otherwise
         SQ306 silently becomes SQ305 when the same REG turns around (#317).
+
+        Before details are fetched, an empty feed identity defers (returns True)
+        so get_flight_details can resolve the service. After a details attempt,
+        pass require_identity=True: missing number/callsign must not follow the
+        REG onto a new FR24 id (details cooldown used to allow SQ237→SQ106).
         """
         tracked_by = previous.get('tracked_by')
         if tracked_by == 'aircraft_registration':
@@ -359,10 +366,8 @@ class FlightProcessor:
         actual = cls._feed_identities(obj)
         if live_flight is not None:
             actual |= cls._number_track_identities(live_flight)
-        # Feed/details sometimes omit number/callsign; allow and rely on the
-        # other check when more identity data appears.
         if not actual:
-            return True
+            return not require_identity
         return bool(expected & actual)
 
     def _on_tracked_live_missing(
@@ -503,22 +508,36 @@ class FlightProcessor:
                 previous_type = previous.get('tracked_type')
                 flight = self._update_flights_data(obj, previous, FlightType.TRACKED)
                 if flight:
-                    # Details may reveal a different service than the feed hinted.
-                    if (
-                            previous_full
-                            and previous_full.get('id') not in (None, obj.id)
-                            and not self._registration_live_allowed(
-                                previous_full, obj, flight)
-                    ):
-                        if registration in reg_to_id:
-                            reg_to_id.pop(registration, None)
-                        self._on_tracked_live_missing(
-                            previous_full['id'],
-                            self._tracked[previous_full['id']],
-                            flight_ids,
-                            airframe_reassigned=True,
-                        )
-                        continue
+                    id_changed = (
+                        bool(previous_full)
+                        and previous_full.get('id') not in (None, obj.id)
+                    )
+                    if id_changed:
+                        number_tracked = previous_full.get('tracked_by') in (
+                            'flight_number', 'callsign')
+                        # Stripped previous + failed details has no service
+                        # identity — keep the original entry until details work.
+                        if number_tracked and not self._number_track_identities(
+                                flight):
+                            if registration in reg_to_id:
+                                reg_to_id.pop(registration, None)
+                            continue
+                        # Details may reveal a different service than the feed.
+                        if not self._registration_live_allowed(
+                                previous_full,
+                                obj,
+                                flight,
+                                require_identity=True,
+                        ):
+                            if registration in reg_to_id:
+                                reg_to_id.pop(registration, None)
+                            self._on_tracked_live_missing(
+                                previous_full['id'],
+                                self._tracked[previous_full['id']],
+                                flight_ids,
+                                airframe_reassigned=True,
+                            )
+                            continue
                     registration = flight.get('aircraft_registration')
                     if registration in reg_to_id:
                         old_flight_id = reg_to_id.pop(registration)
