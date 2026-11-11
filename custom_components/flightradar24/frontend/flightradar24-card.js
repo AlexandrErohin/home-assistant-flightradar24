@@ -151,6 +151,7 @@ class Flightradar24Card extends HTMLElement {
       show_area_center: true,
       show_area: true,
       interactive_map: false,
+      clear_selection_on_popup_close: false,
       map_style: DEFAULT_MAP_STYLE,
       ...DEFAULT_DISPLAY_UNITS,
     };
@@ -198,6 +199,7 @@ class Flightradar24Card extends HTMLElement {
       show_area_center: true,
       show_area: true,
       interactive_map: false,
+      clear_selection_on_popup_close: false,
       map_style: DEFAULT_MAP_STYLE,
       ...DEFAULT_DISPLAY_UNITS,
       ...config,
@@ -2046,6 +2048,14 @@ class Flightradar24Card extends HTMLElement {
           if (this._openPopupFlightId === flightId) {
             this._openPopupFlightId = null;
           }
+          if (
+            this._config.clear_selection_on_popup_close === true &&
+            this._selectedFlightId === flightId
+          ) {
+            this._selectedFlightId = null;
+            this._syncFlightListSelection();
+            this._drawTracks(L, this._positionedFlights || []);
+          }
           this._lockMapToArea(map, { animate: true });
         });
         marker.on("click", (event) => {
@@ -2265,6 +2275,10 @@ class Flightradar24CardEditor extends HTMLElement {
         <input type="checkbox" id="interactive_map" ${this._config.interactive_map === true ? "checked" : ""} />
         <span>Enable map dragging and pinch zoom</span>
       </div>
+      <div class="row check">
+        <input type="checkbox" id="clear_selection_on_popup_close" ${this._config.clear_selection_on_popup_close === true ? "checked" : ""} />
+        <span>Clear selection when details close</span>
+      </div>
       <div class="row">
         <label>Map style</label>
         <select id="map_style">
@@ -2379,6 +2393,13 @@ class Flightradar24CardEditor extends HTMLElement {
 
     this.shadowRoot.getElementById("interactive_map").addEventListener("change", (event) => {
       this._fireConfigChanged({ ...this._config, interactive_map: event.target.checked });
+    });
+
+    this.shadowRoot.getElementById("clear_selection_on_popup_close").addEventListener("change", (event) => {
+      this._fireConfigChanged({
+        ...this._config,
+        clear_selection_on_popup_close: event.target.checked,
+      });
     });
 
     this.shadowRoot.getElementById("map_style").addEventListener("change", (event) => {

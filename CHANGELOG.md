@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented in this file.
 
+## [Unreleased]
+
+### Added
+
+- Map card option `clear_selection_on_popup_close` to clear the selected aircraft and its track when the details popup is closed; default keeps the previous persistent selection ([#349](https://github.com/AlexandrErohin/home-assistant-flightradar24/issues/349))
+
 ## [2.4.2] - 2026-10-30
 
 ### Fixed

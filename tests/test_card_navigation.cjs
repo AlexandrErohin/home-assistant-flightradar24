@@ -180,11 +180,45 @@ test('stub and configuration defaults retain both basemap and interaction option
   const stub = f.card.constructor.getStubConfig({}, [], []);
   assert.equal(stub.map_style, 'osm');
   assert.equal(stub.interactive_map, false);
+  assert.equal(stub.clear_selection_on_popup_close, false);
   f.card._renderShell = () => {};
   f.card._update = () => {};
   f.card.setConfig({ entity: 'sensor.test' });
   assert.equal(f.card._config.map_style, 'osm');
   assert.equal(f.card._config.interactive_map, false);
+  assert.equal(f.card._config.clear_selection_on_popup_close, false);
+});
+
+test('popup close keeps selection by default and clears it when configured', async () => {
+  const parsed = { north: 10.1, south: 9.9, west: 19.9, east: 20.1, lat: 10, lon: 20 };
+  const flight = { id: 'test', latitude: 10, longitude: 20, coordinates: [[10, 20], [10.1, 20.1]] };
+
+  const keep = fixture(true);
+  const keepTracks = [];
+  keep.card._drawTracks = () => keepTracks.push(keep.card._selectedFlightId);
+  keep.card._syncFlightListSelection = () => {};
+  await keep.card._syncMap(parsed, [flight]);
+  keepTracks.length = 0;
+  keep.card._markerById.get('test').events.popupopen({ popup: {} });
+  assert.equal(keep.card._selectedFlightId, 'test');
+  keep.card._markerById.get('test').events.popupclose();
+  assert.equal(keep.card._selectedFlightId, 'test');
+  assert.equal(keep.card._openPopupFlightId, null);
+  assert.equal(keepTracks.length, 0);
+
+  const clear = fixture(true);
+  const clearTracks = [];
+  clear.card._config.clear_selection_on_popup_close = true;
+  clear.card._drawTracks = () => clearTracks.push(clear.card._selectedFlightId);
+  clear.card._syncFlightListSelection = () => {};
+  await clear.card._syncMap(parsed, [flight]);
+  clearTracks.length = 0;
+  clear.card._markerById.get('test').events.popupopen({ popup: {} });
+  assert.equal(clear.card._selectedFlightId, 'test');
+  clear.card._markerById.get('test').events.popupclose();
+  assert.equal(clear.card._selectedFlightId, null);
+  assert.equal(clear.card._openPopupFlightId, null);
+  assert.deepEqual(clearTracks, [null]);
 });
 
 test('live basemap changes preserve the interactive camera and gesture handlers', () => {
