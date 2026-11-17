@@ -624,8 +624,14 @@ class FlightProcessor:
             flight.registration = found.get('reg')
             flight.callsign = found.get('callsign')
             try:
-                result = self._update_flights_data(flight, {})
+                details = self._update_flights_data(flight, {})
             except Exception:
+                details = None
+            if details:
+                result = details
+            else:
+                # No details yet (429 / cooldown): track it from the search
+                # data, the next tracked update picks up the live flight.
                 found['tracked_type'] = 'schedule'
         if result:
             result['tracked_type'] = found.get('tracked_type')

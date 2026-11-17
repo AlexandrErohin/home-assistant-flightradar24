@@ -116,6 +116,67 @@ async def test_failed_tracking_lookup_does_not_notify_listeners(coordinator):
         remove_listener()
 
 
+LIVE_SEARCH = {
+    "live": [{
+        "id": "3c1a2b3d",
+        "detail": {"flight": "EY223", "callsign": "ETD223", "reg": "A6-TST", "lat": 0.5, "lon": 0.5},
+    }],
+}
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("unavailable", ["rate_limited", "cooldown"])
+async def test_add_airborne_flight_while_details_are_unavailable(coordinator, caplog, unavailable):
+    """A live search hit is still tracked when get_flight_details fails (#357)."""
+    client = coordinator.flight._client
+    client.search.return_value = LIVE_SEARCH
+    client.get_flight_details.side_effect = RuntimeError("HTTP Error 429")
+    listener = Mock()
+    remove_listener = coordinator.async_add_listener(listener)
+    try:
+        with patch(
+            "custom_components.flightradar24.api.flight.endpoint_in_cooldown",
+            return_value=unavailable == "cooldown",
+        ):
+            await coordinator.add_flight_track("EY223")
+
+        listener.assert_called_once()
+        assert "No flight found" not in caplog.text
+        [tracked] = coordinator.flight.tracked_list
+        assert tracked["id"] == "3c1a2b3d"
+        assert tracked["flight_number"] == "EY223"
+        assert tracked["callsign"] == "ETD223"
+        assert tracked["tracked_type"] == "schedule"
+        assert tracked["tracked_by"] == "flight_number"
+    finally:
+        remove_listener()
+
+
+@pytest.mark.asyncio
+async def test_flight_added_without_details_becomes_live_later(coordinator):
+    """Once details work again the next tracked update promotes it to live."""
+    client = coordinator.flight._client
+    client.search.return_value = LIVE_SEARCH
+    with patch(
+        "custom_components.flightradar24.api.flight.FlightProcessor._fetch_details",
+        return_value=None,
+    ):
+        await coordinator.add_flight_track("EY223")
+
+    details = {"id": "3c1a2b3d", "flight_number": "EY223", "callsign": "ETD223", "aircraft_code": "B789"}
+    with patch(
+        "custom_components.flightradar24.api.flight.FlightProcessor._fetch_details",
+        return_value=details,
+    ):
+        coordinator.flight.update_flights_tracked()
+
+    [tracked] = coordinator.flight.tracked_list
+    assert tracked["id"] == "3c1a2b3d"
+    assert tracked["tracked_type"] == "live"
+    assert tracked["tracked_by"] == "flight_number"
+    assert tracked["aircraft_code"] == "B789"
+
+
 @pytest.mark.asyncio
 @pytest.mark.parametrize("description", FLIGHT_SENSOR_TYPES, ids=lambda description: description.key)
 async def test_flight_text_publishes_cleared_input(coordinator, description):
