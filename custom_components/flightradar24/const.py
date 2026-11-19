@@ -112,6 +112,13 @@ RATE_LIMIT_MAX_COOLDOWN = 900
 # ([[lat, lon], ...]). Capped so sensor attributes stay bounded.
 COORDINATES_MAX_POINTS = 50
 
+# After landing, a brief ADS-B gap mid-taxi must not mean arrived_gate (BA304 /
+# #317). Require this many consecutive feed misses (after live_attempt grace)
+# before treating absence as gate arrival. Default scan is 20s → ~1 min.
+ARRIVAL_FEED_MISS_THRESHOLD = 3
+# Knots: above this, still taxiing in — need sustained absence before arrival.
+TAXI_ARRIVAL_MAX_SPEED = 5
+
 # Stable English object_ids for entity_id suggestion (#265).
 # Matches historical EN installs: slugify("FlightRadar24" + " " + en.json name).
 # Display names stay localized via translation_key; only the backend ID is pinned.

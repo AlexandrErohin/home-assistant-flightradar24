@@ -141,20 +141,32 @@ def test_arrival_does_not_duplicate_landed_or_arrived():
     assert event_names(processor) == [EVENT_TRACKED_ARRIVED_GATE]
 
 
+def _miss_until_arrived(processor: FlightProcessor, flight_id: str) -> None:
+    """Advance post-landing feed misses until arrived_gate may fire."""
+    from custom_components.flightradar24.const import ARRIVAL_FEED_MISS_THRESHOLD
+
+    processor._client.get_flights.return_value = []
+    for _ in range(ARRIVAL_FEED_MISS_THRESHOLD + 5):
+        processor.update_flights_tracked()
+        if processor._tracked.get(flight_id, {}).get('gate_arrived_sent'):
+            return
+    raise AssertionError('arrived_gate did not fire within miss budget')
+
+
 def test_post_arrival_live_flicker_does_not_repeat_gate_events():
     """SQ327-style: arrived, then same id briefly live again, then gone (#276)."""
     processor = make_processor()
     flight_id = '4257d6bf'
     registration = '9V-SWB'
 
-    # Cycle 1: live flight missing from feed after landing evidence.
+    # Live flight missing from feed after landing evidence (debounced).
     processor._tracked[flight_id] = live_flight(
         landed_event_sent=True,
         gate_arrived_sent=False,
         tracked_by='aircraft_registration',
+        ground_speed=0,
     )
-    processor._client.get_flights.return_value = []
-    processor.update_flights_tracked()
+    _miss_until_arrived(processor, flight_id)
     assert event_names(processor) == [EVENT_TRACKED_ARRIVED_GATE]
     stub = processor._tracked[flight_id]
     assert stub['tracked_type'] == 'aircraft'
@@ -302,6 +314,93 @@ def test_flight_number_track_does_not_follow_airframe_to_next_sector():
     assert 'aircraft_registration' not in tracked
     assert EVENT_TRACKED_ARRIVED_GATE in event_names(processor)
     assert EVENT_TRACKED_LEFT_GATE not in event_names(processor)
+
+
+def test_mid_taxi_feed_gap_does_not_fire_arrived_gate_immediately():
+    """BA304: brief ADS-B gap while still taxiing must not mean arrived_gate."""
+    from custom_components.flightradar24.const import ARRIVAL_FEED_MISS_THRESHOLD
+
+    processor = make_processor()
+    flight_id = '428e13f9'
+    processor._tracked[flight_id] = live_flight(
+        id=flight_id,
+        flight_number='BA304',
+        callsign='BAW304',
+        aircraft_registration='G-TTNA',
+        tracked_by='flight_number',
+        landed_event_sent=True,
+        gate_arrived_sent=False,
+        has_landed=True,
+        was_airborne=True,
+        ground_speed=25,
+        time_real_arrival=None,
+        live_attempt=None,
+    )
+    processor._tracked[flight_id].pop('live_attempt', None)
+    processor._client.get_flights.return_value = []
+
+    # One miss after landing evidence (plus no live_attempt grace): still taxiing.
+    processor.update_flights_tracked()
+    assert event_names(processor) == []
+    assert processor._tracked[flight_id]['gate_arrived_sent'] is False
+    assert processor._tracked[flight_id]['arrival_feed_misses'] == 1
+
+    # Reappear while taxiing clears the miss counter.
+    live_obj = MagicMock(
+        id=flight_id,
+        registration='G-TTNA',
+        number='BA304',
+        callsign='BAW304',
+        on_ground=1,
+        latitude=51.47,
+        longitude=-0.45,
+        altitude=0,
+        heading=270,
+        ground_speed=18,
+        squawk='',
+        vertical_speed=0,
+    )
+    live_obj.get_distance_from.return_value = 1
+    processor._client.get_flights.return_value = [live_obj]
+    details = {
+        'id': flight_id,
+        'flight_number': 'BA304',
+        'callsign': 'BAW304',
+        'aircraft_registration': 'G-TTNA',
+        'on_ground': 1,
+        'time_real_arrival': None,
+    }
+    with patch.object(FlightProcessor, '_fetch_details', return_value=details):
+        processor.update_flights_tracked()
+    assert 'arrival_feed_misses' not in processor._tracked[flight_id]
+    assert event_names(processor) == []
+
+    # Parked (speed 0) then sustained absence → arrived_gate, never left_gate.
+    processor._tracked[flight_id]['ground_speed'] = 0
+    processor._event_manager._events.clear()
+    _miss_until_arrived(processor, flight_id)
+    assert event_names(processor) == [EVENT_TRACKED_ARRIVED_GATE]
+    assert EVENT_TRACKED_LEFT_GATE not in event_names(processor)
+    assert 'arrival_feed_misses' not in processor._tracked[flight_id]
+    # Threshold sanity: taxiing needs more than a single gap.
+    assert ARRIVAL_FEED_MISS_THRESHOLD >= 2
+
+
+def test_left_gate_blocked_when_same_id_already_arrived_on_previous():
+    """Stripped schedule→live stub must not re-fire left_gate after arrival."""
+    processor = make_processor()
+    previous = live_flight(gate_arrived_sent=True, has_landed=True, tracked_type='schedule')
+    found = live_flight(
+        gate_arrived_sent=False,
+        has_landed=False,
+        landed_event_sent=False,
+        tracked_type='live',
+        time_real_arrival=None,
+    )
+    processor._maybe_fire_left_gate('schedule', found, previous=previous)
+    assert event_names(processor) == []
+    assert found['gate_arrived_sent'] is True
+    assert found['has_landed'] is True
 
 
 def test_flight_number_track_allows_same_number_new_fr24_id():

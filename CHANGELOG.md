@@ -9,9 +9,14 @@ All notable changes to this project are documented in this file.
 - New Lovelace card `flightradar24-tracking-card` for `sensor.flightradar24_additional_tracked`: follows a live aircraft (centred, north up), smooth coast/catch-up motion between sensor updates, live vs scheduled list, optional origin→track→destination route, and FR24-style progress bar (`~km` flown / remaining with elapsed and ETA clocks)
 - Map card (`flightradar24-card`) flight list now includes the same FR24-style progress bar (`~km` flown / remaining with elapsed and ETA clocks)
 
+### Fixed
+
+- Adding an airborne flight while `get_flight_details` is rate limited no longer fails with "No flight found"; the search hit is kept as a live stub (without REG) until details succeed, without a false `left_gate` ([#357](https://github.com/AlexandrErohin/home-assistant-flightradar24/issues/357), [#359](https://github.com/AlexandrErohin/home-assistant-flightradar24/pull/359))
+- False `arrived_gate` during post-landing taxi ADS-B gaps (then a spurious `left_gate`) — gate arrival now requires a sustained feed absence, longer while ground speed still looks like taxiing ([#317](https://github.com/AlexandrErohin/home-assistant-flightradar24/issues/317))
+
 > **Important:** After updating the integration, **reload the Flightradar24 integration** (or restart Home Assistant), then **hard-refresh the browser** (or clear the frontend cache) so Lovelace loads the new `flightradar24-tracking-card.js` module. Without a page refresh the UI may keep the previous frontend bundle and the Tracking Card will not appear in **Add Card**.
 
-<img src="https://raw.githubusercontent.com/AlexandrErohin/home-assistant-flightradar24/master/docs/media/map.jpg" alt="Flightradar24 map card"> <img src="https://raw.githubusercontent.com/AlexandrErohin/home-assistant-flightradar24/master/docs/media/tracking_card.jpg" alt="Flightradar24 tracking card">
+<img src="https://raw.githubusercontent.com/AlexandrErohin/home-assistant-flightradar24/master/docs/media/map.jpg" alt="Flightradar24 map card" width="48%"> <img src="https://raw.githubusercontent.com/AlexandrErohin/home-assistant-flightradar24/master/docs/media/tracking_card.jpg" alt="Flightradar24 tracking card" width="48%">
 
 ## [2.5.0] - 2026-11-11
 

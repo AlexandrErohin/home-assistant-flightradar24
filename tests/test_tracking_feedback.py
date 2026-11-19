@@ -6,6 +6,7 @@ from unittest.mock import AsyncMock, MagicMock, Mock, patch
 from FlightRadarAPI import Entity
 import pytest
 
+from custom_components.flightradar24.const import EVENT_TRACKED_LEFT_GATE
 from custom_components.flightradar24.coordinator import FlightRadar24Coordinator
 from custom_components.flightradar24.sensor import (
     FlightRadar24RestoreSensor,
@@ -146,8 +147,10 @@ async def test_add_airborne_flight_while_details_are_unavailable(coordinator, ca
         assert tracked["id"] == "3c1a2b3d"
         assert tracked["flight_number"] == "EY223"
         assert tracked["callsign"] == "ETD223"
-        assert tracked["tracked_type"] == "schedule"
+        assert tracked["tracked_type"] == "live"
         assert tracked["tracked_by"] == "flight_number"
+        assert "aircraft_registration" not in tracked or tracked.get(
+            "aircraft_registration") in (None, "")
     finally:
         remove_listener()
 
@@ -175,6 +178,8 @@ async def test_flight_added_without_details_becomes_live_later(coordinator):
     assert tracked["tracked_type"] == "live"
     assert tracked["tracked_by"] == "flight_number"
     assert tracked["aircraft_code"] == "B789"
+    events = [e.event for e in coordinator.flight._event_manager._events]
+    assert EVENT_TRACKED_LEFT_GATE not in events
 
 
 @pytest.mark.asyncio

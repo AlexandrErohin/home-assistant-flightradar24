@@ -18,6 +18,8 @@ from ..const import (
     EVENT_TRACKED_ARRIVED_GATE,
     EVENT_TRACKED_LEFT_GATE,
     COORDINATES_MAX_POINTS,
+    ARRIVAL_FEED_MISS_THRESHOLD,
+    TAXI_ARRIVAL_MAX_SPEED,
 )
 import pycountry
 
@@ -287,16 +289,24 @@ class FlightProcessor:
             self,
             previous_type: str | None,
             flight: dict[str, Any],
+            previous: dict[str, Any] | None = None,
     ) -> None:
         """Fire left_gate only on schedule/aircraft → live (not live reappear).
 
         Skip when this FR24 flight has already completed arrival: parked ADS-B
         after landing must not look like a new departure (#276 / SQ327).
+        When *previous* is the same FR24 id and already arrived, restore those
+        flags onto *flight* instead of treating a stripped stub as a new
+        departure (#317 BA304).
         """
         if flight.get('tracked_type') != 'live':
             return
         if previous_type not in ('schedule', 'aircraft'):
             return
+        if previous and previous.get('id') == flight.get('id'):
+            if previous.get('gate_arrived_sent') or previous.get('has_landed'):
+                self._copy_gate_lifecycle(previous, flight)
+                return
         if flight.get('gate_arrived_sent') or flight.get('has_landed'):
             return
         self._event_manager.add_event(EVENT_TRACKED_LEFT_GATE, flight)
@@ -315,6 +325,23 @@ class FlightProcessor:
             self._event_manager.add_event(EVENT_TRACKED_LANDED, flight)
         self._event_manager.add_event(EVENT_TRACKED_ARRIVED_GATE, flight)
         flight['gate_arrived_sent'] = True
+
+    @staticmethod
+    def _ready_for_gate_arrival(flight: dict[str, Any]) -> bool:
+        """Whether absence from the live feed may mean arrived_gate.
+
+        *flight* must already include the current miss in arrival_feed_misses.
+        Brief mid-taxi ADS-B gaps after landing must not fire arrived_gate
+        (#317 BA304). High last ground speed needs a longer absence; airline
+        time_real_arrival uses the base threshold (stale taxi speed is common).
+        """
+        misses = int(flight.get('arrival_feed_misses') or 0)
+        needed = ARRIVAL_FEED_MISS_THRESHOLD
+        if flight.get('time_real_arrival') is None:
+            speed = to_int(flight.get('ground_speed'))
+            if speed is not None and speed > TAXI_ARRIVAL_MAX_SPEED:
+                needed = ARRIVAL_FEED_MISS_THRESHOLD + 2
+        return misses >= needed
 
     @staticmethod
     def _identity_keys(*values: Any) -> set[str]:
@@ -394,6 +421,7 @@ class FlightProcessor:
         # coverage gap / taxi flicker, not gate arrival (#315) — unless we
         # already know this airframe is flying a different service (#317).
         if not self._has_arrived_evidence(flight):
+            flight.pop('arrival_feed_misses', None)
             if airframe_reassigned and flight.get('tracked_by') in (
                     'flight_number', 'callsign'):
                 # Detach REG and let phase 3 re-resolve the original number.
@@ -404,6 +432,20 @@ class FlightProcessor:
             flight_ids.discard(flight_id)
             return
 
+        # Post-landing ADS-B gaps mid-taxi look like "gone from feed" but the
+        # aircraft is still moving to the gate (BA304 / #317). Wait for a
+        # sustained absence; high last ground speed needs a longer absence.
+        # Airframe already on another service: this segment is done — arrive now.
+        if not airframe_reassigned:
+            flight = dict(flight)
+            flight['arrival_feed_misses'] = int(
+                flight.get('arrival_feed_misses') or 0) + 1
+            self._tracked[flight_id] = flight
+            if not self._ready_for_gate_arrival(flight):
+                flight_ids.discard(flight_id)
+                return
+
+        flight.pop('arrival_feed_misses', None)
         self._maybe_fire_arrival_events(flight)
         self._tracked[flight_id] = flight
 
@@ -547,10 +589,19 @@ class FlightProcessor:
                     flight['live_attempt'] = 1
                     if not flight.get('tracked_type'):
                         flight['tracked_type'] = 'live'
+                    flight.pop('arrival_feed_misses', None)
                     self._tracked[obj.id] = flight
                     flight_ids.discard(old_flight_id)
                     flight_ids.discard(obj.id)
-                    self._maybe_fire_left_gate(previous_type, flight)
+                    same_segment = (
+                        previous_full.get('id') in (None, obj.id)
+                        if previous_full else True
+                    )
+                    self._maybe_fire_left_gate(
+                        previous_type,
+                        flight,
+                        previous=previous_full if same_segment else None,
+                    )
                     if flight.get('flight_number'):
                         current_flights.append(flight.get('flight_number'))
                     if flight.get('callsign'):
@@ -602,7 +653,12 @@ class FlightProcessor:
                 if found.get('tracked_type') == 'live':
                     self._copy_gate_lifecycle(flight, found)
                 self._tracked[found.get('id')] = found
-                self._maybe_fire_left_gate(previous_type, found)
+                same_segment = flight.get('id') == found.get('id')
+                self._maybe_fire_left_gate(
+                    previous_type,
+                    found,
+                    previous=flight if same_segment else None,
+                )
 
     def _find_flight(self, number: str) -> dict[str, Any] | None:
         flights = self._client.search(number)
@@ -630,9 +686,10 @@ class FlightProcessor:
             if details:
                 result = details
             else:
-                # No details yet (429 / cooldown): track it from the search
-                # data, the next tracked update picks up the live flight.
-                found['tracked_type'] = 'schedule'
+                # No details yet (429 / cooldown): keep the search hit as live
+                # so the next update does not look like schedule→live (false
+                # left_gate). Do not copy REG — stay on number search (#317).
+                found['tracked_type'] = 'live'
         if result:
             result['tracked_type'] = found.get('tracked_type')
             result['tracked_by'] = found.get('tracked_by')
