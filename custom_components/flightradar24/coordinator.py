@@ -1,4 +1,5 @@
 from __future__ import annotations
+import asyncio
 from datetime import timedelta
 from time import monotonic, sleep
 from homeassistant.config_entries import ConfigEntry
@@ -79,6 +80,8 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
         self._first_poll: bool = True
         # monotonic time of the last airport details request (None: never asked).
         self._airport_last_refresh: float | None = None
+        # Background airport refresh must not stack while a previous hang runs.
+        self._airport_task: asyncio.Task | None = None
         self.device_info = DeviceInfo(
             configuration_url=URL,
             identifiers={(DOMAIN, self.unique_id)},
@@ -138,8 +141,9 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
             if not code:
                 await self.hass.async_add_executor_job(self.airport.remove_track)
             else:
-                self._airport_last_refresh = monotonic()
+                # Stamp only after success so a failed set still retries soon.
                 await self.hass.async_add_executor_job(self.airport.set_track, code)
+                self._airport_last_refresh = monotonic()
         except Exception as e:
             self.logger.error("FlightRadar24: %s", e)
             return
@@ -150,9 +154,11 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
         """Warm most-tracked and airport during setup without notifying listeners.
 
         Failures (including HTTP 429) are swallowed by `_run` so setup continues.
-        Entities pick up the data on the first refresh notify.
+        Entities pick up the data on the first refresh notify. Each feed has its
+        own `_run` so a slow airport does not skip most-tracked.
         """
-        await self._run(self._update_most_tracked_and_airport)
+        await self._run(self._update_most_tracked)
+        await self._run(self._update_airport)
         self.event_manager.fire_events(self.config_entry.title, self._fire)
 
     async def _async_update_data(self):
@@ -166,9 +172,10 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
         area_ok = await self._run(self._update_area)
 
         # First poll after setup: area + tracked only (most/airport were
-        # prefetched). Later polls refresh all four feeds, then one notify.
+        # prefetched). Later polls refresh most-tracked in-band; airport runs
+        # in the background so a ~30 s airport.json hang cannot delay notify.
         if not self._first_poll:
-            await self._run(self._update_most_tracked_and_airport)
+            await self._run(self._update_most_tracked)
         # The guard judges the area count, which is stale after a failed update.
         if area_ok:
             await self._run(self._check_session)
@@ -176,6 +183,8 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
         self._first_poll = False
         # Drain the event queue once per cycle (events accumulate across steps).
         self.event_manager.fire_events(self.config_entry.title, self._fire)
+        # Off the return path: interval + in-flight task prevent stacked hangs.
+        self._schedule_airport_refresh()
         # Single listener notify for the whole cycle (see #320). Do not call
         # async_set_updated_data from the poll steps — it resets the interval
         # and forces TrackerEntity to write a recorder row every time.
@@ -196,22 +205,49 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
                 self.logger.error("FlightRadar24: %s", e)
         return False
 
-    async def _update_most_tracked_and_airport(self) -> None:
+    def _airport_due(self) -> bool:
+        """True when the airport interval allows another details request."""
+        if self._airport_last_refresh is None:
+            return True
+        return monotonic() - self._airport_last_refresh >= AIRPORT_REFRESH_INTERVAL
+
+    def _schedule_airport_refresh(self) -> None:
+        """Start a background airport refresh when due (#347).
+
+        Kept off the coordinator return path so listeners are notified for
+        area/tracked/most-tracked without waiting on airport.json.
+        """
+        if not self._airport_due():
+            return
+        if self._airport_task is not None and not self._airport_task.done():
+            return
+        self._airport_task = self.hass.async_create_task(
+            self._airport_refresh_task(),
+        )
+
+    async def _airport_refresh_task(self) -> None:
+        if not self._airport_due():
+            return
+        if await self._run(self._fetch_airport):
+            self.async_update_listeners()
+
+    async def _update_most_tracked(self) -> None:
         await self.hass.async_add_executor_job(self.flight.update_most_tracked)
-        await self._update_airport()
 
     async def _update_airport(self) -> None:
-        """Refresh the airport on its own, slower interval (#347).
+        """Refresh the airport when due (prefetch / tests)."""
+        if not self._airport_due():
+            return
+        await self._fetch_airport()
+
+    async def _fetch_airport(self) -> None:
+        """Perform one airport details request (#347).
 
         The attempt time is stored before the request, so a slow or failing
         airport endpoint is asked again after AIRPORT_REFRESH_INTERVAL and not
         on every poll. The last good stats and schedule stay until then.
         """
-        now = monotonic()
-        if (self._airport_last_refresh is not None
-                and now - self._airport_last_refresh < AIRPORT_REFRESH_INTERVAL):
-            return
-        self._airport_last_refresh = now
+        self._airport_last_refresh = monotonic()
         await self.hass.async_add_executor_job(self.airport.update_airport_info)
 
     async def _update_area(self) -> None:

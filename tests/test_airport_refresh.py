@@ -1,7 +1,8 @@
 """Airport details refresh on their own interval and a timeout is not retried (#347)."""
 
+import asyncio
 from logging import getLogger
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 from curl_cffi.requests.exceptions import HTTPError, Timeout
 from FlightRadarAPI import Entity
@@ -64,17 +65,23 @@ def coordinator(hass, clock):
     return coordinator
 
 
+async def _refresh_most_and_airport(coordinator):
+    """Exercise most-tracked then airport like a normal poll pair."""
+    await coordinator._update_most_tracked()
+    await coordinator._update_airport()
+
+
 @pytest.mark.asyncio
 async def test_airport_is_not_requested_on_every_poll(coordinator, clock):
     for _ in range(3):
-        await coordinator._update_most_tracked_and_airport()
+        await _refresh_most_and_airport(coordinator)
         clock.now += 20
     assert coordinator.airport.update_airport_info.call_count == 1
     # The fast feed is untouched by the airport interval.
     assert coordinator.flight.update_most_tracked.call_count == 3
 
     clock.now += AIRPORT_REFRESH_INTERVAL
-    await coordinator._update_most_tracked_and_airport()
+    await _refresh_most_and_airport(coordinator)
     assert coordinator.airport.update_airport_info.call_count == 2
 
 
@@ -83,20 +90,20 @@ async def test_failed_airport_request_waits_for_the_next_interval(coordinator, c
     coordinator.airport.update_airport_info.side_effect = TimeoutError('slow')
 
     with pytest.raises(TimeoutError):
-        await coordinator._update_most_tracked_and_airport()
+        await _refresh_most_and_airport(coordinator)
     clock.now += 20
-    await coordinator._update_most_tracked_and_airport()
+    await _refresh_most_and_airport(coordinator)
     assert coordinator.airport.update_airport_info.call_count == 1
 
     clock.now += AIRPORT_REFRESH_INTERVAL
     with pytest.raises(TimeoutError):
-        await coordinator._update_most_tracked_and_airport()
+        await _refresh_most_and_airport(coordinator)
     assert coordinator.airport.update_airport_info.call_count == 2
 
 
 @pytest.mark.asyncio
 async def test_setting_the_airport_refreshes_it_at_once(coordinator, clock):
-    await coordinator._update_most_tracked_and_airport()
+    await _refresh_most_and_airport(coordinator)
     clock.now += 5
 
     await coordinator.update_airport_track('LJU')
@@ -104,7 +111,54 @@ async def test_setting_the_airport_refreshes_it_at_once(coordinator, clock):
 
     # set_track fetched the details, so the next poll does not fetch them again.
     clock.now += 20
-    await coordinator._update_most_tracked_and_airport()
+    await _refresh_most_and_airport(coordinator)
+    assert coordinator.airport.update_airport_info.call_count == 1
+
+
+@pytest.mark.asyncio
+async def test_failed_set_track_does_not_advance_refresh_clock(coordinator, clock):
+    """A failed set must not stamp the interval, so the next poll can retry."""
+    coordinator.airport.set_track.side_effect = TimeoutError('slow')
+
+    await coordinator.update_airport_track('LJU')
+
+    assert coordinator._airport_last_refresh is None
+    await coordinator._update_airport()
+    assert coordinator.airport.update_airport_info.call_count == 1
+
+
+@pytest.mark.asyncio
+async def test_poll_does_not_wait_for_airport_hang(coordinator, hass):
+    """Listeners for area/tracked must not wait on a slow airport.json (#347)."""
+    started = asyncio.Event()
+    release = asyncio.Event()
+
+    async def blocking_airport():
+        started.set()
+        await release.wait()
+
+    coordinator._airport_last_refresh = None
+    with patch.object(coordinator, '_update_tracked', new_callable=AsyncMock), \
+            patch.object(coordinator, '_update_area', new_callable=AsyncMock), \
+            patch.object(coordinator, '_update_most_tracked', new_callable=AsyncMock), \
+            patch.object(coordinator, '_check_session', new_callable=AsyncMock), \
+            patch.object(coordinator, '_fetch_airport', side_effect=blocking_airport):
+        done = await coordinator._async_update_data()
+        assert done is coordinator.data
+        await asyncio.wait_for(started.wait(), timeout=1)
+        assert coordinator._airport_task is not None
+        assert not coordinator._airport_task.done()
+        release.set()
+        await coordinator._airport_task
+
+
+@pytest.mark.asyncio
+async def test_most_tracked_still_runs_when_airport_would_fail(coordinator, clock):
+    """Separate _run paths: airport failure must not skip most-tracked."""
+    coordinator.airport.update_airport_info.side_effect = TimeoutError('slow')
+    await coordinator._run(coordinator._update_most_tracked)
+    assert coordinator.flight.update_most_tracked.call_count == 1
+    assert await coordinator._run(coordinator._update_airport) is False
     assert coordinator.airport.update_airport_info.call_count == 1
 
 

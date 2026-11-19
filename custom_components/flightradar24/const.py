@@ -115,7 +115,8 @@ CURL_TIMEOUT_CODE = 28
 
 # Airport details (stats and schedule) change slowly and the endpoint is the
 # slowest one, so they are refreshed on their own interval instead of on every
-# area poll. Setting or clearing the tracked airport still refreshes at once.
+# area poll. Setting a tracked airport refreshes at once; clearing only drops
+# local data (no HTTP).
 AIRPORT_REFRESH_INTERVAL = 90
 
 # Per-flight position history stored on each flight dict as `coordinates`

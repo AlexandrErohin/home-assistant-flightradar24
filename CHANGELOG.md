@@ -13,6 +13,7 @@ All notable changes to this project are documented in this file.
 
 - Adding an airborne flight while `get_flight_details` is rate limited no longer fails with "No flight found"; the search hit is kept as a live stub (without REG) until details succeed, without a false `left_gate` ([#357](https://github.com/AlexandrErohin/home-assistant-flightradar24/issues/357), [#359](https://github.com/AlexandrErohin/home-assistant-flightradar24/pull/359))
 - False `arrived_gate` during post-landing taxi ADS-B gaps (then a spurious `left_gate`) — gate arrival now requires a sustained feed absence, longer while ground speed still looks like taxiing ([#317](https://github.com/AlexandrErohin/home-assistant-flightradar24/issues/317))
+- Airport details refresh at most every 90 s (immediate on set), curl timeouts are not retried, and a hanging `airport.json` no longer delays the area/tracked notify path ([#347](https://github.com/AlexandrErohin/home-assistant-flightradar24/issues/347), [#360](https://github.com/AlexandrErohin/home-assistant-flightradar24/pull/360))
 
 > **Important:** After updating the integration, **reload the Flightradar24 integration** (or restart Home Assistant), then **hard-refresh the browser** (or clear the frontend cache) so Lovelace loads the new `flightradar24-tracking-card.js` module. Without a page refresh the UI may keep the previous frontend bundle and the Tracking Card will not appear in **Add Card**.
 
