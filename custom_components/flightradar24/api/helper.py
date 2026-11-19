@@ -1,5 +1,9 @@
 from typing import Any
 
+from curl_cffi.requests.exceptions import Timeout
+
+from ..const import CURL_TIMEOUT_CODE
+
 
 def http_status(error: BaseException) -> int | None:
     """Return the HTTP status carried by *error*, or None if it carries none.
@@ -14,6 +18,11 @@ def http_status(error: BaseException) -> int | None:
     response = getattr(error, 'response', None)
     status = getattr(response, 'status_code', None)
     return status if isinstance(status, int) else None
+
+
+def is_timeout(error: BaseException) -> bool:
+    """True when the request ran into the HTTP timeout (curl error 28)."""
+    return isinstance(error, Timeout) or getattr(error, 'code', None) == CURL_TIMEOUT_CODE
 
 
 def is_login_auth_error(error: BaseException) -> bool:

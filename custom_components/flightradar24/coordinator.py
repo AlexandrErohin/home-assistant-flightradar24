@@ -18,6 +18,7 @@ from .const import (
     SESSION_SETUP_MAX_TRIES,
     SESSION_RENEW_RETRY_DELAY,
     HTTP_TOO_MANY_REQUESTS,
+    AIRPORT_REFRESH_INTERVAL,
 )
 from .api.client import FlightRadarClient, EndpointCooldown, endpoint_in_cooldown
 from .api.helper import http_status
@@ -76,6 +77,8 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
         # First poll after setup only fetches area + tracked; most_tracked and
         # airport are prefetched during setup (and on every later poll).
         self._first_poll: bool = True
+        # monotonic time of the last airport details request (None: never asked).
+        self._airport_last_refresh: float | None = None
         self.device_info = DeviceInfo(
             configuration_url=URL,
             identifiers={(DOMAIN, self.unique_id)},
@@ -135,6 +138,7 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
             if not code:
                 await self.hass.async_add_executor_job(self.airport.remove_track)
             else:
+                self._airport_last_refresh = monotonic()
                 await self.hass.async_add_executor_job(self.airport.set_track, code)
         except Exception as e:
             self.logger.error("FlightRadar24: %s", e)
@@ -194,6 +198,20 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
 
     async def _update_most_tracked_and_airport(self) -> None:
         await self.hass.async_add_executor_job(self.flight.update_most_tracked)
+        await self._update_airport()
+
+    async def _update_airport(self) -> None:
+        """Refresh the airport on its own, slower interval (#347).
+
+        The attempt time is stored before the request, so a slow or failing
+        airport endpoint is asked again after AIRPORT_REFRESH_INTERVAL and not
+        on every poll. The last good stats and schedule stay until then.
+        """
+        now = monotonic()
+        if (self._airport_last_refresh is not None
+                and now - self._airport_last_refresh < AIRPORT_REFRESH_INTERVAL):
+            return
+        self._airport_last_refresh = now
         await self.hass.async_add_executor_job(self.airport.update_airport_info)
 
     async def _update_area(self) -> None:
