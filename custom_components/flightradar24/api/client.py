@@ -8,7 +8,7 @@ from ..const import (
     RATE_LIMIT_MAX_COOLDOWN,
     HTTP_TOO_MANY_REQUESTS,
 )
-from .helper import http_status
+from .helper import http_status, is_timeout
 from logging import Logger
 from threading import Lock
 from time import sleep, monotonic
@@ -153,7 +153,9 @@ class FlightRadarClient:
                         method_name, strikes, delay,
                     )
                     raise e
-                if attempt == REQUEST_ATTEMPTS - 1:
+                # A timeout already waited out the whole HTTP timeout; retrying
+                # it twice more would hold the poll for another minute or so.
+                if attempt == REQUEST_ATTEMPTS - 1 or is_timeout(e):
                     delay, _ = _open_cooldown(method_name, rate_limited=False)
                     self._logger.warning(
                         'FlightRadar24: %s failed - %s; pausing it for %d seconds',

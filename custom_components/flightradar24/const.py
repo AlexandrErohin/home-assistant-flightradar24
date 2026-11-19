@@ -108,6 +108,16 @@ FAILURE_COOLDOWN = 30
 # what kept a rate limited IP from ever getting out of the limit (#330).
 RATE_LIMIT_MAX_COOLDOWN = 900
 
+# A request that timed out has already cost the whole HTTP timeout (about 30 s),
+# so it is not retried inside the same call. It pauses its endpoint for
+# FAILURE_COOLDOWN and the next poll after that tries again (#347).
+CURL_TIMEOUT_CODE = 28
+
+# Airport details (stats and schedule) change slowly and the endpoint is the
+# slowest one, so they are refreshed on their own interval instead of on every
+# area poll. Setting or clearing the tracked airport still refreshes at once.
+AIRPORT_REFRESH_INTERVAL = 90
+
 # Per-flight position history stored on each flight dict as `coordinates`
 # ([[lat, lon], ...]). Capped so sensor attributes stay bounded.
 COORDINATES_MAX_POINTS = 50
