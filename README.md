@@ -71,13 +71,9 @@ It allows you:
     </td>
     <td width="50%" valign="top">
       <img src="https://raw.githubusercontent.com/AlexandrErohin/home-assistant-flightradar24/master/docs/media/airport_departures.jpg" alt="Airport departures board" width="100%">
-    </td>
-  </tr>
-  <tr>
-    <td width="50%" valign="top">
+      <br>
       <img src="https://raw.githubusercontent.com/AlexandrErohin/home-assistant-flightradar24/master/docs/media/airport_arrivals.jpg" alt="Airport arrivals board" width="100%">
     </td>
-    <td width="50%" valign="top"></td>
   </tr>
 </table>
 

@@ -17,7 +17,16 @@ All notable changes to this project are documented in this file.
 
 > **Important:** After updating the integration, **reload the Flightradar24 integration** (or restart Home Assistant), then **hard-refresh the browser** (or clear the frontend cache) so Lovelace loads the new `flightradar24-tracking-card.js` module. Without a page refresh the UI may keep the previous frontend bundle and the Tracking Card will not appear in **Add Card**.
 
-<img src="https://raw.githubusercontent.com/AlexandrErohin/home-assistant-flightradar24/master/docs/media/map.jpg" alt="Flightradar24 map card" width="48%"> <img src="https://raw.githubusercontent.com/AlexandrErohin/home-assistant-flightradar24/master/docs/media/tracking_card.jpg" alt="Flightradar24 tracking card" width="48%">
+<table>
+  <tr>
+    <td width="50%" valign="top">
+      <img src="https://raw.githubusercontent.com/AlexandrErohin/home-assistant-flightradar24/master/docs/media/map.jpg" alt="Flightradar24 map card" width="100%">
+    </td>
+    <td width="50%" valign="top">
+      <img src="https://raw.githubusercontent.com/AlexandrErohin/home-assistant-flightradar24/master/docs/media/tracking_card.jpg" alt="Flightradar24 tracking card" width="100%">
+    </td>
+  </tr>
+</table>
 
 ## [2.5.0] - 2026-11-11
 
