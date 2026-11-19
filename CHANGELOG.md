@@ -2,6 +2,17 @@
 
 All notable changes to this project are documented in this file.
 
+## [UNRELEASED]
+
+### Added
+
+- New Lovelace card `flightradar24-tracking-card` for `sensor.flightradar24_additional_tracked`: follows a live aircraft (centred, north up), smooth coast/catch-up motion between sensor updates, live vs scheduled list, optional origin→track→destination route, and FR24-style progress bar (`~km` flown / remaining with elapsed and ETA clocks)
+- Map card (`flightradar24-card`) flight list now includes the same FR24-style progress bar (`~km` flown / remaining with elapsed and ETA clocks)
+
+> **Important:** After updating the integration, **reload the Flightradar24 integration** (or restart Home Assistant), then **hard-refresh the browser** (or clear the frontend cache) so Lovelace loads the new `flightradar24-tracking-card.js` module. Without a page refresh the UI may keep the previous frontend bundle and the Tracking Card will not appear in **Add Card**.
+
+<img src="https://raw.githubusercontent.com/AlexandrErohin/home-assistant-flightradar24/master/docs/media/map.jpg" alt="Flightradar24 map card"> <img src="https://raw.githubusercontent.com/AlexandrErohin/home-assistant-flightradar24/master/docs/media/tracking_card.jpg" alt="Flightradar24 tracking card">
+
 ## [2.5.0] - 2026-11-11
 
 ### Added

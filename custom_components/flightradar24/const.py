@@ -27,6 +27,11 @@ JSMODULES = [
         "filename": "flightradar24-card.js",
         "version": INTEGRATION_VERSION,
     },
+    {
+        "name": "Flightradar24 Tracking Card",
+        "filename": "flightradar24-tracking-card.js",
+        "version": INTEGRATION_VERSION,
+    },
 ]
 
 CONF_MIN_ALTITUDE = "min_altitude"

@@ -42,10 +42,11 @@ It allows you:
 5. Create notifications (example - [Get a notification when a flight enters or exits your area](#notification-enters), [Get a notification when a tracked scheduled flight takes off](#notification-scheduled))
 6. Create automations (example - [Automatically track a flight by your needs](#automation))
 7. Add a live [map card](#flightradar24-card) with aircraft markers and flight tracks to your [Home Assistant dashboard](https://www.home-assistant.io/dashboards/)
-8. Add flights table for your area to your [Home Assistant dashboard](https://www.home-assistant.io/dashboards/) by [Lovelace Card](#lovelace)
-9. Add departures/arrivals boards of the selected airport to your [Home Assistant dashboard](https://www.home-assistant.io/dashboards/) by [Lovelace Airport Card](#lovelace-airport)
-10. Track your flight as [Device Tracker](#device-tracker) 
-11. Get info for last flights which were in your area or get info about latest exited flight by creating [Last Flights History Sensor](#last-flights) 
+8. Add a [tracking map card](#flightradar24-tracking-card) that follows additional tracked flights (live centred on the map, scheduled listed below)
+9. Add flights table for your area to your [Home Assistant dashboard](https://www.home-assistant.io/dashboards/) by [Lovelace Card](#lovelace)
+10. Add departures/arrivals boards of the selected airport to your [Home Assistant dashboard](https://www.home-assistant.io/dashboards/) by [Lovelace Airport Card](#lovelace-airport)
+11. Track your flight as [Device Tracker](#device-tracker) 
+12. Get info for last flights which were in your area or get info about latest exited flight by creating [Last Flights History Sensor](#last-flights) 
 
 <table>
   <tr>
@@ -53,24 +54,30 @@ It allows you:
       <img src="https://raw.githubusercontent.com/AlexandrErohin/home-assistant-flightradar24/master/docs/media/map.jpg" alt="Flightradar24 map card" width="100%">
     </td>
     <td width="50%" valign="top">
-      <img src="https://raw.githubusercontent.com/AlexandrErohin/home-assistant-flightradar24/master/docs/media/lovelace.png" alt="Flightradar24 lovelace card" width="100%">
+      <img src="https://raw.githubusercontent.com/AlexandrErohin/home-assistant-flightradar24/master/docs/media/tracking_card.jpg" alt="Flightradar24 tracking card" width="100%">
     </td>
   </tr>
   <tr>
+    <td width="50%" valign="top">
+      <img src="https://raw.githubusercontent.com/AlexandrErohin/home-assistant-flightradar24/master/docs/media/lovelace.png" alt="Flightradar24 lovelace card" width="100%">
+    </td>
     <td width="50%" valign="top">
       <img src="https://raw.githubusercontent.com/AlexandrErohin/home-assistant-flightradar24/master/docs/media/sensors1.jpg" alt="Flightradar24 sensors" width="100%">
     </td>
+  </tr>
+  <tr>
     <td width="50%" valign="top">
       <img src="https://raw.githubusercontent.com/AlexandrErohin/home-assistant-flightradar24/master/docs/media/sensors2.jpg" alt="Flightradar24 sensors" width="100%">
+    </td>
+    <td width="50%" valign="top">
+      <img src="https://raw.githubusercontent.com/AlexandrErohin/home-assistant-flightradar24/master/docs/media/airport_departures.jpg" alt="Airport departures board" width="100%">
     </td>
   </tr>
   <tr>
     <td width="50%" valign="top">
-      <img src="https://raw.githubusercontent.com/AlexandrErohin/home-assistant-flightradar24/master/docs/media/airport_departures.jpg" alt="Airport departures board" width="100%">
-    </td>
-    <td width="50%" valign="top">
       <img src="https://raw.githubusercontent.com/AlexandrErohin/home-assistant-flightradar24/master/docs/media/airport_arrivals.jpg" alt="Airport arrivals board" width="100%">
     </td>
+    <td width="50%" valign="top"></td>
   </tr>
 </table>
 
@@ -349,7 +356,7 @@ template:
 ### <a id="flightradar24-card">Flightradar24 Map Card</a>
 Built-in Lovelace card with a map of your monitored area, aircraft markers (airplane or helicopter from `aircraft_category`), optional flight tracks, an optional monitored-area outline, an optional marker at the centre of the area, and a list of flights currently in the area. Basemap styles (OpenStreetMap, satellite, topographic) are selectable without an API key.
 
-> **Note:** The map card currently supports only the **Current in area** sensor (`sensor.flightradar24_current_in_area`). Other Flightradar24 sensors — tracked flights, entered/exited, airport boards, and so on — are not supported yet. The card needs the `bounds` and `flights` attributes, which only the in-area sensor provides.
+> **Note:** This map card supports the **Current in area** sensor (`sensor.flightradar24_current_in_area`). It needs the `bounds` and `flights` attributes. For additional tracked flights use the [Flightradar24 Tracking Card](#flightradar24-tracking-card).
 
 The card is registered automatically when the integration is loaded — no manual Lovelace resource setup is required.
 
@@ -432,6 +439,52 @@ does not increase flight coverage or make additional API requests. Opening or
 closing details and normal flight updates preserve the current view. Changing
 the monitored bounds or card zoom refits the map. Without this option, the
 existing static map and popup-close recentering behavior are unchanged.
+
+### <a id="flightradar24-tracking-card">Flightradar24 Tracking Card</a>
+Built-in Lovelace card for `sensor.flightradar24_additional_tracked`. The map follows one **live** aircraft (always centred, north up, icon rotated by heading). Between sensor updates the map coasts slower than the last reported ground speed; when a new fix arrives it accelerates and eases to that point, then coasts slowly again — so the camera does not jump backwards. A list under the map shows all tracked flights: live rows are selectable, scheduled rows are labelled and not clickable. Optionally draws the flight route: origin airport → `coordinates` track → current position → destination airport.
+
+The card is registered automatically when the integration is loaded — no manual Lovelace resource setup is required.
+
+<p align="center"><img src="https://raw.githubusercontent.com/AlexandrErohin/home-assistant-flightradar24/master/docs/media/tracking_card.jpg" width="55%"></p>
+
+#### Add via UI
+
+1. Go to your [Home Assistant dashboard](https://www.home-assistant.io/dashboards/)
+2. In the top right corner, select the three-dot menu, then select **Edit dashboard**
+3. Click **+ ADD CARD**, search for `Flightradar24 Tracking Card`, and select it
+4. Choose `sensor.flightradar24_additional_tracked`, set options if needed, and click **SAVE**
+
+#### Add via YAML
+
+```yaml
+type: custom:flightradar24-tracking-card
+entity: sensor.flightradar24_additional_tracked
+title: Tracked Flights
+map_style: osm
+show_header: true
+show_flights: true
+show_route: true
+smooth_motion: true
+zoom: 6
+```
+
+#### Configuration options
+
+| Option | Type | Default | Description |
+| ------ | ---- | ------- | ----------- |
+| `entity` | string | — | **Required.** Use the **Additional tracked** sensor (`sensor.flightradar24_additional_tracked`) |
+| `title` | string | — | Optional card title |
+| `map_style` | string | `osm` | Basemap style: `osm`, `satellite`, or `topo` |
+| `show_header` | boolean | `true` | Show the title/count header above the map |
+| `show_flights` | boolean | `true` | Show the tracked flights list under the map |
+| `show_route` | boolean | `true` | Draw the followed flight route using origin/destination airports when available plus the flight `coordinates` track (not a straight airport-to-airport line) |
+| `smooth_motion` | boolean | `true` | Continuously move the map between sensor updates: coast below reported ground speed, then ease/accelerate to each new fix |
+| `zoom` | number | `6` | Map zoom level (1–19). The selected live aircraft stays centred when coordinates update |
+| `icon_size` | number | `32` | Aircraft marker size in pixels (12–64) |
+| `altitude_unit` | string | `both` | Altitude display: `both`, `m`, or `ft` |
+| `speed_unit` | string | `both` | Ground speed display: `both`, `km/h`, `mph`, or `kts` |
+
+On load the card selects the first **live** flight in the list. If none are live, the map stays empty (no aircraft icon). Only live rows can be selected; scheduled flights remain listed with a Scheduled badge.
 
 ### <a id="lovelace">Lovelace Card</a>
 You can add flight table to your [Home Assistant dashboard](https://www.home-assistant.io/dashboards/)

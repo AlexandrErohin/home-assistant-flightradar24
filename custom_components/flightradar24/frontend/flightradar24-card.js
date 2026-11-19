@@ -512,6 +512,7 @@ class Flightradar24Card extends HTMLElement {
         "",
       depTime: this._flightLegTime(flight, "departure") || "",
       arrTime: this._flightLegTime(flight, "arrival") || "",
+      progress: this._flightProgressInfo(flight),
       distance: this._formatDistance(flight.distance),
       closest: this._formatDistance(flight.closest_distance),
       speed: this._formatSpeed(flight.ground_speed),
@@ -537,26 +538,213 @@ class Flightradar24Card extends HTMLElement {
     return `${hours}:${minutes}`;
   }
 
-  _flightLegTime(flight, leg) {
-    const fields =
-      leg === "departure"
-        ? [
-            "time_real_departure",
-            "time_estimated_departure",
-            "time_scheduled_departure",
-          ]
-        : [
-            "time_real_arrival",
-            "time_estimated_arrival",
-            "time_scheduled_arrival",
-          ];
-    for (const field of fields) {
-      const formatted = this._formatTimestamp(flight[field]);
-      if (formatted) {
-        return formatted;
+  _flightLegFields(leg) {
+    return leg === "departure"
+      ? [
+          "time_real_departure",
+          "time_estimated_departure",
+          "time_scheduled_departure",
+        ]
+      : [
+          "time_real_arrival",
+          "time_estimated_arrival",
+          "time_scheduled_arrival",
+        ];
+  }
+
+  _flightLegTimestamp(flight, leg) {
+    for (const field of this._flightLegFields(leg)) {
+      const value = Number(flight?.[field]);
+      if (Number.isFinite(value) && value > 0) {
+        return value;
       }
     }
     return null;
+  }
+
+  _flightLegTime(flight, leg) {
+    return this._formatTimestamp(this._flightLegTimestamp(flight, leg));
+  }
+
+  _hasPosition(flight) {
+    return (
+      flight &&
+      flight.latitude != null &&
+      flight.longitude != null &&
+      !Number.isNaN(Number(flight.latitude)) &&
+      !Number.isNaN(Number(flight.longitude))
+    );
+  }
+
+  _airportPoint(flight, side) {
+    const latKey =
+      side === "origin"
+        ? "airport_origin_latitude"
+        : "airport_destination_latitude";
+    const lonKey =
+      side === "origin"
+        ? "airport_origin_longitude"
+        : "airport_destination_longitude";
+    if (flight?.[latKey] == null || flight?.[lonKey] == null) {
+      return null;
+    }
+    const lat = Number(flight[latKey]);
+    const lon = Number(flight[lonKey]);
+    if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
+      return null;
+    }
+    return [lat, lon];
+  }
+
+  _formatDurationClock(seconds) {
+    if (!Number.isFinite(seconds)) {
+      return null;
+    }
+    const totalMinutes = Math.max(0, Math.round(Math.abs(seconds) / 60));
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+    return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
+  }
+
+  _formatDistanceKm(kilometers) {
+    if (!Number.isFinite(kilometers) || kilometers < 0) {
+      return null;
+    }
+    // Approximate great-circle estimate — mark with ~ like FR24.
+    return `~${Math.round(kilometers).toLocaleString("en-US")} km`;
+  }
+
+  _haversineKm(lat1, lon1, lat2, lon2) {
+    const toRad = (deg) => (deg * Math.PI) / 180;
+    const earthKm = 6371;
+    const dLat = toRad(lat2 - lat1);
+    const dLon = toRad(lon2 - lon1);
+    const a =
+      Math.sin(dLat / 2) ** 2 +
+      Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
+    return 2 * earthKm * Math.asin(Math.min(1, Math.sqrt(a)));
+  }
+
+  /**
+   * FR24-style progress: yellow flown segment + labels
+   * "~3,237 km, 04:10 ago" / "~8,998 km, in 10:34".
+   */
+  _flightProgressInfo(flight) {
+    if (!flight) {
+      return null;
+    }
+    const origin = this._airportPoint(flight, "origin");
+    const destination = this._airportPoint(flight, "destination");
+    const current = this._hasPosition(flight)
+      ? [Number(flight.latitude), Number(flight.longitude)]
+      : null;
+    const now = Date.now() / 1000;
+    const departure = this._flightLegTimestamp(flight, "departure");
+    const arrival = this._flightLegTimestamp(flight, "arrival");
+    const realArrival = Number(flight.time_real_arrival);
+    const onGround =
+      Number(flight.on_ground) === 1 || flight.on_ground === true;
+    const arrived =
+      (Number.isFinite(realArrival) && realArrival > 0) ||
+      (onGround &&
+        arrival != null &&
+        arrival <= now &&
+        departure != null &&
+        departure < now);
+    const departed =
+      (departure != null && departure <= now) ||
+      (current != null && !(onGround && departure != null && departure > now));
+
+    let flownKm = null;
+    let remainKm = null;
+    if (arrived && origin && destination) {
+      flownKm = this._haversineKm(
+        origin[0],
+        origin[1],
+        destination[0],
+        destination[1]
+      );
+      remainKm = 0;
+    } else if (current && origin && destination) {
+      flownKm = this._haversineKm(origin[0], origin[1], current[0], current[1]);
+      remainKm = this._haversineKm(
+        current[0],
+        current[1],
+        destination[0],
+        destination[1]
+      );
+    } else if (current && origin) {
+      flownKm = this._haversineKm(origin[0], origin[1], current[0], current[1]);
+    } else if (current && destination) {
+      remainKm = this._haversineKm(
+        current[0],
+        current[1],
+        destination[0],
+        destination[1]
+      );
+    } else if (origin && destination) {
+      flownKm = 0;
+      remainKm = this._haversineKm(
+        origin[0],
+        origin[1],
+        destination[0],
+        destination[1]
+      );
+    } else {
+      return null;
+    }
+
+    const flown = flownKm != null ? Math.max(0, flownKm) : 0;
+    const remain = remainKm != null ? Math.max(0, remainKm) : 0;
+    const total = flown + remain;
+    let percent = 0;
+    if (arrived) {
+      percent = 100;
+    } else if (total > 0) {
+      percent = Math.min(100, Math.max(0, (flown / total) * 100));
+    }
+
+    let leftLabel = "";
+    if (flownKm != null) {
+      const dist = this._formatDistanceKm(flown);
+      if (departed && departure != null && now >= departure) {
+        const ago = this._formatDurationClock(now - departure);
+        leftLabel = ago ? `${dist}, ${ago} ago` : dist;
+      } else {
+        leftLabel = dist;
+      }
+    }
+
+    let rightLabel = "";
+    if (arrived) {
+      rightLabel =
+        remainKm != null ? `${this._formatDistanceKm(0)}, Arrived` : "Arrived";
+    } else if (remainKm != null) {
+      const dist = this._formatDistanceKm(remain);
+      let until = null;
+      if (!departed && departure != null && departure > now) {
+        until = departure - now;
+      } else if (arrival != null && arrival > now) {
+        until = arrival - now;
+      } else if (arrival != null && arrival <= now) {
+        rightLabel = `${dist}, Arriving`;
+      }
+      if (until != null) {
+        const clock = this._formatDurationClock(until);
+        rightLabel = clock ? `${dist}, in ${clock}` : dist;
+      } else if (!rightLabel) {
+        rightLabel = dist;
+      }
+    }
+
+    if (!leftLabel && !rightLabel) {
+      return null;
+    }
+    return {
+      percent: Math.round(percent * 10) / 10,
+      leftLabel,
+      rightLabel,
+    };
   }
 
   _flightFr24Url(flight) {
@@ -779,6 +967,54 @@ class Flightradar24Card extends HTMLElement {
     }
   }
 
+  _setProgress(row, snap) {
+    const info = snap.progress;
+    let progress = row.querySelector(":scope > .flight-progress");
+    if (!info) {
+      if (progress) {
+        progress.remove();
+      }
+      return;
+    }
+    if (!progress) {
+      progress = document.createElement("div");
+      progress.className = "flight-progress";
+      progress.innerHTML = `
+        <div class="flight-progress-track">
+          <div class="flight-progress-flown"></div>
+          <div class="flight-progress-plane" aria-hidden="true"></div>
+        </div>
+        <div class="flight-progress-labels">
+          <span class="flight-progress-left"></span>
+          <span class="flight-progress-right"></span>
+        </div>
+      `;
+      const meta = row.querySelector(":scope > .flight-meta");
+      if (meta) {
+        row.insertBefore(progress, meta);
+      } else {
+        row.appendChild(progress);
+      }
+    }
+    const flown = progress.querySelector(".flight-progress-flown");
+    const plane = progress.querySelector(".flight-progress-plane");
+    const left = progress.querySelector(".flight-progress-left");
+    const right = progress.querySelector(".flight-progress-right");
+    const pct = `${info.percent}%`;
+    if (flown && flown.style.width !== pct) {
+      flown.style.width = pct;
+    }
+    if (plane && plane.style.left !== pct) {
+      plane.style.left = pct;
+    }
+    if (left && left.textContent !== info.leftLabel) {
+      left.textContent = info.leftLabel;
+    }
+    if (right && right.textContent !== info.rightLabel) {
+      right.textContent = info.rightLabel;
+    }
+  }
+
   _setMeta(row, snap) {
     const stats = [
       snap.distance != null ? `Dist ${snap.distance}` : "",
@@ -877,9 +1113,11 @@ class Flightradar24Card extends HTMLElement {
       if (!route) {
         route = document.createElement("div");
         route.className = "flight-route";
+        const progressEl = row.querySelector(":scope > .flight-progress");
         const meta = row.querySelector(":scope > .flight-meta");
-        if (meta) {
-          row.insertBefore(route, meta);
+        const before = progressEl || meta;
+        if (before) {
+          row.insertBefore(route, before);
         } else {
           row.appendChild(route);
         }
@@ -903,6 +1141,18 @@ class Flightradar24Card extends HTMLElement {
         this._setRouteEndpoint(route, "dest", snap);
       }
       this._syncRouteSep(route);
+    }
+
+    const prevProgress = prev?.progress;
+    const nextProgress = snap.progress;
+    if (
+      !prev ||
+      prevProgress?.percent !== nextProgress?.percent ||
+      prevProgress?.leftLabel !== nextProgress?.leftLabel ||
+      prevProgress?.rightLabel !== nextProgress?.rightLabel ||
+      !!prevProgress !== !!nextProgress
+    ) {
+      this._setProgress(row, snap);
     }
 
     if (
@@ -1188,6 +1438,7 @@ class Flightradar24Card extends HTMLElement {
         text-decoration: underline;
       }
       .flight-route,
+      .flight-progress,
       .flight-meta {
         display: flex;
         flex-wrap: wrap;
@@ -1197,6 +1448,52 @@ class Flightradar24Card extends HTMLElement {
         margin-left: 26px;
         color: var(--secondary-text-color);
         font-size: 0.85rem;
+      }
+      .flight-progress {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 4px;
+        max-width: calc(100% - 26px);
+      }
+      .flight-progress-track {
+        position: relative;
+        height: 4px;
+        border-radius: 999px;
+        background: color-mix(in srgb, var(--secondary-text-color) 28%, transparent);
+        overflow: visible;
+      }
+      .flight-progress-flown {
+        height: 100%;
+        border-radius: 999px;
+        background: #f5c518;
+        width: 0%;
+      }
+      .flight-progress-plane {
+        position: absolute;
+        top: 50%;
+        width: 10px;
+        height: 10px;
+        margin-left: -5px;
+        border-radius: 50%;
+        background: var(--primary-text-color, #212121);
+        border: 2px solid #f5c518;
+        box-sizing: border-box;
+        transform: translateY(-50%);
+        pointer-events: none;
+      }
+      .flight-progress-labels {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        font-size: 0.78rem;
+        line-height: 1.3;
+      }
+      .flight-progress-left,
+      .flight-progress-right {
+        color: var(--secondary-text-color);
+      }
+      .flight-progress-right {
+        text-align: right;
       }
       .flight-route .route-endpoint {
         display: inline-flex;

@@ -438,6 +438,28 @@ test('changing units refreshes existing popup content even while flight position
   assert.equal(f.calls.some(call => ['fit', 'view', 'close'].includes(call[0])), false);
 });
 
+test('flight list progress uses FR24-style distance and clock labels', () => {
+  const { card } = fixture();
+  const now = Math.floor(Date.now() / 1000);
+  const progress = card._flightProgressInfo({
+    id: 'test',
+    latitude: 52.5178,
+    longitude: 12.6638,
+    on_ground: 0,
+    time_real_departure: now - 4 * 3600 - 10 * 60,
+    time_estimated_arrival: now + 10 * 3600 + 34 * 60,
+    airport_origin_latitude: 30.121941,
+    airport_origin_longitude: 31.40555,
+    airport_destination_latitude: 33.94252,
+    airport_destination_longitude: -118.406998,
+  });
+  assert.ok(progress);
+  assert.ok(progress.percent > 0 && progress.percent < 100);
+  assert.match(progress.leftLabel, /^~\d{1,3}(,\d{3})* km, 04:\d{2} ago$/);
+  assert.match(progress.rightLabel, /^~\d{1,3}(,\d{3})* km, in 10:\d{2}$/);
+  assert.equal(card._flightProgressInfo({ id: 'bare' }), null);
+});
+
 test('changing units patches existing flight list meta without recreating the row', () => {
   const { card } = fixture();
   card._renderShell = () => {};

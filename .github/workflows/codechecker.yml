@@ -13,7 +13,8 @@ jobs:
       - name: Check card syntax and navigation regressions
         run: |
           node --check custom_components/flightradar24/frontend/flightradar24-card.js
-          node --test tests/test_card_navigation.cjs
+          node --check custom_components/flightradar24/frontend/flightradar24-tracking-card.js
+          node --test tests/test_card_navigation.cjs tests/test_tracking_card.cjs
   ci:
     runs-on: ubuntu-latest
     steps:
