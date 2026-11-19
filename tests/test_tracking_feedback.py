@@ -3,7 +3,7 @@
 from logging import getLogger
 from unittest.mock import AsyncMock, MagicMock, Mock, patch
 
-from FlightRadarAPI import Entity
+from FlightRadarAPI import AirportNotFoundError, Entity
 import pytest
 
 from custom_components.flightradar24.const import EVENT_TRACKED_LEFT_GATE
@@ -213,3 +213,41 @@ async def test_airport_text_keeps_selected_code(coordinator):
     coordinator.update_airport_track.assert_awaited_once_with("TEST")
     assert writes == ["TEST"]
     assert entity.native_value == "TEST"
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("previous", ["", "LHR"])
+async def test_airport_text_reverts_unknown_code(coordinator, previous):
+    """A code FR24 does not know is not shown, the tracked airport is."""
+    if previous:
+        coordinator.airport.restore_code(previous)
+    coordinator.flight._client.get_airport_details.side_effect = AirportNotFoundError(
+        "Could not find an airport by the code 'XYZQ'.")
+    entity = FlightRadar24TextAirport(coordinator, AIRPORT_SENSOR_TYPES[0])
+    entity._attr_native_value = previous
+    writes = []
+    entity.async_write_ha_state = Mock(side_effect=lambda: writes.append(entity.native_value))
+
+    await entity.async_set_value("xyzq")
+
+    assert coordinator.airport.code == (previous or None)
+    assert writes == [previous]
+    assert entity.native_value == previous
+
+
+@pytest.mark.asyncio
+async def test_airport_text_unchanged_while_scanning_is_off(coordinator):
+    """While scanning is off the airport is not changed, so neither is the input."""
+    coordinator.airport.restore_code("LHR")
+    coordinator.scanning = False
+    entity = FlightRadar24TextAirport(coordinator, AIRPORT_SENSOR_TYPES[0])
+    entity._attr_native_value = "LHR"
+    writes = []
+    entity.async_write_ha_state = Mock(side_effect=lambda: writes.append(entity.native_value))
+
+    await entity.async_set_value("BSL")
+
+    coordinator.flight._client.get_airport_details.assert_not_called()
+    assert coordinator.airport.code == "LHR"
+    assert writes == ["LHR"]
+    assert entity.native_value == "LHR"
