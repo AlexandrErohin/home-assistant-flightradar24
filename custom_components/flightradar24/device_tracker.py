@@ -74,7 +74,10 @@ class FlightRadar24Tracker(CoordinatorEntity, TrackerEntity):
             flight = self.coordinator.flight.tracked.get(info.get("id"))
             info = flight if flight and flight.get("tracked_type") == "live" else {}
 
-        return info
+        # The coordinator keeps mutating the stored flight dicts in place, so
+        # expose a copy - otherwise the published attributes would change by
+        # themselves after a refresh (#317).
+        return dict(info)
 
     @property
     def source_type(self) -> SourceType:

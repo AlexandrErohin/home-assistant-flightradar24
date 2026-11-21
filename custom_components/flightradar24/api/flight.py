@@ -139,11 +139,14 @@ class FlightProcessor:
 
     @property
     def tracked_list(self) -> list[dict[str, Any]]:
-        return list(self._tracked.values()) if self._tracked else []
+        # Copies, not the stored dicts: the processor keeps updating the stored
+        # flights in place, and a list of live references would let an already
+        # published attribute list change by itself after the next refresh (#317).
+        return [dict(flight) for flight in self._tracked.values()] if self._tracked else []
 
     @property
     def in_area_list(self) -> list[dict[str, Any]]:
-        return list(self._in_area.values()) if self._in_area else []
+        return [dict(flight) for flight in self._in_area.values()] if self._in_area else []
 
     @property
     def most_tracked_enabled(self) -> bool:
@@ -151,15 +154,16 @@ class FlightProcessor:
 
     @property
     def most_tracked_list(self) -> list[dict[str, Any]]:
-        return list(self._most_tracked.values()) if self._most_tracked else []
+        return [dict(flight) for flight in self._most_tracked.values()] if self._most_tracked else []
 
     @property
     def entered_list(self) -> list[dict[str, Any]]:
-        return self._entered
+        # Copies of the stored dicts - the in-area dicts keep being updated.
+        return [dict(flight) for flight in self._entered]
 
     @property
     def exited_list(self) -> list[dict[str, Any]]:
-        return self._exited
+        return [dict(flight) for flight in self._exited]
 
     def clear_live_data(self) -> None:
         self._in_area = {}
@@ -407,6 +411,9 @@ class FlightProcessor:
     ) -> None:
         """Handle a tracked live flight that is no longer this live feed entry."""
         if flight.get('live_attempt'):
+            # Copy before mutating: `flight` is the stored dict and may still be
+            # referenced by an already exposed tracked list (#317).
+            flight = dict(flight)
             del flight['live_attempt']
             self._tracked[flight_id] = flight
             flight_ids.discard(flight_id)
@@ -445,6 +452,9 @@ class FlightProcessor:
                 flight_ids.discard(flight_id)
                 return
 
+        # Copy before mutating flags: `flight` may be the stored dict that an
+        # already exposed tracked list still references (#317).
+        flight = dict(flight)
         flight.pop('arrival_feed_misses', None)
         self._maybe_fire_arrival_events(flight)
         self._tracked[flight_id] = flight
@@ -780,14 +790,17 @@ class FlightProcessor:
 
         if (is_same_flight and self._is_valid(previous, sensor_type)
                 and to_int(last_position) == obj.on_ground):
-            flight = previous
+            # Copy before updating: `previous` may be the stored dict of
+            # _in_area / _tracked and must not be mutated in place, otherwise
+            # an already exposed list of flights would change by itself (#317).
+            flight = dict(previous)
         else:
             # Prefer fresh details; otherwise keep the last full record. Never
             # invent a feed-only stub for a new flight — ENTRY / attributes must
             # wait until get_flight_details succeeds (next cycle if cooldown).
             flight = self._fetch_details(obj)
             if flight is None and previous:
-                flight = previous
+                flight = dict(previous)
             if flight is None:
                 return None
         if flight is not None:
