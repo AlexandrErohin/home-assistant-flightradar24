@@ -44,12 +44,14 @@ class AirportProcessor:
         return self._stats
 
     @property
-    def arrivals(self) -> list[dict[str, Any]]:
-        return self._arrivals
+    def arrivals(self) -> list[dict[str, Any]] | None:
+        # Copies, not the internal list - exposed attribute lists must not be
+        # shared mutable references (#317).
+        return [dict(flight) for flight in self._arrivals] if self._arrivals is not None else None
 
     @property
-    def departures(self) -> list[dict[str, Any]]:
-        return self._departures
+    def departures(self) -> list[dict[str, Any]] | None:
+        return [dict(flight) for flight in self._departures] if self._departures is not None else None
 
     def set_track(self, code: str) -> None:
         code = code.upper()
