@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented in this file.
 
+## [UNRELEASED]
+
+### Fixed
+
+- Tracked flights found by FR24 search (Add to track / post-landing refresh) keep the exact trail position instead of the search answer rounded to 0.1°, so the marker and track no longer jump several km ([#151](https://github.com/AlexandrErohin/home-assistant-flightradar24/issues/151), [#361](https://github.com/AlexandrErohin/home-assistant-flightradar24/pull/361))
+
 ## [2.6.0] - 2026-11-18
 
 ### Added

@@ -5,7 +5,7 @@ from time import time
 from random import randint
 from .client import FlightRadarClient, endpoint_in_cooldown
 from FlightRadarAPI import Flight, Entity
-from .helper import to_int, to_float, get_value
+from .helper import to_int, to_float, get_value, within_search_position_rounding
 from .event import EventManager
 from ..const import (
     EVENT_ENTRY,
@@ -793,13 +793,13 @@ class FlightProcessor:
                 return None
         if flight is not None:
             if position_from_trail and flight.get('coordinates'):
-                # FR24 search rounds the live position to 0.1 degree, so the
-                # exact one lies within 0.05 degree of it. Use the newest trail
-                # point only then; one further away is stale (#151).
+                # FR24 search rounds the live position to 0.1°; use the newest
+                # trail point only when it lies within that rounding (#151).
                 lat, lon = flight['coordinates'][-1]
                 search_lat, search_lon = to_float(obj.latitude), to_float(obj.longitude)
                 if (search_lat is not None and search_lon is not None
-                        and abs(lat - search_lat) <= 0.0501 and abs(lon - search_lon) <= 0.0501):
+                        and within_search_position_rounding(
+                            lat, lon, search_lat, search_lon)):
                     obj.latitude, obj.longitude = lat, lon
             flight['latitude'] = obj.latitude
             flight['longitude'] = obj.longitude

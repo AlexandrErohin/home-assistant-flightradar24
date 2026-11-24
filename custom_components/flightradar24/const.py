@@ -123,6 +123,10 @@ AIRPORT_REFRESH_INTERVAL = 90
 # ([[lat, lon], ...]). Capped so sensor attributes stay bounded.
 COORDINATES_MAX_POINTS = 50
 
+# FR24 search rounds a live position to 0.1°. The exact point therefore lies
+# within half that step (0.05°) of the rounded answer (#151).
+SEARCH_POSITION_ROUNDING_DEG = 0.05
+
 # After landing, a brief ADS-B gap mid-taxi must not mean arrived_gate (BA304 /
 # #317). Require this many consecutive feed misses (after live_attempt grace)
 # before treating absence as gate arrival. Default scan is 20s → ~1 min.

@@ -7,6 +7,11 @@ from FlightRadarAPI import Entity
 import pytest
 
 from custom_components.flightradar24.api.flight import FlightProcessor
+from custom_components.flightradar24.api.helper import (
+    longitude_delta,
+    within_search_position_rounding,
+)
+from custom_components.flightradar24.const import SEARCH_POSITION_ROUNDING_DEG
 
 HOME = Entity(51.47, -0.4543)
 
@@ -88,9 +93,15 @@ def test_search_hit_without_trail_keeps_search_position():
 
 
 @pytest.mark.parametrize("via", ["add_track", "refresh"])
-@pytest.mark.parametrize("newest", [(51.4501, -0.8499), (51.5499, -0.7501)])
+@pytest.mark.parametrize("newest", [
+    (51.4501, -0.8499),
+    (51.5499, -0.7501),
+    # Exact half-step of 0.1° rounding must still count as the live position.
+    (51.5 - SEARCH_POSITION_ROUNDING_DEG, -0.8),
+    (51.5 + SEARCH_POSITION_ROUNDING_DEG, -0.8),
+])
 def test_trail_point_just_inside_search_rounding_is_used(via, newest):
-    """A trail point within 0.05 degree of the search position is the exact position."""
+    """A trail point within search rounding of the search position is the exact one."""
     details = DETAILS | {"trail": [{"lat": newest[0], "lng": newest[1]}, {"lat": 51.46, "lng": -0.80}]}
     tracked = _track(_processor(details), via)
 
@@ -100,7 +111,12 @@ def test_trail_point_just_inside_search_rounding_is_used(via, newest):
 
 
 @pytest.mark.parametrize("via", ["add_track", "refresh"])
-@pytest.mark.parametrize("stale", [(51.0, -0.8), (51.5, -0.9), (51.5501, -0.8)])
+@pytest.mark.parametrize("stale", [
+    (51.0, -0.8),
+    (51.5, -0.9),
+    # Just outside the half-step window (not float-slop of 0.0501).
+    (51.5 + SEARCH_POSITION_ROUNDING_DEG + 0.0001, -0.8),
+])
 def test_stale_trail_point_keeps_search_position(via, stale):
     """A trail point outside the search rounding is old: behave as before (search position)."""
     details = DETAILS | {"trail": [{"lat": stale[0], "lng": stale[1]}, {"lat": 50.9, "lng": -0.7}]}
@@ -111,6 +127,67 @@ def test_stale_trail_point_keeps_search_position(via, stale):
     expected = Entity(51.5, -0.8).get_distance_from(HOME)
     assert tracked["distance"] == expected
     assert tracked["closest_distance"] == expected
+
+
+@pytest.mark.parametrize("via", ["add_track", "refresh"])
+def test_trail_point_across_antimeridian_within_rounding_is_used(via):
+    """Longitude wrap near ±180° still recognises the exact trail tip."""
+    search = {
+        "live": [{
+            "id": "42a4df0b",
+            "label": "EI387",
+            "detail": {
+                "lat": 0.0, "lon": -180.0, "reg": "EI-NSD",
+                "callsign": "EIN3YR", "flight": "EI387", "operator": "EIN",
+            },
+            "type": "live",
+            "match": "begins",
+        }],
+        "schedule": [],
+    }
+    exact = (0.0, 179.96)
+    details = DETAILS | {"trail": [{"lat": exact[0], "lng": exact[1]}]}
+    tracked = _track(_processor(details, search), via)
+
+    assert (tracked["latitude"], tracked["longitude"]) == exact
+    assert tracked["coordinates"] == [list(exact)]
+
+
+@pytest.mark.parametrize("via", ["add_track", "refresh"])
+def test_stale_trail_across_antimeridian_keeps_search_position(via):
+    """A tip far across the date line (after wrap) is stale: keep search position."""
+    search = {
+        "live": [{
+            "id": "42a4df0b",
+            "label": "EI387",
+            "detail": {
+                "lat": 0.0, "lon": -180.0, "reg": "EI-NSD",
+                "callsign": "EIN3YR", "flight": "EI387", "operator": "EIN",
+            },
+            "type": "live",
+            "match": "begins",
+        }],
+        "schedule": [],
+    }
+    stale = (0.0, 179.0)
+    details = DETAILS | {"trail": [{"lat": stale[0], "lng": stale[1]}]}
+    tracked = _track(_processor(details, search), via)
+
+    assert (tracked["latitude"], tracked["longitude"]) == (0.0, -180.0)
+    assert tracked["coordinates"] == [list(stale), [0.0, -180.0]]
+
+
+def test_within_search_position_rounding_helper():
+    """Rounding gate: half-step OK, outside not; longitude wraps at ±180°."""
+    assert within_search_position_rounding(51.45, -0.8, 51.5, -0.8)
+    assert within_search_position_rounding(
+        51.5 + SEARCH_POSITION_ROUNDING_DEG, -0.8, 51.5, -0.8)
+    assert not within_search_position_rounding(
+        51.5 + SEARCH_POSITION_ROUNDING_DEG + 0.0001, -0.8, 51.5, -0.8)
+    assert within_search_position_rounding(0.0, 179.96, 0.0, -180.0)
+    assert not within_search_position_rounding(0.0, 179.0, 0.0, -180.0)
+    assert longitude_delta(179.96, -180.0) == pytest.approx(0.04)
+    assert longitude_delta(179.0, -180.0) == pytest.approx(1.0)
 
 
 @pytest.mark.parametrize("via", ["add_track", "refresh"])

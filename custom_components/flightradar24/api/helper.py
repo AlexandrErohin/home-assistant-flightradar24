@@ -2,7 +2,10 @@ from typing import Any
 
 from curl_cffi.requests.exceptions import Timeout
 
-from ..const import CURL_TIMEOUT_CODE
+from ..const import CURL_TIMEOUT_CODE, SEARCH_POSITION_ROUNDING_DEG
+
+# Float slack so a true half-step (0.05) is not rejected by binary rounding.
+_SEARCH_POSITION_ROUNDING_EPS = 1e-9
 
 
 def http_status(error: BaseException) -> int | None:
@@ -44,8 +47,31 @@ def to_float(element: Any) -> None | float:
         return None
     try:
         return float(element)
-    except ValueError:
+    except (TypeError, ValueError):
         return None
+
+
+def longitude_delta(lon_a: float, lon_b: float) -> float:
+    """Smallest absolute longitude difference in degrees (handles ±180°)."""
+    return abs((lon_a - lon_b + 180.0) % 360.0 - 180.0)
+
+
+def within_search_position_rounding(
+        lat: float,
+        lon: float,
+        search_lat: float,
+        search_lon: float,
+) -> bool:
+    """True when (lat, lon) lies within FR24 search rounding of the search point.
+
+    Search answers round to 0.1°, so the exact live position is at most
+    SEARCH_POSITION_ROUNDING_DEG away in latitude and (wrapped) longitude.
+    """
+    limit = SEARCH_POSITION_ROUNDING_DEG + _SEARCH_POSITION_ROUNDING_EPS
+    return (
+        abs(lat - search_lat) <= limit
+        and longitude_delta(lon, search_lon) <= limit
+    )
 
 
 def get_value(dictionary: dict, keys: list) -> Any | None:
