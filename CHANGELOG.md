@@ -12,6 +12,7 @@ All notable changes to this project are documented in this file.
 
 ### Added
 
+- Flight details expose `airport_origin_gate` / `airport_destination_gate` and `airport_origin_baggage` / `airport_destination_baggage` when FR24 publishes them; airport arrivals/departures add local `terminal` / `gate` / `baggage` plus remote `airport_terminal` / `airport_gate` / `airport_baggage` ([#343](https://github.com/AlexandrErohin/home-assistant-flightradar24/issues/343))
 - Map and Tracking cards: `theme_mode` (`auto` / `light` / `dark`) darkens OpenStreetMap and topographic basemap tiles to match Home Assistant dark themes without an API key ([#366](https://github.com/AlexandrErohin/home-assistant-flightradar24/issues/366))
 - Tracking card: `zoom_mode: fit_route` auto-zooms to fit origin and destination airports (plus the aircraft); `follow` keeps the previous aircraft-centred fixed zoom ([#363](https://github.com/AlexandrErohin/home-assistant-flightradar24/issues/363))
 - Map and Tracking cards: `show_map` toggle and `detail_level` (`full` cities / `compact` IATA); registration shown next to the aircraft model when known ([#364](https://github.com/AlexandrErohin/home-assistant-flightradar24/issues/364))

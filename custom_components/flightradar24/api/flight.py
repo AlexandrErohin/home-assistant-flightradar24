@@ -483,6 +483,8 @@ class FlightProcessor:
                         'airport_origin_timezone_offset': flight.get('airport_destination_timezone_offset'),
                         'airport_origin_timezone_abbr': flight.get('airport_destination_timezone_abbr'),
                         'airport_origin_terminal': None,
+                        'airport_origin_gate': None,
+                        'airport_origin_baggage': None,
                         'airport_origin_latitude': flight.get('airport_destination_latitude'),
                         'airport_origin_longitude': flight.get('airport_destination_longitude'),
                         'tracked_by': 'aircraft_registration',
@@ -627,17 +629,21 @@ class FlightProcessor:
             if found:
                 if found.get('tracked_type') == 'schedule':
                     # Copy origin and destination airports info
-                    keys_to_copy = ['airport_origin_name', 'airport_origin_code_iata', 'airport_origin_code_icao',
-                                    'airport_origin_country_name', 'airport_origin_country_code',
-                                    'airport_origin_city', 'airport_origin_timezone_offset',
-                                    'airport_origin_timezone_abbr', 'airport_origin_latitude',
-                                    'airport_origin_longitude', 'airport_destination_name',
-                                    'airport_destination_code_iata', 'airport_destination_code_icao',
-                                    'airport_destination_country_name', 'airport_destination_country_code',
-                                    'airport_destination_city', 'airport_destination_timezone_offset',
-                                    'airport_destination_timezone_abbr', 'airport_destination_latitude',
-                                    'airport_destination_longitude'
-                                    ]
+                    keys_to_copy = [
+                        'airport_origin_name', 'airport_origin_code_iata', 'airport_origin_code_icao',
+                        'airport_origin_country_name', 'airport_origin_country_code',
+                        'airport_origin_city', 'airport_origin_timezone_offset',
+                        'airport_origin_timezone_abbr', 'airport_origin_terminal',
+                        'airport_origin_gate', 'airport_origin_baggage',
+                        'airport_origin_latitude', 'airport_origin_longitude',
+                        'airport_destination_name', 'airport_destination_code_iata',
+                        'airport_destination_code_icao', 'airport_destination_country_name',
+                        'airport_destination_country_code', 'airport_destination_city',
+                        'airport_destination_timezone_offset', 'airport_destination_timezone_abbr',
+                        'airport_destination_terminal', 'airport_destination_gate',
+                        'airport_destination_baggage', 'airport_destination_latitude',
+                        'airport_destination_longitude',
+                    ]
                     for key in keys_to_copy:
                         if key in flight:
                             found[key] = flight[key]
@@ -968,6 +974,8 @@ class FlightProcessor:
             'airport_origin_timezone_offset': get_value(flight, ['airport', 'origin', 'timezone', 'offset']),
             'airport_origin_timezone_abbr': get_value(flight, ['airport', 'origin', 'timezone', 'abbr']),
             'airport_origin_terminal': get_value(flight, ['airport', 'origin', 'info', 'terminal']),
+            'airport_origin_gate': get_value(flight, ['airport', 'origin', 'info', 'gate']),
+            'airport_origin_baggage': get_value(flight, ['airport', 'origin', 'info', 'baggage']),
             'airport_origin_latitude': get_value(flight, ['airport', 'origin', 'position', 'latitude']),
             'airport_origin_longitude': get_value(flight, ['airport', 'origin', 'position', 'longitude']),
             'airport_destination_name': get_value(flight, ['airport', 'destination', 'name']),
@@ -983,6 +991,8 @@ class FlightProcessor:
                                                              ['airport', 'destination', 'timezone', 'offset']),
             'airport_destination_timezone_abbr': get_value(flight, ['airport', 'destination', 'timezone', 'abbr']),
             'airport_destination_terminal': get_value(flight, ['airport', 'destination', 'info', 'terminal']),
+            'airport_destination_gate': get_value(flight, ['airport', 'destination', 'info', 'gate']),
+            'airport_destination_baggage': get_value(flight, ['airport', 'destination', 'info', 'baggage']),
             'airport_destination_latitude': get_value(flight, ['airport', 'destination', 'position', 'latitude']),
             'airport_destination_longitude': get_value(flight, ['airport', 'destination', 'position', 'longitude']),
             'time_scheduled_departure': get_value(flight, ['time', 'scheduled', 'departure']),

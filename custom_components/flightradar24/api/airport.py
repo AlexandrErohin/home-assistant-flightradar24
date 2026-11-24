@@ -95,7 +95,9 @@ class AirportProcessor:
 
     def _update_schedule(self, schedule: ScheduleType, data: list) -> None:
         flights = []
-        airport = 'origin' if schedule == ScheduleType.ARRIVAL else 'destination'
+        # Remote airport (from/to); local side is this tracked airport.
+        remote = 'origin' if schedule == ScheduleType.ARRIVAL else 'destination'
+        local = 'destination' if schedule == ScheduleType.ARRIVAL else 'origin'
         i = 0
         for item in (data or []):
             i += 1
@@ -113,12 +115,19 @@ class AirportProcessor:
                 'airline_short': get_value(item, ['airline', 'short']),
                 'airline_iata': get_value(item, ['airline', 'code', 'iata']),
                 'airline_icao': get_value(item, ['airline', 'code', 'icao']),
-                'airport_name': get_value(item, ['airport', airport, 'name']),
-                'airport_code_iata': get_value(item, ['airport', airport, 'code', 'iata']),
-                'airport_code_icao': get_value(item, ['airport', airport, 'code', 'icao']),
-                'airport_country_name': get_value(item, ['airport', airport, 'position', 'country', 'name']),
-                'airport_country_code': get_value(item, ['airport', airport, 'position', 'country', 'code']),
-                'airport_city': get_value(item, ['airport', airport, 'position', 'region', 'city']),
+                'airport_name': get_value(item, ['airport', remote, 'name']),
+                'airport_code_iata': get_value(item, ['airport', remote, 'code', 'iata']),
+                'airport_code_icao': get_value(item, ['airport', remote, 'code', 'icao']),
+                'airport_country_name': get_value(item, ['airport', remote, 'position', 'country', 'name']),
+                'airport_country_code': get_value(item, ['airport', remote, 'position', 'country', 'code']),
+                'airport_city': get_value(item, ['airport', remote, 'position', 'region', 'city']),
+                'airport_terminal': get_value(item, ['airport', remote, 'info', 'terminal']),
+                'airport_gate': get_value(item, ['airport', remote, 'info', 'gate']),
+                'airport_baggage': get_value(item, ['airport', remote, 'info', 'baggage']),
+                # Terminal / gate / baggage at the tracked airport.
+                'terminal': get_value(item, ['airport', local, 'info', 'terminal']),
+                'gate': get_value(item, ['airport', local, 'info', 'gate']),
+                'baggage': get_value(item, ['airport', local, 'info', 'baggage']),
                 'time_scheduled_departure': get_value(item, ['time', 'scheduled', 'departure']),
                 'time_scheduled_arrival': get_value(item, ['time', 'scheduled', 'arrival']),
                 'time_real_departure': get_value(item, ['time', 'real', 'departure']),

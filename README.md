@@ -575,6 +575,8 @@ All available fields for flight you can check [here](#flight)
 | airport_origin_timezone_offset      | Origin airport timezone offset (in seconds)                                                                                                                                                                 |
 | airport_origin_timezone_abbr        | Origin airport timezone abbreviation                                                                                                                                                                        |
 | airport_origin_terminal             | Origin airport terminal                                                                                                                                                                                     |
+| airport_origin_gate                 | Origin airport gate                                                                                                                                                                                         |
+| airport_origin_baggage              | Origin airport baggage claim / belt                                                                                                                                                                         |
 | airport_origin_latitude             | Origin airport latitude                                                                                                                                                                                     |
 | airport_origin_longitude            | Origin airport longitude                                                                                                                                                                                    |
 | airport_destination_name            | Destination airport name                                                                                                                                                                                    |
@@ -586,6 +588,8 @@ All available fields for flight you can check [here](#flight)
 | airport_destination_timezone_offset | Destination airport timezone offset (in seconds)                                                                                                                                                            |
 | airport_destination_timezone_abbr   | Destination airport timezone abbreviation                                                                                                                                                                   |
 | airport_destination_terminal        | Destination airport terminal                                                                                                                                                                                |
+| airport_destination_gate            | Destination airport gate                                                                                                                                                                                    |
+| airport_destination_baggage         | Destination airport baggage claim / belt                                                                                                                                                                    |
 | airport_destination_latitude        | Destination airport latitude                                                                                                                                                                                |
 | airport_destination_longitude       | Destination airport longitude                                                                                                                                                                               |
 | time_scheduled_departure            | Scheduled departure time                                                                                                                                                                                    |
@@ -675,9 +679,9 @@ cards:
       {% set flights =
       state_attr('sensor.flightradar24_airport_arrivals','flights') |
       default([], true) %}
-        | TIME | FROM | FLIGHT | REMARK |
-        | ---- | ---- | ------ | ------ | {% for f in flights %}
-        | {{ f.time_scheduled_arrival | timestamp_custom('%H:%M') if f.time_scheduled_arrival else '--:--' }} | {{ f.airport_city |  default('---', true) }} | {{ f.flight_number |  default('---', true) }} | {{ f.status_text |  default('---', true) }} | {% endfor %}
+        | TIME | FROM | FLIGHT | GATE | BAG | REMARK |
+        | ---- | ---- | ------ | ---- | --- | ------ | {% for f in flights %}
+        | {{ f.time_scheduled_arrival | timestamp_custom('%H:%M') if f.time_scheduled_arrival else '--:--' }} | {{ f.airport_city |  default('---', true) }} | {{ f.flight_number |  default('---', true) }} | {{ f.gate | default('---', true) }} | {{ f.baggage | default('---', true) }} | {{ f.status_text |  default('---', true) }} | {% endfor %}
   - type: entities
     entities:
       - entity: sensor.flightradar24_airport_departures_canceled
@@ -691,9 +695,9 @@ cards:
     content: >
       {% set flights = state_attr('sensor.flightradar24_airport_departures',
       'flights') |  default([], true) %}
-        | TIME | TO | FLIGHT | REMARK |
-        | ---- | ---- | ------ | ------ | {% for f in flights %}
-        | {{ f.time_scheduled_departure | timestamp_custom('%H:%M') if f.time_scheduled_departure else '--:--' }} | {{ f.airport_city |  default('---', true) }} | {{ f.flight_number |  default('---', true) }} | {{ f.status_text |  default('---', true) }} |{% endfor %}
+        | TIME | TO | FLIGHT | GATE | REMARK |
+        | ---- | ---- | ------ | ---- | ------ | {% for f in flights %}
+        | {{ f.time_scheduled_departure | timestamp_custom('%H:%M') if f.time_scheduled_departure else '--:--' }} | {{ f.airport_city |  default('---', true) }} | {{ f.flight_number |  default('---', true) }} | {{ f.gate | default('---', true) }} | {{ f.status_text |  default('---', true) }} |{% endfor %}
 ```
 
 All available fields for flight you can check [here](#airport-flight)
@@ -715,12 +719,18 @@ Sensor `sensor.flightradar24_airport_arrivals` and `sensor.flightradar24_airport
 | airline_short | Airline short name |
 | airline_iata | Airline IATA code |
 | airline_icao | Airline ICAO code |
-| airport_name | Airport name |
-| airport_code_iata | Airport IATA code |
-| airport_code_icao | Airport ICAO code |
-| airport_country_name | Airport country name |
-| airport_country_code | Airport country code |
-| airport_city | Airport city |
+| airport_name | Other airport name (origin for arrivals, destination for departures) |
+| airport_code_iata | Other airport IATA code |
+| airport_code_icao | Other airport ICAO code |
+| airport_country_name | Other airport country name |
+| airport_country_code | Other airport country code |
+| airport_city | Other airport city |
+| airport_terminal | Other airport terminal |
+| airport_gate | Other airport gate |
+| airport_baggage | Other airport baggage claim / belt |
+| terminal | Terminal at the tracked airport |
+| gate | Gate at the tracked airport |
+| baggage | Baggage claim / belt at the tracked airport |
 | time_scheduled_departure | Scheduled departure time |
 | time_scheduled_arrival | Scheduled arrival time |
 | time_real_departure | Real departure time |
