@@ -729,6 +729,24 @@ test('progress bar labels match FR24 style distance and clock durations', () => 
   assert.match(arrived.rightLabel, /Arrived$/);
 });
 
+test('scheduled flights use airplane-clock icon', () => {
+  const { card } = loadCard();
+  assert.equal(
+    card._flightIcon({ id: 's1', tracked_type: 'schedule', flight_number: 'AB123' }),
+    'mdi:airplane-clock'
+  );
+  assert.equal(
+    card._flightIcon({
+      id: 'l1',
+      tracked_type: 'live',
+      latitude: 1,
+      longitude: 2,
+      vertical_speed: 0,
+    }),
+    'mdi:airplane'
+  );
+});
+
 test('scheduled FR24 links use data/flights pages; live keep session URLs', () => {
   const { card } = loadCard();
   assert.equal(

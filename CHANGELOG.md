@@ -9,6 +9,7 @@ All notable changes to this project are documented in this file.
 - Tracking card hides the map when there are no live flights and shows it again as soon as one becomes active (still defaults to the first live flight)
 - Tracking card list sorts live flights first (then aircraft, then scheduled) ([#364](https://github.com/AlexandrErohin/home-assistant-flightradar24/issues/364))
 - Tracking card always uses smooth coast/catch-up map motion between sensor updates (`smooth_motion` option removed)
+- Tracking card uses `mdi:airplane-clock` for scheduled flights instead of the cruise airplane icon ([#364](https://github.com/AlexandrErohin/home-assistant-flightradar24/issues/364))
 
 ### Added
 

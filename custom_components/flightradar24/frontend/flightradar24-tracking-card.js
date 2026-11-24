@@ -845,6 +845,9 @@ class Flightradar24TrackingCard extends HTMLElement {
     if (this._isHelicopter(flight)) {
       return "mdi:helicopter";
     }
+    if (this._trackedType(flight) === "scheduled") {
+      return "mdi:airplane-clock";
+    }
     if (Number(flight.on_ground) === 1 || flight.on_ground === true) {
       return "mdi:airplane-check";
     }
