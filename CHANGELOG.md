@@ -7,6 +7,7 @@ All notable changes to this project are documented in this file.
 ### Fixed
 
 - Tracked flights found by FR24 search (Add to track / post-landing refresh) keep the exact trail position instead of the search answer rounded to 0.1°, so the marker and track no longer jump several km ([#151](https://github.com/AlexandrErohin/home-assistant-flightradar24/issues/151), [#361](https://github.com/AlexandrErohin/home-assistant-flightradar24/pull/361))
+- Airport text input shows the airport that is actually tracked: a rejected or unknown code is not kept in the entity (or restored after restart), so refresh no longer retries it every 90 s ([#362](https://github.com/AlexandrErohin/home-assistant-flightradar24/pull/362))
 
 ## [2.6.0] - 2026-11-18
 

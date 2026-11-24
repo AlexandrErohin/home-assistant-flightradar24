@@ -2,6 +2,8 @@ from dataclasses import dataclass
 from logging import getLogger
 from collections.abc import Callable
 from typing import Any
+
+from FlightRadarAPI import AirportNotFoundError
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EntityCategory
 from homeassistant.components.text import (
@@ -12,9 +14,10 @@ from homeassistant.components.text import (
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.restore_state import RestoreEntity
-from .const import DOMAIN
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
+
+from .const import DOMAIN
 from .coordinator import FlightRadar24Coordinator
 from .entity_ids import suggest_entity_id
 
@@ -130,11 +133,38 @@ class FlightRadar24TextAirport(
         self.async_write_ha_state()
 
     async def async_added_to_hass(self) -> None:
-        """Restore last value."""
+        """Restore last value; drop a code FR24 does not know."""
         await super().async_added_to_hass()
 
         last_state = await self.async_get_last_state()
-        if last_state is not None and last_state.state not in ("unknown", "unavailable", ""):
-            self._attr_native_value = last_state.state
-            self.coordinator.airport.restore_code(self._attr_native_value)
+        if last_state is None or last_state.state in ("unknown", "unavailable", ""):
+            return
+
+        code = last_state.state
+        self._attr_native_value = code
+        if not self.coordinator.scanning:
+            # Cannot validate offline; keep the soft restore used before (#362).
+            self.coordinator.airport.restore_code(code)
             self.coordinator.async_update_listeners()
+            return
+
+        try:
+            await self.coordinator.hass.async_add_executor_job(
+                self.coordinator.airport.set_track, code)
+        except AirportNotFoundError as err:
+            # Persisted rejected code: do not retry it every airport refresh.
+            self.coordinator.logger.error("FlightRadar24: %s", err)
+            self._attr_native_value = ""
+            self.async_write_ha_state()
+            return
+        except Exception as err:
+            # Temporary failure (429, timeout, …): soft-restore for later refresh.
+            self.coordinator.logger.error("FlightRadar24: %s", err)
+            self.coordinator.airport.restore_code(code)
+            self.coordinator.async_update_listeners()
+            return
+
+        self._attr_native_value = self.coordinator.airport.code or code
+        self.coordinator.mark_airport_details_fresh()
+        self.coordinator.async_update_listeners()
+        self.async_write_ha_state()

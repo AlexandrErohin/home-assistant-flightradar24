@@ -203,7 +203,7 @@ async def test_flight_text_publishes_cleared_input(coordinator, description):
 @pytest.mark.asyncio
 async def test_airport_text_keeps_selected_code(coordinator):
     """Only the one-shot flight inputs should be cleared after submission."""
-    coordinator.update_airport_track = AsyncMock()
+    coordinator.update_airport_track = AsyncMock(return_value=True)
     entity = FlightRadar24TextAirport(coordinator, AIRPORT_SENSOR_TYPES[0])
     writes = []
     entity.async_write_ha_state = Mock(side_effect=lambda: writes.append(entity.native_value))
@@ -221,7 +221,7 @@ async def test_airport_text_reverts_unknown_code(coordinator, previous):
     """A code FR24 does not know is not shown, the tracked airport is."""
     if previous:
         coordinator.airport.restore_code(previous)
-    coordinator.flight._client.get_airport_details.side_effect = AirportNotFoundError(
+    coordinator.airport._client.get_airport_details.side_effect = AirportNotFoundError(
         "Could not find an airport by the code 'XYZQ'.")
     entity = FlightRadar24TextAirport(coordinator, AIRPORT_SENSOR_TYPES[0])
     entity._attr_native_value = previous
@@ -229,6 +229,26 @@ async def test_airport_text_reverts_unknown_code(coordinator, previous):
     entity.async_write_ha_state = Mock(side_effect=lambda: writes.append(entity.native_value))
 
     await entity.async_set_value("xyzq")
+
+    assert coordinator.airport.code == (previous or None)
+    assert writes == [previous]
+    assert entity.native_value == previous
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("previous", ["", "LHR"])
+async def test_airport_text_reverts_temporary_set_failure(coordinator, previous):
+    """A temporary set_track failure (e.g. 429) also reverts to the tracked airport."""
+    if previous:
+        coordinator.airport.restore_code(previous)
+    coordinator.airport._client.get_airport_details.side_effect = RuntimeError(
+        "HTTP Error 429")
+    entity = FlightRadar24TextAirport(coordinator, AIRPORT_SENSOR_TYPES[0])
+    entity._attr_native_value = previous
+    writes = []
+    entity.async_write_ha_state = Mock(side_effect=lambda: writes.append(entity.native_value))
+
+    await entity.async_set_value("BSL")
 
     assert coordinator.airport.code == (previous or None)
     assert writes == [previous]
@@ -247,7 +267,64 @@ async def test_airport_text_unchanged_while_scanning_is_off(coordinator):
 
     await entity.async_set_value("BSL")
 
-    coordinator.flight._client.get_airport_details.assert_not_called()
+    coordinator.airport._client.get_airport_details.assert_not_called()
     assert coordinator.airport.code == "LHR"
     assert writes == ["LHR"]
     assert entity.native_value == "LHR"
+
+
+@pytest.mark.asyncio
+async def test_airport_text_restore_drops_unknown_code(coordinator):
+    """A rejected code persisted before #362 is cleared on restore, not soft-tracked."""
+    coordinator.airport._client.get_airport_details.side_effect = AirportNotFoundError(
+        "Could not find an airport by the code 'XYZQ'.")
+    entity = FlightRadar24TextAirport(coordinator, AIRPORT_SENSOR_TYPES[0])
+    entity.async_write_ha_state = Mock()
+    entity.async_get_last_state = AsyncMock(return_value=Mock(state="XYZQ"))
+
+    try:
+        await entity.async_added_to_hass()
+
+        assert coordinator.airport.code is None
+        assert entity.native_value == ""
+        entity.async_write_ha_state.assert_called()
+    finally:
+        await coordinator.async_shutdown()
+
+
+@pytest.mark.asyncio
+async def test_airport_text_restore_keeps_code_on_temporary_failure(coordinator):
+    """A 429 during restore soft-restores the code so the next refresh can retry."""
+    coordinator.airport._client.get_airport_details.side_effect = RuntimeError(
+        "HTTP Error 429")
+    entity = FlightRadar24TextAirport(coordinator, AIRPORT_SENSOR_TYPES[0])
+    entity.async_write_ha_state = Mock()
+    entity.async_get_last_state = AsyncMock(return_value=Mock(state="LHR"))
+
+    try:
+        await entity.async_added_to_hass()
+
+        assert coordinator.airport.code == "LHR"
+        assert entity.native_value == "LHR"
+    finally:
+        await coordinator.async_shutdown()
+
+
+@pytest.mark.asyncio
+async def test_airport_text_restore_applies_valid_code(coordinator):
+    """A valid restored code is tracked and shown in canonical uppercase."""
+    coordinator.airport._client.get_airport_details.return_value = {
+        "airport": {"pluginData": {}},
+    }
+    entity = FlightRadar24TextAirport(coordinator, AIRPORT_SENSOR_TYPES[0])
+    entity.async_write_ha_state = Mock()
+    entity.async_get_last_state = AsyncMock(return_value=Mock(state="lhr"))
+
+    try:
+        await entity.async_added_to_hass()
+
+        assert coordinator.airport.code == "LHR"
+        assert entity.native_value == "LHR"
+        assert coordinator._airport_last_refresh is not None
+    finally:
+        await coordinator.async_shutdown()

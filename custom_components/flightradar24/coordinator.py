@@ -133,7 +133,13 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
             self.async_update_listeners()
 
     async def update_airport_track(self, code: str) -> bool:
-        """Track the airport by code (empty: none); return whether it changed."""
+        """Apply the requested airport track (empty: none).
+
+        Returns True when the request was applied (including clearing, or
+        setting the same code again). Returns False when scanning is off or
+        set_track fails, so the airport text entity can show what is actually
+        tracked.
+        """
         if not self.scanning:
             self.logger.error('FlightRadar24: API data fetching if OFF')
             return False
@@ -144,7 +150,7 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
             else:
                 # Stamp only after success so a failed set still retries soon.
                 await self.hass.async_add_executor_job(self.airport.set_track, code)
-                self._airport_last_refresh = monotonic()
+                self.mark_airport_details_fresh()
         except Exception as e:
             self.logger.error("FlightRadar24: %s", e)
             return False
@@ -206,6 +212,10 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
             else:
                 self.logger.error("FlightRadar24: %s", e)
         return False
+
+    def mark_airport_details_fresh(self) -> None:
+        """Record that airport details were just fetched successfully."""
+        self._airport_last_refresh = monotonic()
 
     def _airport_due(self) -> bool:
         """True when the airport interval allows another details request."""
