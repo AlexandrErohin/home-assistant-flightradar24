@@ -132,10 +132,11 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
         else:
             self.async_update_listeners()
 
-    async def update_airport_track(self, code: str) -> None:
+    async def update_airport_track(self, code: str) -> bool:
+        """Track the airport by code (empty: none); return whether it changed."""
         if not self.scanning:
             self.logger.error('FlightRadar24: API data fetching if OFF')
-            return
+            return False
 
         try:
             if not code:
@@ -146,9 +147,10 @@ class FlightRadar24Coordinator(DataUpdateCoordinator[int]):
                 self._airport_last_refresh = monotonic()
         except Exception as e:
             self.logger.error("FlightRadar24: %s", e)
-            return
+            return False
 
         self.async_update_listeners()
+        return True
 
     async def async_prefetch_most_tracked_and_airport(self) -> None:
         """Warm most-tracked and airport during setup without notifying listeners.

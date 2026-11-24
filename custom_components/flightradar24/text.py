@@ -124,7 +124,9 @@ class FlightRadar24TextAirport(
         if value is None:
             value = ""
         self._attr_native_value = value
-        await self.entity_description.method(self.coordinator, value)
+        if not await self.entity_description.method(self.coordinator, value):
+            # Unknown code or scanning off: keep showing the airport that is tracked.
+            self._attr_native_value = self.coordinator.airport.code or ""
         self.async_write_ha_state()
 
     async def async_added_to_hass(self) -> None:
