@@ -8,6 +8,10 @@ All notable changes to this project are documented in this file.
 
 - Tracking card hides the map when there are no live flights and shows it again as soon as one becomes active (still defaults to the first live flight)
 
+### Added
+
+- Map and Tracking cards: `theme_mode` (`auto` / `light` / `dark`) darkens OpenStreetMap and topographic basemap tiles to match Home Assistant dark themes without an API key ([#366](https://github.com/AlexandrErohin/home-assistant-flightradar24/issues/366))
+
 ### Fixed
 
 - Tracked flights found by FR24 search (Add to track / post-landing refresh) keep the exact trail position instead of the search answer rounded to 0.1°, so the marker and track no longer jump several km ([#151](https://github.com/AlexandrErohin/home-assistant-flightradar24/issues/151), [#361](https://github.com/AlexandrErohin/home-assistant-flightradar24/pull/361))

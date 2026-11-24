@@ -389,6 +389,7 @@ show_tracks: true
 | `entity` | string | — | **Required.** Use the **Current in area** sensor only (typically `sensor.flightradar24_current_in_area`) |
 | `title` | string | — | Optional card title |
 | `map_style` | string | `osm` | Basemap style: `osm` (OpenStreetMap), `satellite` (Esri World Imagery), `topo` (OpenTopoMap). No API key required |
+| `theme_mode` | string | `auto` | Map theme for `osm` / `topo`: `auto` (follow Home Assistant dark mode), `light`, or `dark`. Satellite is unchanged |
 | `show_header` | boolean | `true` | Show the title/count header above the map. Set to `false` together with `show_flights: false` for a map-only card |
 | `show_flights` | boolean | `true` | Show the flights list under the map |
 | `show_tracks` | boolean | `true` | Draw flight tracks on the map from each flight's `coordinates` history |
@@ -471,6 +472,7 @@ zoom: 6
 | `entity` | string | — | **Required.** Use the **Additional tracked** sensor (`sensor.flightradar24_additional_tracked`) |
 | `title` | string | — | Optional card title |
 | `map_style` | string | `osm` | Basemap style: `osm`, `satellite`, or `topo` |
+| `theme_mode` | string | `auto` | Map theme for `osm` / `topo`: `auto` (follow Home Assistant dark mode), `light`, or `dark`. Satellite is unchanged |
 | `show_header` | boolean | `true` | Show the title/count header above the map |
 | `show_flights` | boolean | `true` | Show the tracked flights list under the map |
 | `show_route` | boolean | `true` | Draw the followed flight route using origin/destination airports when available plus the flight `coordinates` track (not a straight airport-to-airport line) |
@@ -480,7 +482,7 @@ zoom: 6
 | `altitude_unit` | string | `both` | Altitude display: `both`, `m`, or `ft` |
 | `speed_unit` | string | `both` | Ground speed display: `both`, `km/h`, `mph`, or `kts` |
 
-On load the card selects the first **live** flight in the list. If none are live, the map stays empty (no aircraft icon). Only live rows can be selected; scheduled flights remain listed with a Scheduled badge.
+On load the card selects the first **live** flight in the list. If none are live, the map is hidden; it appears again when a flight becomes live. Only live rows can be selected; scheduled flights remain listed with a Scheduled badge.
 
 ### <a id="lovelace">Lovelace Card</a>
 You can add flight table to your [Home Assistant dashboard](https://www.home-assistant.io/dashboards/)

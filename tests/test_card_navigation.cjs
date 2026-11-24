@@ -179,14 +179,38 @@ test('stub and configuration defaults retain both basemap and interaction option
   const f = fixture();
   const stub = f.card.constructor.getStubConfig({}, [], []);
   assert.equal(stub.map_style, 'osm');
+  assert.equal(stub.theme_mode, 'auto');
   assert.equal(stub.interactive_map, false);
   assert.equal(stub.clear_selection_on_popup_close, true);
   f.card._renderShell = () => {};
   f.card._update = () => {};
   f.card.setConfig({ entity: 'sensor.test' });
   assert.equal(f.card._config.map_style, 'osm');
+  assert.equal(f.card._config.theme_mode, 'auto');
   assert.equal(f.card._config.interactive_map, false);
   assert.equal(f.card._config.clear_selection_on_popup_close, true);
+});
+
+test('theme_mode dark applies tile filter class for osm but not satellite', () => {
+  const f = fixture(true);
+  f.card._renderShell = () => {};
+  f.card._update = () => {};
+  f.card._hass = { themes: { darkMode: false } };
+  f.card.setConfig({ entity: 'sensor.test', map_style: 'osm', theme_mode: 'dark' });
+  let tiles = f.calls.filter((call) => call[0] === 'tiles').at(-1);
+  assert.equal(tiles[2].className, 'map-tiles-dark');
+  assert.equal(f.card._wantsDarkTiles(), true);
+
+  f.card.setConfig({ entity: 'sensor.test', map_style: 'satellite', theme_mode: 'dark' });
+  tiles = f.calls.filter((call) => call[0] === 'tiles').at(-1);
+  assert.equal(tiles[2].className, undefined);
+  assert.equal(f.card._wantsDarkTiles(), false);
+
+  f.card.setConfig({ entity: 'sensor.test', map_style: 'osm', theme_mode: 'auto' });
+  f.card._hass = { themes: { darkMode: true } };
+  f.card.hass = f.card._hass;
+  tiles = f.calls.filter((call) => call[0] === 'tiles').at(-1);
+  assert.equal(tiles[2].className, 'map-tiles-dark');
 });
 
 test('popup close clears selection by default and keeps it when disabled', async () => {

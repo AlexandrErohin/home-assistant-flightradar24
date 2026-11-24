@@ -33,6 +33,16 @@ const MAP_STYLES = {
 };
 const DEFAULT_MAP_STYLE = "osm";
 
+/** Follow HA theme (auto), or force light/dark basemap treatment. */
+const THEME_MODES = {
+  auto: "Auto (follow Home Assistant)",
+  light: "Light",
+  dark: "Dark",
+};
+const DEFAULT_THEME_MODE = "auto";
+/** Raster styles that look wrong on dark dashboards; satellite is left as-is. */
+const DARK_FILTER_STYLES = new Set(["osm", "topo"]);
+
 const DISPLAY_UNITS = {
   altitude_unit: {
     label: "Altitude units",
@@ -90,6 +100,13 @@ function resolveDisplayUnit(key, value) {
 function resolveMapStyle(value) {
   const key = typeof value === "string" ? value.trim().toLowerCase() : "";
   return MAP_STYLES[key] ? key : DEFAULT_MAP_STYLE;
+}
+
+function resolveThemeMode(value) {
+  const key = typeof value === "string" ? value.trim().toLowerCase() : "";
+  return Object.prototype.hasOwnProperty.call(THEME_MODES, key)
+    ? key
+    : DEFAULT_THEME_MODE;
 }
 
 let leafletLoader = null;
@@ -153,6 +170,7 @@ class Flightradar24Card extends HTMLElement {
       interactive_map: false,
       clear_selection_on_popup_close: true,
       map_style: DEFAULT_MAP_STYLE,
+      theme_mode: DEFAULT_THEME_MODE,
       ...DEFAULT_DISPLAY_UNITS,
     };
   }
@@ -185,6 +203,7 @@ class Flightradar24Card extends HTMLElement {
     this._flightRowById = new Map();
     this._flightSnapshotById = new Map();
     this._lastEntity = null;
+    this._lastDarkTiles = null;
   }
 
   setConfig(config) {
@@ -201,10 +220,12 @@ class Flightradar24Card extends HTMLElement {
       interactive_map: false,
       clear_selection_on_popup_close: true,
       map_style: DEFAULT_MAP_STYLE,
+      theme_mode: DEFAULT_THEME_MODE,
       ...DEFAULT_DISPLAY_UNITS,
       ...config,
     };
     next.map_style = resolveMapStyle(next.map_style);
+    next.theme_mode = resolveThemeMode(next.theme_mode);
     for (const key of Object.keys(DISPLAY_UNITS)) {
       next[key] = resolveDisplayUnit(key, next[key]);
     }
@@ -265,9 +286,13 @@ class Flightradar24Card extends HTMLElement {
         prev.zoom !== this._config.zoom ||
         prev.icon_size !== this._config.icon_size ||
         prev.map_style !== this._config.map_style ||
+        prev.theme_mode !== this._config.theme_mode ||
         unitsChanged)
     ) {
-      if (prev.map_style !== this._config.map_style) {
+      if (
+        prev.map_style !== this._config.map_style ||
+        prev.theme_mode !== this._config.theme_mode
+      ) {
         this._syncTileLayer();
       }
       this._update();
@@ -276,7 +301,34 @@ class Flightradar24Card extends HTMLElement {
 
   set hass(hass) {
     this._hass = hass;
+    const darkTiles = this._wantsDarkTiles();
+    if (this._map && this._lastDarkTiles !== darkTiles) {
+      this._syncTileLayer();
+    }
     this._update();
+  }
+
+  _isDarkTheme() {
+    const mode = resolveThemeMode(this._config?.theme_mode);
+    if (mode === "dark") {
+      return true;
+    }
+    if (mode === "light") {
+      return false;
+    }
+    return Boolean(this._hass?.themes?.darkMode);
+  }
+
+  _wantsDarkTiles() {
+    const styleKey = resolveMapStyle(this._config?.map_style);
+    return this._isDarkTheme() && DARK_FILTER_STYLES.has(styleKey);
+  }
+
+  _applyMapThemeChrome() {
+    const mapEl = this.shadowRoot?.getElementById("map");
+    if (mapEl?.classList) {
+      mapEl.classList.toggle("map-dark", this._isDarkTheme());
+    }
   }
 
   getCardSize() {
@@ -1374,6 +1426,14 @@ class Flightradar24Card extends HTMLElement {
         width: 100%;
         height: 100%;
       }
+      #map.map-dark {
+        background: #1f1f1f;
+      }
+      /* Dark OSM/topo tiles without a key-gated dark provider (#366). */
+      .map-tiles-dark {
+        filter: brightness(0.6) invert(1) contrast(3) hue-rotate(200deg)
+          saturate(0.3) brightness(0.7);
+      }
       /* HA dark themes inherit light text; force readable OSM credit. */
       .leaflet-control-attribution {
         background: rgba(255, 255, 255, 0.9);
@@ -1795,6 +1855,7 @@ class Flightradar24Card extends HTMLElement {
     const L = window.L;
     const styleKey = resolveMapStyle(this._config?.map_style);
     const style = MAP_STYLES[styleKey];
+    const darkTiles = this._wantsDarkTiles();
     if (this._tileLayer) {
       try {
         this._map.removeLayer(this._tileLayer);
@@ -1814,7 +1875,13 @@ class Flightradar24Card extends HTMLElement {
     if (style.subdomains) {
       options.subdomains = style.subdomains;
     }
+    if (darkTiles) {
+      // className is applied to tile <img>s only — markers/tracks stay unfiltered.
+      options.className = "map-tiles-dark";
+    }
     this._tileLayer = L.tileLayer(style.url, options).addTo(this._map);
+    this._lastDarkTiles = darkTiles;
+    this._applyMapThemeChrome();
   }
 
   /**
@@ -2589,6 +2656,18 @@ class Flightradar24CardEditor extends HTMLElement {
         </select>
       </div>
       <div class="row">
+        <label>Map theme</label>
+        <select id="theme_mode">
+          ${Object.entries(THEME_MODES)
+            .map(([key, label]) => {
+              const selected =
+                resolveThemeMode(this._config.theme_mode) === key ? "selected" : "";
+              return `<option value="${key}" ${selected}>${label}</option>`;
+            })
+            .join("")}
+        </select>
+      </div>
+      <div class="row">
         <label>Zoom (optional, 1–19)</label>
         <input
           type="number"
@@ -2703,6 +2782,13 @@ class Flightradar24CardEditor extends HTMLElement {
       this._fireConfigChanged({
         ...this._config,
         map_style: resolveMapStyle(event.target.value),
+      });
+    });
+
+    this.shadowRoot.getElementById("theme_mode").addEventListener("change", (event) => {
+      this._fireConfigChanged({
+        ...this._config,
+        theme_mode: resolveThemeMode(event.target.value),
       });
     });
 

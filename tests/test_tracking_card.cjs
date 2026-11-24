@@ -38,7 +38,10 @@ function loadCard() {
       return map;
     },
     control: { attribution: () => layer() },
-    tileLayer: () => layer(),
+    tileLayer: (url, options) => {
+      calls.push(['tiles', url, options]);
+      return layer();
+    },
     layerGroup: layer,
     polyline: (points, options) => {
       calls.push(['polyline', points, options]);
@@ -159,6 +162,30 @@ test('registers tracking card custom element and catalog entry', () => {
   assert.ok(registry.has('flightradar24-tracking-card'));
   assert.ok(registry.has('flightradar24-tracking-card-editor'));
   assert.ok(windowCards.some((entry) => entry.type === 'flightradar24-tracking-card'));
+});
+
+test('tracking card theme_mode dark filters osm tiles and leaves satellite alone', () => {
+  const { card, calls } = loadCard();
+  card._config.map_style = 'osm';
+  card._config.theme_mode = 'dark';
+  card._hass = { themes: { darkMode: false } };
+  card._syncTileLayer();
+  let tiles = calls.filter((call) => Array.isArray(call) && call[0] === 'tiles').at(-1);
+  assert.equal(tiles[2].className, 'map-tiles-dark');
+  assert.equal(card._wantsDarkTiles(), true);
+
+  card._config.map_style = 'satellite';
+  card._syncTileLayer();
+  tiles = calls.filter((call) => Array.isArray(call) && call[0] === 'tiles').at(-1);
+  assert.equal(tiles[2].className, undefined);
+  assert.equal(card._wantsDarkTiles(), false);
+
+  card._config.map_style = 'osm';
+  card._config.theme_mode = 'auto';
+  card._hass = { themes: { darkMode: true } };
+  assert.equal(card._wantsDarkTiles(), true);
+  card._hass = { themes: { darkMode: false } };
+  assert.equal(card._wantsDarkTiles(), false);
 });
 
 test('defaults to the first live flight and ignores scheduled for selection', async () => {
