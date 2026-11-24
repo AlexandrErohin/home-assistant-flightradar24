@@ -33,6 +33,8 @@ const MAP_STYLES = {
 const DEFAULT_MAP_STYLE = "osm";
 const DEFAULT_ZOOM = 6;
 const DEFAULT_VIEW = [20, 0];
+/** Cap auto-fit so short hops do not zoom into the runway. */
+const FIT_ROUTE_MAX_ZOOM = 12;
 
 /** Follow HA theme (auto), or force light/dark basemap treatment. */
 const THEME_MODES = {
@@ -43,6 +45,13 @@ const THEME_MODES = {
 const DEFAULT_THEME_MODE = "auto";
 /** Raster styles that look wrong on dark dashboards; satellite is left as-is. */
 const DARK_FILTER_STYLES = new Set(["osm", "topo"]);
+
+/** follow = aircraft-centred fixed zoom; fit_route = show origin + destination. */
+const ZOOM_MODES = {
+  follow: "Follow aircraft (fixed zoom)",
+  fit_route: "Fit origin and destination",
+};
+const DEFAULT_ZOOM_MODE = "follow";
 
 /** Coast slower than reported GS so the next fix is usually ahead (no reverse jump). */
 const COAST_SPEED_FACTOR = 0.75;
@@ -100,6 +109,13 @@ function resolveThemeMode(value) {
   return Object.prototype.hasOwnProperty.call(THEME_MODES, key)
     ? key
     : DEFAULT_THEME_MODE;
+}
+
+function resolveZoomMode(value) {
+  const key = typeof value === "string" ? value.trim().toLowerCase() : "";
+  return Object.prototype.hasOwnProperty.call(ZOOM_MODES, key)
+    ? key
+    : DEFAULT_ZOOM_MODE;
 }
 
 let leafletLoader = null;
@@ -163,6 +179,7 @@ class Flightradar24TrackingCard extends HTMLElement {
       smooth_motion: true,
       map_style: DEFAULT_MAP_STYLE,
       theme_mode: DEFAULT_THEME_MODE,
+      zoom_mode: DEFAULT_ZOOM_MODE,
       zoom: DEFAULT_ZOOM,
       ...DEFAULT_DISPLAY_UNITS,
     };
@@ -195,6 +212,7 @@ class Flightradar24TrackingCard extends HTMLElement {
     this._lastRouteKey = null;
     this._pendingZoomReset = false;
     this._lastDarkTiles = null;
+    this._lastFitKey = null;
   }
 
   setConfig(config) {
@@ -209,12 +227,14 @@ class Flightradar24TrackingCard extends HTMLElement {
       smooth_motion: true,
       map_style: DEFAULT_MAP_STYLE,
       theme_mode: DEFAULT_THEME_MODE,
+      zoom_mode: DEFAULT_ZOOM_MODE,
       zoom: DEFAULT_ZOOM,
       ...DEFAULT_DISPLAY_UNITS,
       ...config,
     };
     next.map_style = resolveMapStyle(next.map_style);
     next.theme_mode = resolveThemeMode(next.theme_mode);
+    next.zoom_mode = resolveZoomMode(next.zoom_mode);
     for (const key of Object.keys(DISPLAY_UNITS)) {
       next[key] = resolveDisplayUnit(key, next[key]);
     }
@@ -252,12 +272,17 @@ class Flightradar24TrackingCard extends HTMLElement {
         prev.icon_size !== this._config.icon_size ||
         prev.map_style !== this._config.map_style ||
         prev.theme_mode !== this._config.theme_mode ||
+        prev.zoom_mode !== this._config.zoom_mode ||
         unitsChanged)
     ) {
       this._lastFollowKey = null;
       this._lastRouteKey = null;
-      if (prev.zoom !== this._config.zoom) {
+      if (
+        prev.zoom !== this._config.zoom ||
+        prev.zoom_mode !== this._config.zoom_mode
+      ) {
         this._pendingZoomReset = true;
+        this._lastFitKey = null;
       }
     }
     this._renderShell();
@@ -268,6 +293,7 @@ class Flightradar24TrackingCard extends HTMLElement {
         prev.show_route !== this._config.show_route ||
         prev.smooth_motion !== this._config.smooth_motion ||
         prev.zoom !== this._config.zoom ||
+        prev.zoom_mode !== this._config.zoom_mode ||
         prev.icon_size !== this._config.icon_size ||
         prev.map_style !== this._config.map_style ||
         prev.theme_mode !== this._config.theme_mode ||
@@ -346,10 +372,54 @@ class Flightradar24TrackingCard extends HTMLElement {
     this._userPickedFlight = false;
     this._lastFollowKey = null;
     this._lastRouteKey = null;
+    this._lastFitKey = null;
     this._followEpoch += 1;
     this._clearFlightRows();
     this._flightsById = new Map();
     this._clearMapOverlays();
+  }
+
+  _isFitRouteMode() {
+    return resolveZoomMode(this._config?.zoom_mode) === "fit_route";
+  }
+
+  _fitRouteKey(flight) {
+    const origin = this._airportPoint(flight, "origin");
+    const destination = this._airportPoint(flight, "destination");
+    if (!origin || !destination) {
+      return null;
+    }
+    return `${this._flightId(flight)}|${origin[0]},${origin[1]}|${destination[0]},${destination[1]}`;
+  }
+
+  /**
+   * Frame origin, destination, and the aircraft when both airports are known.
+   * Returns false when airports are missing so the caller can fall back to follow zoom.
+   */
+  _fitRouteViewport(flight, { animate = false } = {}) {
+    if (!this._map || !window.L || !flight) {
+      return false;
+    }
+    const origin = this._airportPoint(flight, "origin");
+    const destination = this._airportPoint(flight, "destination");
+    if (!origin || !destination) {
+      return false;
+    }
+    const points = [origin, destination];
+    if (this._hasPosition(flight)) {
+      points.push([Number(flight.latitude), Number(flight.longitude)]);
+    }
+    if (this._motion && Number.isFinite(this._motion.lat) && Number.isFinite(this._motion.lon)) {
+      points.push([this._motion.lat, this._motion.lon]);
+    }
+    const bounds = window.L.latLngBounds(points);
+    this._map.fitBounds(bounds, {
+      padding: [28, 28],
+      maxZoom: FIT_ROUTE_MAX_ZOOM,
+      animate,
+    });
+    this._lastFitKey = this._fitRouteKey(flight);
+    return true;
   }
 
   _destroyMap() {
@@ -641,12 +711,35 @@ class Flightradar24TrackingCard extends HTMLElement {
     return this._configuredZoom();
   }
 
-  _applyMotionView(motion, { animate = false, resetZoom = false } = {}) {
+  _applyMotionView(motion, { animate = false, resetZoom = false, flight = null } = {}) {
     if (!this._map || !this._planeMarker || !motion) {
       return;
     }
     const latLng = [motion.lat, motion.lon];
     this._planeMarker.setLatLng(latLng);
+
+    if (this._isFitRouteMode()) {
+      const tracked =
+        flight ||
+        this._flightsById.get(motion.flightId) ||
+        null;
+      const fitKey = this._fitRouteKey(tracked);
+      const shouldFit =
+        resetZoom ||
+        this._pendingZoomReset ||
+        (fitKey != null && fitKey !== this._lastFitKey);
+      if (this._pendingZoomReset) {
+        this._pendingZoomReset = false;
+      }
+      if (shouldFit) {
+        if (!this._fitRouteViewport(tracked, { animate })) {
+          this._map.setView(latLng, this._configuredZoom(), { animate });
+          this._lastFitKey = null;
+        }
+      }
+      return;
+    }
+
     const shouldResetZoom = resetZoom || this._pendingZoomReset;
     if (this._pendingZoomReset) {
       this._pendingZoomReset = false;
@@ -1510,6 +1603,7 @@ class Flightradar24TrackingCard extends HTMLElement {
     this._syncFlightListSelection({ scrollToSelected: scrollList });
     this._lastFollowKey = null;
     this._lastRouteKey = null;
+    this._lastFitKey = null;
     this._followEpoch += 1;
     void this._syncFollowedFlight(flight, this._followEpoch);
   }
@@ -2315,7 +2409,10 @@ class Flightradar24TrackingCard extends HTMLElement {
 
     this._applyMotionView(this._motion, {
       animate: false,
-      resetZoom: flightChanged && this._config?.smooth_motion === false,
+      resetZoom: this._isFitRouteMode()
+        ? flightChanged
+        : flightChanged && this._config?.smooth_motion === false,
+      flight,
     });
 
     if (this._config?.smooth_motion === false) {
@@ -2535,7 +2632,19 @@ class Flightradar24TrackingCardEditor extends HTMLElement {
         </select>
       </div>
       <div class="row">
-        <label>Zoom (1–19)</label>
+        <label>Zoom mode</label>
+        <select id="zoom_mode">
+          ${Object.entries(ZOOM_MODES)
+            .map(([key, label]) => {
+              const selected =
+                resolveZoomMode(this._config.zoom_mode) === key ? "selected" : "";
+              return `<option value="${key}" ${selected}>${label}</option>`;
+            })
+            .join("")}
+        </select>
+      </div>
+      <div class="row">
+        <label>Zoom (1–19)${resolveZoomMode(this._config.zoom_mode) === "fit_route" ? " — fallback when airports are unknown" : ""}</label>
         <input
           type="number"
           id="zoom"
@@ -2644,6 +2753,13 @@ class Flightradar24TrackingCardEditor extends HTMLElement {
       this._fireConfigChanged({
         ...this._config,
         theme_mode: resolveThemeMode(event.target.value),
+      });
+    });
+
+    this.shadowRoot.getElementById("zoom_mode").addEventListener("change", (event) => {
+      this._fireConfigChanged({
+        ...this._config,
+        zoom_mode: resolveZoomMode(event.target.value),
       });
     });
 

@@ -462,6 +462,7 @@ show_header: true
 show_flights: true
 show_route: true
 smooth_motion: true
+zoom_mode: follow
 zoom: 6
 ```
 
@@ -477,7 +478,8 @@ zoom: 6
 | `show_flights` | boolean | `true` | Show the tracked flights list under the map |
 | `show_route` | boolean | `true` | Draw the followed flight route using origin/destination airports when available plus the flight `coordinates` track (not a straight airport-to-airport line) |
 | `smooth_motion` | boolean | `true` | Continuously move the map between sensor updates: coast below reported ground speed, then ease/accelerate to each new fix |
-| `zoom` | number | `6` | Map zoom level (1–19). The selected live aircraft stays centred when coordinates update |
+| `zoom_mode` | string | `follow` | `follow` keeps a fixed zoom with the aircraft centred; `fit_route` fits origin and destination (and the aircraft) when airport coordinates are available — better for long / ocean crossings |
+| `zoom` | number | `6` | Map zoom level (1–19). Used continuously in `follow` mode; in `fit_route` used as fallback when origin/destination coordinates are missing |
 | `icon_size` | number | `32` | Aircraft marker size in pixels (12–64) |
 | `altitude_unit` | string | `both` | Altitude display: `both`, `m`, or `ft` |
 | `speed_unit` | string | `both` | Ground speed display: `both`, `km/h`, `mph`, or `kts` |

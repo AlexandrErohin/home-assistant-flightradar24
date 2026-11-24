@@ -18,6 +18,10 @@ function loadCard() {
       map._zoom = zoom;
       calls.push(['view', center, zoom, options]);
     },
+    fitBounds: (bounds, options) => {
+      map._zoom = options?.maxZoom ?? 10;
+      calls.push(['fitBounds', bounds, options]);
+    },
     getZoom: () => map._zoom,
     invalidateSize: () => calls.push('size'),
     removeLayer: (layer) => calls.push(['remove', layer]),
@@ -42,6 +46,7 @@ function loadCard() {
       calls.push(['tiles', url, options]);
       return layer();
     },
+    latLngBounds: (points) => ({ points, isValid: () => true }),
     layerGroup: layer,
     polyline: (points, options) => {
       calls.push(['polyline', points, options]);
@@ -123,6 +128,7 @@ function loadCard() {
     entity: 'sensor.flightradar24_additional_tracked',
     show_route: true,
     smooth_motion: true,
+    zoom_mode: 'follow',
     zoom: 6,
   };
   const mapWrap = { style: { display: 'block' } };
@@ -475,6 +481,48 @@ test('motion view preserves user zoom instead of resetting to config', async () 
   const views = calls.filter((call) => Array.isArray(call) && call[0] === 'view');
   const last = views[views.length - 1];
   assert.equal(last[2], 10);
+});
+
+test('fit_route zooms to origin and destination and does not re-centre every coast tick', async () => {
+  const { card, calls, flushRaf } = loadCard();
+  card._config.zoom_mode = 'fit_route';
+  card._nowMs = () => 1000;
+  const flight = {
+    id: 'ocean1',
+    tracked_type: 'live',
+    latitude: 50,
+    longitude: -30,
+    heading: 270,
+    ground_speed: 450,
+    airport_origin_latitude: 51.47,
+    airport_origin_longitude: -0.46,
+    airport_destination_latitude: 40.64,
+    airport_destination_longitude: -73.78,
+  };
+  await card._syncFollowedFlight(flight);
+  const fits = calls.filter((call) => Array.isArray(call) && call[0] === 'fitBounds');
+  assert.equal(fits.length, 1);
+  assert.equal(fits[0][2].maxZoom, 12);
+  assert.ok(card._lastFitKey);
+
+  const before = fits.length;
+  flushRaf(2000);
+  const fitsAfter = calls.filter((call) => Array.isArray(call) && call[0] === 'fitBounds');
+  assert.equal(fitsAfter.length, before);
+
+  // Without airports, fall back to configured zoom centred on the aircraft.
+  card._lastFitKey = null;
+  card._lastFollowKey = null;
+  await card._syncFollowedFlight({
+    id: 'local1',
+    tracked_type: 'live',
+    latitude: 10,
+    longitude: 20,
+    heading: 90,
+    ground_speed: 200,
+  });
+  const views = calls.filter((call) => Array.isArray(call) && call[0] === 'view');
+  assert.ok(views.some((call) => call[1][0] === 10 && call[1][1] === 20 && call[2] === 6));
 });
 
 test('null airport coordinates are ignored (not Null Island)', () => {
