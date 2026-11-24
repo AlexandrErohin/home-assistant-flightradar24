@@ -122,11 +122,13 @@ function loadCard() {
     smooth_motion: true,
     zoom: 6,
   };
+  const mapWrap = { style: { display: 'block' } };
+  const header = { style: {} };
   card.shadowRoot = {
     getElementById: (id) => elements.get(id),
     querySelector: (sel) => {
-      if (sel === '.header') return { style: {} };
-      if (sel === '.map-wrap') return { style: {} };
+      if (sel === '.header') return header;
+      if (sel === '.map-wrap') return mapWrap;
       return null;
     },
   };
@@ -137,6 +139,7 @@ function loadCard() {
     calls,
     markers,
     map,
+    mapWrap,
     L,
     registry,
     pendingRaf,
@@ -279,6 +282,44 @@ test('no live flights clears aircraft overlay', async () => {
   assert.equal(card._routeLayer, null);
   assert.equal(card._motion, null);
   assert.equal(card._resolveSelectedFlight([{ id: 's', tracked_type: 'schedule' }]), null);
+});
+
+test('map is hidden without live flights and shown when one appears', async () => {
+  const { card, mapWrap } = loadCard();
+  card._config.show_flights = false;
+  card._hass = {
+    states: {
+      'sensor.flightradar24_additional_tracked': {
+        attributes: {
+          friendly_name: 'Tracked',
+          flights: [{ id: 's', tracked_type: 'schedule', flight_number: 'AB1' }],
+        },
+      },
+    },
+  };
+  card._planeMarker = { keep: true };
+  card._routeLayer = { keep: true };
+
+  await card._update();
+  assert.equal(mapWrap.style.display, 'none');
+  assert.equal(card._planeMarker, null);
+  assert.equal(card._selectedFlightId, null);
+
+  card._hass.states['sensor.flightradar24_additional_tracked'].attributes.flights = [
+    { id: 's', tracked_type: 'schedule', flight_number: 'AB1' },
+    {
+      id: 'live1',
+      tracked_type: 'live',
+      latitude: 50,
+      longitude: 8,
+      heading: 90,
+      ground_speed: 400,
+    },
+  ];
+  await card._update();
+  assert.equal(mapWrap.style.display, 'block');
+  assert.equal(card._selectedFlightId, 'live1');
+  assert.ok(card._planeMarker);
 });
 
 test('extrapolatePosition moves east at heading 90', () => {

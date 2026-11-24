@@ -2323,17 +2323,25 @@ class Flightradar24TrackingCard extends HTMLElement {
     }
 
     const selected = this._resolveSelectedFlight(flights);
-    const epoch = this._followEpoch;
-
-    if (mapWrap) mapWrap.style.display = "block";
     if (warningEl) warningEl.style.display = "none";
 
-    try {
-      await this._syncFollowedFlight(selected, epoch);
-    } catch (error) {
-      if (warningEl) {
-        warningEl.style.display = "block";
-        warningEl.textContent = `Map failed to load: ${error}`;
+    // Map only while a live (active) flight is followed; hide when the list is
+    // scheduled-only or empty, and show again as soon as one becomes live.
+    if (!selected) {
+      if (mapWrap) mapWrap.style.display = "none";
+      this._followEpoch += 1;
+      this._clearMapOverlays();
+      this._lastFollowKey = "none";
+    } else {
+      if (mapWrap) mapWrap.style.display = "block";
+      const epoch = this._followEpoch;
+      try {
+        await this._syncFollowedFlight(selected, epoch);
+      } catch (error) {
+        if (warningEl) {
+          warningEl.style.display = "block";
+          warningEl.textContent = `Map failed to load: ${error}`;
+        }
       }
     }
 
