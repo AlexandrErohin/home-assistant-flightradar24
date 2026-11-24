@@ -43,6 +43,13 @@ const DEFAULT_THEME_MODE = "auto";
 /** Raster styles that look wrong on dark dashboards; satellite is left as-is. */
 const DARK_FILTER_STYLES = new Set(["osm", "topo"]);
 
+/** full = city names; compact = IATA codes (less wrapping on narrow dashboards). */
+const DETAIL_LEVELS = {
+  full: "Full (cities + aircraft)",
+  compact: "Compact (IATA + registration)",
+};
+const DEFAULT_DETAIL_LEVEL = "full";
+
 const DISPLAY_UNITS = {
   altitude_unit: {
     label: "Altitude units",
@@ -109,6 +116,13 @@ function resolveThemeMode(value) {
     : DEFAULT_THEME_MODE;
 }
 
+function resolveDetailLevel(value) {
+  const key = typeof value === "string" ? value.trim().toLowerCase() : "";
+  return Object.prototype.hasOwnProperty.call(DETAIL_LEVELS, key)
+    ? key
+    : DEFAULT_DETAIL_LEVEL;
+}
+
 let leafletLoader = null;
 
 function loadLeaflet() {
@@ -164,6 +178,7 @@ class Flightradar24Card extends HTMLElement {
       entity,
       show_header: true,
       show_flights: true,
+      show_map: true,
       show_tracks: true,
       show_area_center: true,
       show_area: true,
@@ -171,6 +186,7 @@ class Flightradar24Card extends HTMLElement {
       clear_selection_on_popup_close: true,
       map_style: DEFAULT_MAP_STYLE,
       theme_mode: DEFAULT_THEME_MODE,
+      detail_level: DEFAULT_DETAIL_LEVEL,
       ...DEFAULT_DISPLAY_UNITS,
     };
   }
@@ -214,6 +230,7 @@ class Flightradar24Card extends HTMLElement {
     const next = {
       show_header: true,
       show_flights: true,
+      show_map: true,
       show_tracks: true,
       show_area_center: true,
       show_area: true,
@@ -221,11 +238,13 @@ class Flightradar24Card extends HTMLElement {
       clear_selection_on_popup_close: true,
       map_style: DEFAULT_MAP_STYLE,
       theme_mode: DEFAULT_THEME_MODE,
+      detail_level: DEFAULT_DETAIL_LEVEL,
       ...DEFAULT_DISPLAY_UNITS,
       ...config,
     };
     next.map_style = resolveMapStyle(next.map_style);
     next.theme_mode = resolveThemeMode(next.theme_mode);
+    next.detail_level = resolveDetailLevel(next.detail_level);
     for (const key of Object.keys(DISPLAY_UNITS)) {
       next[key] = resolveDisplayUnit(key, next[key]);
     }
@@ -280,6 +299,7 @@ class Flightradar24Card extends HTMLElement {
       (prev.interactive_map !== this._config.interactive_map ||
         prev.show_header !== this._config.show_header ||
         prev.show_flights !== this._config.show_flights ||
+        prev.show_map !== this._config.show_map ||
         prev.show_area_center !== this._config.show_area_center ||
         prev.show_area !== this._config.show_area ||
         prev.show_tracks !== this._config.show_tracks ||
@@ -287,6 +307,7 @@ class Flightradar24Card extends HTMLElement {
         prev.icon_size !== this._config.icon_size ||
         prev.map_style !== this._config.map_style ||
         prev.theme_mode !== this._config.theme_mode ||
+        prev.detail_level !== this._config.detail_level ||
         unitsChanged)
     ) {
       if (
@@ -334,7 +355,8 @@ class Flightradar24Card extends HTMLElement {
   getCardSize() {
     const header = this._config?.show_header !== false ? 1 : 0;
     const flights = this._config?.show_flights !== false ? 2 : 0;
-    return 3 + header + flights;
+    const map = this._config?.show_map !== false ? 3 : 0;
+    return Math.max(1, map + header + flights);
   }
 
   getGridOptions() {
@@ -541,6 +563,40 @@ class Flightradar24Card extends HTMLElement {
     }
   }
 
+  _aircraftLabel(flight) {
+    const model = flight.aircraft_model || flight.aircraft_code || "";
+    const reg = String(flight.aircraft_registration || "").trim();
+    if (model && reg) {
+      return `${model} (${reg})`;
+    }
+    return model || reg || "";
+  }
+
+  _routeEndpointCity(flight, side) {
+    const compact =
+      resolveDetailLevel(this._config?.detail_level) === "compact";
+    if (side === "origin") {
+      if (compact) {
+        return (
+          flight.airport_origin_code_iata || flight.airport_origin_city || ""
+        );
+      }
+      return flight.airport_origin_city || flight.airport_origin_code_iata || "";
+    }
+    if (compact) {
+      return (
+        flight.airport_destination_code_iata ||
+        flight.airport_destination_city ||
+        ""
+      );
+    }
+    return (
+      flight.airport_destination_city ||
+      flight.airport_destination_code_iata ||
+      ""
+    );
+  }
+
   /** Display snapshot used to patch flight rows without rebuilding the list. */
   _flightRowSnapshot(flight) {
     const originCode = flight.airport_origin_country_code || "";
@@ -550,13 +606,13 @@ class Flightradar24Card extends HTMLElement {
       label: this._flightLabel(flight),
       fr24Url: this._flightFr24Url(flight) || "",
       icon: this._flightIcon(flight),
-      aircraft: flight.aircraft_model || flight.aircraft_code || "",
+      aircraft: this._aircraftLabel(flight),
       airline: flight.airline_short || flight.airline || "",
-      originCity: flight.airport_origin_city || "",
+      originCity: this._routeEndpointCity(flight, "origin"),
       originCode: String(originCode).length === 2 ? String(originCode).toUpperCase() : "",
       originName:
         flight.airport_origin_country_name || flight.airport_origin_country_code || "",
-      destCity: flight.airport_destination_city || "",
+      destCity: this._routeEndpointCity(flight, "dest"),
       destCode: String(destCode).length === 2 ? String(destCode).toUpperCase() : "",
       destName:
         flight.airport_destination_country_name ||
@@ -805,9 +861,30 @@ class Flightradar24Card extends HTMLElement {
     }
     const id =
       flight.id != null && flight.id !== "" ? String(flight.id).trim() : "";
-    const slug = String(
-      flight.callsign || flight.flight_number || flight.aircraft_registration || ""
-    ).trim();
+    const flightNumber = String(flight.flight_number || "").trim();
+    const callsign = String(flight.callsign || "").trim();
+    const reg = String(flight.aircraft_registration || "").trim();
+    const rawType = String(flight.tracked_type || "").toLowerCase();
+
+    // Schedule entries use flight-number pages; callsign/id live URLs 404.
+    if (rawType === "schedule" || rawType === "scheduled") {
+      const slug = flightNumber || callsign;
+      if (slug) {
+        return `https://www.flightradar24.com/data/flights/${encodeURIComponent(
+          slug.toLowerCase()
+        )}`;
+      }
+      if (reg) {
+        return `https://www.flightradar24.com/data/aircraft/${encodeURIComponent(reg)}`;
+      }
+      return null;
+    }
+
+    if (rawType === "aircraft" && reg) {
+      return `https://www.flightradar24.com/data/aircraft/${encodeURIComponent(reg)}`;
+    }
+
+    const slug = callsign || flightNumber || reg;
     if (id && slug) {
       return `https://fr24.com/${encodeURIComponent(slug)}/${encodeURIComponent(id)}`;
     }
@@ -2066,14 +2143,10 @@ class Flightradar24Card extends HTMLElement {
   _popupHtml(flight) {
     const number = this._flightLabel(flight);
     const fr24Url = this._flightFr24Url(flight);
-    const aircraft = flight.aircraft_model || flight.aircraft_code || "";
+    const aircraft = this._aircraftLabel(flight);
     const airline = flight.airline_short || flight.airline || "";
-    const origin =
-      flight.airport_origin_city || flight.airport_origin_code_iata || "";
-    const dest =
-      flight.airport_destination_city ||
-      flight.airport_destination_code_iata ||
-      "";
+    const origin = this._routeEndpointCity(flight, "origin");
+    const dest = this._routeEndpointCity(flight, "dest");
     const route = [origin, dest].filter(Boolean).join(" → ");
     const headMeta = [aircraft, airline]
       .filter(Boolean)
@@ -2513,6 +2586,7 @@ class Flightradar24Card extends HTMLElement {
       ? state.attributes.flights
       : [];
 
+    const mapEnabled = this._config.show_map !== false;
     if (!parsed) {
       if (mapWrap) mapWrap.style.display = "none";
       if (warningEl) {
@@ -2520,6 +2594,9 @@ class Flightradar24Card extends HTMLElement {
         warningEl.textContent =
           "No valid bounds attribute on this entity yet.";
       }
+    } else if (!mapEnabled) {
+      if (mapWrap) mapWrap.style.display = "none";
+      if (warningEl) warningEl.style.display = "none";
     } else {
       if (mapWrap) mapWrap.style.display = "block";
       if (warningEl) warningEl.style.display = "none";
@@ -2624,6 +2701,10 @@ class Flightradar24CardEditor extends HTMLElement {
         <span>Show flights list</span>
       </div>
       <div class="row check">
+        <input type="checkbox" id="show_map" ${this._config.show_map !== false ? "checked" : ""} />
+        <span>Show map</span>
+      </div>
+      <div class="row check">
         <input type="checkbox" id="show_tracks" ${this._config.show_tracks !== false ? "checked" : ""} />
         <span>Show flight tracks</span>
       </div>
@@ -2662,6 +2743,20 @@ class Flightradar24CardEditor extends HTMLElement {
             .map(([key, label]) => {
               const selected =
                 resolveThemeMode(this._config.theme_mode) === key ? "selected" : "";
+              return `<option value="${key}" ${selected}>${label}</option>`;
+            })
+            .join("")}
+        </select>
+      </div>
+      <div class="row">
+        <label>List detail</label>
+        <select id="detail_level">
+          ${Object.entries(DETAIL_LEVELS)
+            .map(([key, label]) => {
+              const selected =
+                resolveDetailLevel(this._config.detail_level) === key
+                  ? "selected"
+                  : "";
               return `<option value="${key}" ${selected}>${label}</option>`;
             })
             .join("")}
@@ -2749,6 +2844,13 @@ class Flightradar24CardEditor extends HTMLElement {
       });
     });
 
+    this.shadowRoot.getElementById("show_map").addEventListener("change", (event) => {
+      this._fireConfigChanged({
+        ...this._config,
+        show_map: event.target.checked,
+      });
+    });
+
     this.shadowRoot.getElementById("show_tracks").addEventListener("change", (event) => {
       this._fireConfigChanged({
         ...this._config,
@@ -2789,6 +2891,13 @@ class Flightradar24CardEditor extends HTMLElement {
       this._fireConfigChanged({
         ...this._config,
         theme_mode: resolveThemeMode(event.target.value),
+      });
+    });
+
+    this.shadowRoot.getElementById("detail_level").addEventListener("change", (event) => {
+      this._fireConfigChanged({
+        ...this._config,
+        detail_level: resolveDetailLevel(event.target.value),
       });
     });
 

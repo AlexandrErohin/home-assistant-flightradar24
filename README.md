@@ -379,7 +379,9 @@ title: Flights Nearby
 map_style: osm
 show_header: true
 show_flights: true
+show_map: true
 show_tracks: true
+detail_level: full
 ```
 
 #### Configuration options
@@ -392,7 +394,9 @@ show_tracks: true
 | `theme_mode` | string | `auto` | Map theme for `osm` / `topo`: `auto` (follow Home Assistant dark mode), `light`, or `dark`. Satellite is unchanged |
 | `show_header` | boolean | `true` | Show the title/count header above the map. Set to `false` together with `show_flights: false` for a map-only card |
 | `show_flights` | boolean | `true` | Show the flights list under the map |
+| `show_map` | boolean | `true` | Show the map. Set to `false` for a list-only card |
 | `show_tracks` | boolean | `true` | Draw flight tracks on the map from each flight's `coordinates` history |
+| `detail_level` | string | `full` | List/popup detail: `full` shows city names; `compact` uses IATA codes. Aircraft registration is always shown when known |
 | `show_area` | boolean | `true` | Show the monitored area outline and tint. Hiding it preserves map bounds, zoom and the area centre marker |
 | `show_area_center` | boolean | `true` | Mark the centre of the observed area — the latitude/longitude this device is configured with (not `zone.home`) |
 | `interactive_map` | boolean | `false` | Enable mouse/touch dragging and two-finger pinch zoom. Show fixed Close details and Reset view controls; preserve manual navigation when details close or flights update |
@@ -460,9 +464,10 @@ title: Tracked Flights
 map_style: osm
 show_header: true
 show_flights: true
+show_map: true
 show_route: true
-smooth_motion: true
 zoom_mode: follow
+detail_level: full
 zoom: 6
 ```
 
@@ -476,15 +481,16 @@ zoom: 6
 | `theme_mode` | string | `auto` | Map theme for `osm` / `topo`: `auto` (follow Home Assistant dark mode), `light`, or `dark`. Satellite is unchanged |
 | `show_header` | boolean | `true` | Show the title/count header above the map |
 | `show_flights` | boolean | `true` | Show the tracked flights list under the map |
+| `show_map` | boolean | `true` | Show the map. When `true`, the map still hides automatically if there is no live flight |
 | `show_route` | boolean | `true` | Draw the followed flight route using origin/destination airports when available plus the flight `coordinates` track (not a straight airport-to-airport line) |
-| `smooth_motion` | boolean | `true` | Continuously move the map between sensor updates: coast below reported ground speed, then ease/accelerate to each new fix |
 | `zoom_mode` | string | `follow` | `follow` keeps a fixed zoom with the aircraft centred; `fit_route` fits origin and destination (and the aircraft) when airport coordinates are available — better for long / ocean crossings |
+| `detail_level` | string | `full` | List detail: `full` shows city names; `compact` uses IATA codes. Aircraft registration is always shown when known |
 | `zoom` | number | `6` | Map zoom level (1–19). Used continuously in `follow` mode; in `fit_route` used as fallback when origin/destination coordinates are missing |
 | `icon_size` | number | `32` | Aircraft marker size in pixels (12–64) |
 | `altitude_unit` | string | `both` | Altitude display: `both`, `m`, or `ft` |
 | `speed_unit` | string | `both` | Ground speed display: `both`, `km/h`, `mph`, or `kts` |
 
-On load the card selects the first **live** flight in the list. If none are live, the map is hidden; it appears again when a flight becomes live. Only live rows can be selected; scheduled flights remain listed with a Scheduled badge.
+On load the card selects the first **live** flight in the list (live rows are sorted above scheduled). If none are live, the map is hidden; it appears again when a flight becomes live. Only live rows can be selected; scheduled flights remain listed with a Scheduled badge. Flight links open the matching Flightradar24 page (`/data/flights/…` for scheduled, live session URL when airborne).
 
 ### <a id="lovelace">Lovelace Card</a>
 You can add flight table to your [Home Assistant dashboard](https://www.home-assistant.io/dashboards/)

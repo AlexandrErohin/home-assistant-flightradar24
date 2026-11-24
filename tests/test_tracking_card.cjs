@@ -127,7 +127,6 @@ function loadCard() {
   card._config = {
     entity: 'sensor.flightradar24_additional_tracked',
     show_route: true,
-    smooth_motion: true,
     zoom_mode: 'follow',
     zoom: 6,
   };
@@ -449,9 +448,8 @@ test('behind fix does not pull the map backwards', async () => {
   assert.equal(card._motion.lon, lonBefore);
 });
 
-test('smooth_motion false does not schedule continuous frames', async () => {
+test('live follow always schedules continuous motion frames', async () => {
   const { card } = loadCard();
-  card._config.smooth_motion = false;
   await card._syncFollowedFlight({
     id: 'live1',
     tracked_type: 'live',
@@ -460,8 +458,7 @@ test('smooth_motion false does not schedule continuous frames', async () => {
     heading: 45,
     ground_speed: 300,
   });
-  // A one-shot rAF may still redraw the route after layout; motion loop must not run.
-  assert.equal(card._motionRaf, null);
+  assert.ok(card._motionRaf != null);
   assert.equal(card._motion?.phase, 'coast');
 });
 
@@ -730,6 +727,105 @@ test('progress bar labels match FR24 style distance and clock durations', () => 
   });
   assert.equal(arrived.percent, 100);
   assert.match(arrived.rightLabel, /Arrived$/);
+});
+
+test('scheduled FR24 links use data/flights pages; live keep session URLs', () => {
+  const { card } = loadCard();
+  assert.equal(
+    card._flightFr24Url({
+      id: 'QF2051',
+      tracked_type: 'schedule',
+      callsign: 'QLK51D',
+      flight_number: 'QF2051',
+    }),
+    'https://www.flightradar24.com/data/flights/qf2051'
+  );
+  assert.equal(
+    card._flightFr24Url({
+      id: '42a4df0b',
+      tracked_type: 'live',
+      callsign: 'SIA321',
+      flight_number: 'SQ321',
+      latitude: 1,
+      longitude: 2,
+    }),
+    'https://fr24.com/SIA321/42a4df0b'
+  );
+  assert.equal(
+    card._flightFr24Url({
+      id: '9V-SMF',
+      tracked_type: 'aircraft',
+      aircraft_registration: '9V-SMF',
+    }),
+    'https://www.flightradar24.com/data/aircraft/9V-SMF'
+  );
+});
+
+test('tracked list sorts live before aircraft and scheduled', () => {
+  const { card } = loadCard();
+  const sorted = card._sortTrackedFlights([
+    { id: 's1', tracked_type: 'schedule', flight_number: 'ZZ9' },
+    { id: 'a1', tracked_type: 'aircraft', aircraft_registration: 'N1AB' },
+    { id: 'l1', tracked_type: 'live', flight_number: 'AA1', latitude: 1, longitude: 2 },
+    { id: 's0', tracked_type: 'schedule', flight_number: 'AA2' },
+  ]);
+  assert.equal(sorted.map((flight) => flight.id).join(','), 'l1,a1,s0,s1');
+});
+
+test('detail_level compact prefers IATA and always includes registration', () => {
+  const { card } = loadCard();
+  const flight = {
+    id: 'l1',
+    tracked_type: 'live',
+    latitude: 1,
+    longitude: 2,
+    flight_number: 'SQ321',
+    aircraft_model: 'A359',
+    aircraft_registration: '9V-SMK',
+    airport_origin_city: 'Singapore',
+    airport_origin_code_iata: 'SIN',
+    airport_destination_city: 'London',
+    airport_destination_code_iata: 'LHR',
+  };
+  card._config.detail_level = 'full';
+  let snap = card._flightRowSnapshot(flight);
+  assert.equal(snap.aircraft, 'A359 (9V-SMK)');
+  assert.equal(snap.originCity, 'Singapore');
+  assert.equal(snap.destCity, 'London');
+
+  card._config.detail_level = 'compact';
+  snap = card._flightRowSnapshot(flight);
+  assert.equal(snap.aircraft, 'A359 (9V-SMK)');
+  assert.equal(snap.originCity, 'SIN');
+  assert.equal(snap.destCity, 'LHR');
+});
+
+test('show_map false keeps map hidden even with a live flight', async () => {
+  const { card, mapWrap } = loadCard();
+  card._config.show_map = false;
+  card._config.show_flights = false;
+  card._hass = {
+    states: {
+      'sensor.flightradar24_additional_tracked': {
+        attributes: {
+          friendly_name: 'Tracked',
+          flights: [
+            {
+              id: 'live1',
+              tracked_type: 'live',
+              latitude: 10,
+              longitude: 20,
+              heading: 90,
+              ground_speed: 400,
+            },
+          ],
+        },
+      },
+    },
+  };
+  await card._update();
+  assert.equal(mapWrap.style.display, 'none');
+  assert.equal(card._planeMarker, null);
 });
 
 test('stale async sync cannot overwrite a newer user selection', async () => {

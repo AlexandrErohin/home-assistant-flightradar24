@@ -7,16 +7,20 @@ All notable changes to this project are documented in this file.
 ### Changed
 
 - Tracking card hides the map when there are no live flights and shows it again as soon as one becomes active (still defaults to the first live flight)
+- Tracking card list sorts live flights first (then aircraft, then scheduled) ([#364](https://github.com/AlexandrErohin/home-assistant-flightradar24/issues/364))
+- Tracking card always uses smooth coast/catch-up map motion between sensor updates (`smooth_motion` option removed)
 
 ### Added
 
 - Map and Tracking cards: `theme_mode` (`auto` / `light` / `dark`) darkens OpenStreetMap and topographic basemap tiles to match Home Assistant dark themes without an API key ([#366](https://github.com/AlexandrErohin/home-assistant-flightradar24/issues/366))
 - Tracking card: `zoom_mode: fit_route` auto-zooms to fit origin and destination airports (plus the aircraft); `follow` keeps the previous aircraft-centred fixed zoom ([#363](https://github.com/AlexandrErohin/home-assistant-flightradar24/issues/363))
+- Map and Tracking cards: `show_map` toggle and `detail_level` (`full` cities / `compact` IATA); registration shown next to the aircraft model when known ([#364](https://github.com/AlexandrErohin/home-assistant-flightradar24/issues/364))
 
 ### Fixed
 
 - Tracked flights found by FR24 search (Add to track / post-landing refresh) keep the exact trail position instead of the search answer rounded to 0.1°, so the marker and track no longer jump several km ([#151](https://github.com/AlexandrErohin/home-assistant-flightradar24/issues/151), [#361](https://github.com/AlexandrErohin/home-assistant-flightradar24/pull/361))
 - Airport text input shows the airport that is actually tracked: a rejected or unknown code is not kept in the entity (or restored after restart), so refresh no longer retries it every 90 s ([#362](https://github.com/AlexandrErohin/home-assistant-flightradar24/pull/362))
+- Tracking (and map) card Flightradar24 links for scheduled flights use `/data/flights/{number}` instead of a live callsign/id URL that 404s ([#364](https://github.com/AlexandrErohin/home-assistant-flightradar24/issues/364))
 
 ## [2.6.0] - 2026-11-18
 

@@ -180,6 +180,8 @@ test('stub and configuration defaults retain both basemap and interaction option
   const stub = f.card.constructor.getStubConfig({}, [], []);
   assert.equal(stub.map_style, 'osm');
   assert.equal(stub.theme_mode, 'auto');
+  assert.equal(stub.show_map, true);
+  assert.equal(stub.detail_level, 'full');
   assert.equal(stub.interactive_map, false);
   assert.equal(stub.clear_selection_on_popup_close, true);
   f.card._renderShell = () => {};
@@ -187,8 +189,37 @@ test('stub and configuration defaults retain both basemap and interaction option
   f.card.setConfig({ entity: 'sensor.test' });
   assert.equal(f.card._config.map_style, 'osm');
   assert.equal(f.card._config.theme_mode, 'auto');
+  assert.equal(f.card._config.show_map, true);
+  assert.equal(f.card._config.detail_level, 'full');
   assert.equal(f.card._config.interactive_map, false);
   assert.equal(f.card._config.clear_selection_on_popup_close, true);
+});
+
+test('detail_level compact prefers IATA and always includes registration', () => {
+  const f = fixture();
+  f.card._renderShell = () => {};
+  f.card._update = () => {};
+  const flight = {
+    id: 'f1',
+    flight_number: 'SQ321',
+    aircraft_model: 'A359',
+    aircraft_registration: '9V-SMK',
+    airport_origin_city: 'Singapore',
+    airport_origin_code_iata: 'SIN',
+    airport_destination_city: 'London',
+    airport_destination_code_iata: 'LHR',
+  };
+  f.card.setConfig({ entity: 'sensor.test', detail_level: 'full' });
+  let snap = f.card._flightRowSnapshot(flight);
+  assert.equal(snap.aircraft, 'A359 (9V-SMK)');
+  assert.equal(snap.originCity, 'Singapore');
+  assert.equal(snap.destCity, 'London');
+
+  f.card.setConfig({ entity: 'sensor.test', detail_level: 'compact' });
+  snap = f.card._flightRowSnapshot(flight);
+  assert.equal(snap.aircraft, 'A359 (9V-SMK)');
+  assert.equal(snap.originCity, 'SIN');
+  assert.equal(snap.destCity, 'LHR');
 });
 
 test('theme_mode dark applies tile filter class for osm but not satellite', () => {
