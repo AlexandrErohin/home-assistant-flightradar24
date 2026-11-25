@@ -2205,17 +2205,23 @@ class Flightradar24TrackingCard extends HTMLElement {
     return Math.min(64, Math.max(12, Math.round(value)));
   }
 
+  /**
+   * Map marker SVG. Airplanes rotate with heading (art points north at 0°).
+   * Helicopters stay upright — mdi:helicopter is a side elevation, so rotating
+   * it by heading looks upside-down.
+   */
   _planeIcon(L, flight) {
     const heading = flight?.heading;
     const helicopter = this._isHelicopter(flight);
-    let rotation =
-      heading == null || Number.isNaN(Number(heading)) ? 0 : Number(heading);
-    if (helicopter) {
-      rotation -= 90;
-    }
+    const rotation = helicopter
+      ? 0
+      : heading == null || Number.isNaN(Number(heading))
+        ? 0
+        : Number(heading);
     const size = this._configuredIconSize();
     const svgSize = Math.max(8, size - 2);
     const anchor = size / 2;
+    // Airplane: Material airplane. Helicopter: mdi-helicopter (always upright).
     const path = helicopter
       ? "M3,3H17V5H3V3M23,6V10.5L14.75,12.2C14.91,12.6 15,13.04 15,13.5C15,14.9 14.18,16.1 13,16.66V17L13,19H16V21H4A3,3 0 0,1 1,18V17H3V18A1,1 0 0,0 4,19H5V16.74C3.25,16.13 2,14.46 2,12.5C2,10 4,8 6.5,8H9V6H11V8H21V6H23M11,19V17H7V19H11M7.5,10C6.12,10 5,10.9 5,12C5,13.1 6.12,14 7.5,14C8.88,14 10,13.1 10,12C10,10.9 8.88,10 7.5,10Z"
       : "M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z";
@@ -2419,8 +2425,12 @@ class Flightradar24TrackingCard extends HTMLElement {
   }
 
   _markerIconKey(flight) {
-    const heli = this._isHelicopter(flight) ? "1" : "0";
-    return `${heli}:${String(flight?.heading ?? "")}:${this._configuredIconSize()}`;
+    const size = this._configuredIconSize();
+    if (this._isHelicopter(flight)) {
+      // Upright icon — heading does not affect the glyph.
+      return `1:${size}`;
+    }
+    return `0:${String(flight?.heading ?? "")}:${size}`;
   }
 
   async _syncFollowedFlight(flight, epoch = this._followEpoch) {
