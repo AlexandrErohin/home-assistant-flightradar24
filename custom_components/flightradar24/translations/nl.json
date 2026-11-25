@@ -32,42 +32,123 @@
           "auto_cleanup": "Automatisch opschonen van gelande gevolgde vluchten inschakelen",
           "tracker_name_style": "Naamstijl kaarttracker",
           "username": "Gebruikersnaam (Optioneel)",
-          "password": "Wachtwoord (Optioneel)"
+          "password": "Wachtwoord (Optioneel)",
+          "temperature_unit": "Temperatuureenheid van de luchthaven",
+          "distance_unit": "Zicht-/afstandseenheid van de luchthaven",
+          "speed_unit": "Windsnelheidseenheid van de luchthaven"
+        },
+        "data_description": {
+          "temperature_unit": "Eenheid voor temperatuur- en dauwpuntsensoren.",
+          "distance_unit": "Eenheid voor de zichtsensor.",
+          "speed_unit": "Eenheid voor de windsnelheidssensor."
         }
       }
     }
   },
   "entity": {
     "sensor": {
-      "in_area": { "name": "Vluchten in de buurt" },
-      "entered": { "name": "Gebied binnengekomen" },
-      "exited": { "name": "Gebied verlaten" },
-      "additional_tracked": { "name": "Extra gevolgde vluchten" },
-      "airport_arrivals": { "name": "Aankomsten luchthaven" },
-      "airport_departures": { "name": "Vertrekken luchthaven" },
-      "airport_arrivals_on_time": { "name": "Aankomsten op tijd" },
-      "airport_arrivals_delayed": { "name": "Vertraagde aankomsten" },
-      "airport_arrivals_delay_average": { "name": "Gemiddelde vertraging aankomsten" },
-      "airport_arrivals_delay_index": { "name": "Vertragingsindex aankomsten" },
-      "airport_arrivals_canceled": { "name": "Geannuleerde aankomsten" },
-      "airport_departures_on_time": { "name": "Vertrekken op tijd" },
-      "airport_departures_delayed": { "name": "Vertraagde vertrekken" },
-      "airport_departures_delay_average": { "name": "Gemiddelde vertraging vertrekken" },
-      "airport_departures_delay_index": { "name": "Vertragingsindex vertrekken" },
-      "airport_departures_canceled": { "name": "Geannuleerde vertrekken" }
+      "in_area": {
+        "name": "Vluchten in de buurt"
+      },
+      "entered": {
+        "name": "Gebied binnengekomen"
+      },
+      "exited": {
+        "name": "Gebied verlaten"
+      },
+      "additional_tracked": {
+        "name": "Extra gevolgde vluchten"
+      },
+      "airport_arrivals": {
+        "name": "Aankomsten luchthaven"
+      },
+      "airport_departures": {
+        "name": "Vertrekken luchthaven"
+      },
+      "airport_arrivals_on_time": {
+        "name": "Aankomsten op tijd"
+      },
+      "airport_arrivals_delayed": {
+        "name": "Vertraagde aankomsten"
+      },
+      "airport_arrivals_delay_average": {
+        "name": "Gemiddelde vertraging aankomsten"
+      },
+      "airport_arrivals_delay_index": {
+        "name": "Vertragingsindex aankomsten"
+      },
+      "airport_arrivals_canceled": {
+        "name": "Geannuleerde aankomsten"
+      },
+      "airport_departures_on_time": {
+        "name": "Vertrekken op tijd"
+      },
+      "airport_departures_delayed": {
+        "name": "Vertraagde vertrekken"
+      },
+      "airport_departures_delay_average": {
+        "name": "Gemiddelde vertraging vertrekken"
+      },
+      "airport_departures_delay_index": {
+        "name": "Vertragingsindex vertrekken"
+      },
+      "airport_departures_canceled": {
+        "name": "Geannuleerde vertrekken"
+      },
+      "airport_wind_direction": {
+        "name": "Windrichting op de luchthaven"
+      },
+      "airport_wind_direction_text": {
+        "name": "Windrichting op de luchthaven (tekst)"
+      },
+      "airport_wind_speed": {
+        "name": "Windsnelheid op de luchthaven"
+      },
+      "airport_temperature": {
+        "name": "Temperatuur op de luchthaven"
+      },
+      "airport_humidity": {
+        "name": "Luchtvochtigheid op de luchthaven"
+      },
+      "airport_pressure": {
+        "name": "Luchtdruk op de luchthaven"
+      },
+      "airport_dewpoint": {
+        "name": "Dauwpunt op de luchthaven"
+      },
+      "airport_sky_condition": {
+        "name": "Hemelconditie op de luchthaven"
+      },
+      "airport_visibility": {
+        "name": "Zicht op de luchthaven"
+      }
     },
     "button": {
-      "clear_tracked": { "name": "Lijst wissen" },
-      "tracked_clear": { "name": "Extra gevolgde vluchten wissen" }
+      "clear_tracked": {
+        "name": "Lijst wissen"
+      },
+      "tracked_clear": {
+        "name": "Extra gevolgde vluchten wissen"
+      }
     },
     "switch": {
-      "scanning": { "name": "API gegevens ophalen" },
-      "most_tracked": { "name": "Meest gevolgde vluchten" }
+      "scanning": {
+        "name": "API gegevens ophalen"
+      },
+      "most_tracked": {
+        "name": "Meest gevolgde vluchten"
+      }
     },
     "text": {
-      "add_track": { "name": "Toevoegen aan volgen" },
-      "remove_track": { "name": "Verwijderen van volgen" },
-      "airport_track": { "name": "Luchthaven volgen" }
+      "add_track": {
+        "name": "Toevoegen aan volgen"
+      },
+      "remove_track": {
+        "name": "Verwijderen van volgen"
+      },
+      "airport_track": {
+        "name": "Luchthaven volgen"
+      }
     }
   }
 }

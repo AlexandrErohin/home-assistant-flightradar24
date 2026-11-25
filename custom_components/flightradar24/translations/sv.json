@@ -32,42 +32,123 @@
           "auto_cleanup": "Aktivera automatisk rensning av spårade landade flygningar",
           "tracker_name_style": "Namngivningsstil för kartspårare",
           "username": "Användarnamn (Valfritt)",
-          "password": "Lösenord (Valfritt)"
+          "password": "Lösenord (Valfritt)",
+          "temperature_unit": "Flygplatsens temperatuenhet",
+          "distance_unit": "Flygplatsens sikt-/avståndsenhet",
+          "speed_unit": "Flygplatsens vindhastighetsenhet"
+        },
+        "data_description": {
+          "temperature_unit": "Enhet för temperatur- och daggpunktssensorer.",
+          "distance_unit": "Enhet för siktsensorn.",
+          "speed_unit": "Enhet för vindhastighetssensorn."
         }
       }
     }
   },
   "entity": {
     "sensor": {
-      "in_area": { "name": "Flyg i området" },
-      "entered": { "name": "Område äntrat" },
-      "exited": { "name": "Område lämnat" },
-      "additional_tracked": { "name": "Extra spårade" },
-      "airport_arrivals": { "name": "Flygplatsankomster" },
-      "airport_departures": { "name": "Flygplatsavgångar" },
-      "airport_arrivals_on_time": { "name": "Ankomster i tid" },
-      "airport_arrivals_delayed": { "name": "Försenade ankomster" },
-      "airport_arrivals_delay_average": { "name": "Genomsnittlig ankomstförsening" },
-      "airport_arrivals_delay_index": { "name": "Ankomstförseningsindex" },
-      "airport_arrivals_canceled": { "name": "Inställda ankomster" },
-      "airport_departures_on_time": { "name": "Avgångar i tid" },
-      "airport_departures_delayed": { "name": "Försenade avgångar" },
-      "airport_departures_delay_average": { "name": "Genomsnittlig avgångsförsening" },
-      "airport_departures_delay_index": { "name": "Avgångsförseningsindex" },
-      "airport_departures_canceled": { "name": "Inställda avgångar" }
+      "in_area": {
+        "name": "Flyg i området"
+      },
+      "entered": {
+        "name": "Område äntrat"
+      },
+      "exited": {
+        "name": "Område lämnat"
+      },
+      "additional_tracked": {
+        "name": "Extra spårade"
+      },
+      "airport_arrivals": {
+        "name": "Flygplatsankomster"
+      },
+      "airport_departures": {
+        "name": "Flygplatsavgångar"
+      },
+      "airport_arrivals_on_time": {
+        "name": "Ankomster i tid"
+      },
+      "airport_arrivals_delayed": {
+        "name": "Försenade ankomster"
+      },
+      "airport_arrivals_delay_average": {
+        "name": "Genomsnittlig ankomstförsening"
+      },
+      "airport_arrivals_delay_index": {
+        "name": "Ankomstförseningsindex"
+      },
+      "airport_arrivals_canceled": {
+        "name": "Inställda ankomster"
+      },
+      "airport_departures_on_time": {
+        "name": "Avgångar i tid"
+      },
+      "airport_departures_delayed": {
+        "name": "Försenade avgångar"
+      },
+      "airport_departures_delay_average": {
+        "name": "Genomsnittlig avgångsförsening"
+      },
+      "airport_departures_delay_index": {
+        "name": "Avgångsförseningsindex"
+      },
+      "airport_departures_canceled": {
+        "name": "Inställda avgångar"
+      },
+      "airport_wind_direction": {
+        "name": "Vindriktning på flygplatsen"
+      },
+      "airport_wind_direction_text": {
+        "name": "Vindriktning på flygplatsen (text)"
+      },
+      "airport_wind_speed": {
+        "name": "Vindhastighet på flygplatsen"
+      },
+      "airport_temperature": {
+        "name": "Temperatur på flygplatsen"
+      },
+      "airport_humidity": {
+        "name": "Luftfuktighet på flygplatsen"
+      },
+      "airport_pressure": {
+        "name": "Lufttryck på flygplatsen"
+      },
+      "airport_dewpoint": {
+        "name": "Daggpunkt på flygplatsen"
+      },
+      "airport_sky_condition": {
+        "name": "Himmelstatus på flygplatsen"
+      },
+      "airport_visibility": {
+        "name": "Sikt på flygplatsen"
+      }
     },
     "button": {
-      "clear_tracked": { "name": "Rensa spårningslista" },
-      "tracked_clear": { "name": "Rensa extra spårade" }
+      "clear_tracked": {
+        "name": "Rensa spårningslista"
+      },
+      "tracked_clear": {
+        "name": "Rensa extra spårade"
+      }
     },
     "switch": {
-      "scanning": { "name": "API-datahämtning" },
-      "most_tracked": { "name": "Mest spårade" }
+      "scanning": {
+        "name": "API-datahämtning"
+      },
+      "most_tracked": {
+        "name": "Mest spårade"
+      }
     },
     "text": {
-      "add_track": { "name": "Lägg till i spårning" },
-      "remove_track": { "name": "Ta bort från spårning" },
-      "airport_track": { "name": "Flygplats-spårning" }
+      "add_track": {
+        "name": "Lägg till i spårning"
+      },
+      "remove_track": {
+        "name": "Ta bort från spårning"
+      },
+      "airport_track": {
+        "name": "Flygplats-spårning"
+      }
     }
   }
 }

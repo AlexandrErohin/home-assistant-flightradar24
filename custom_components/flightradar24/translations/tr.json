@@ -32,42 +32,123 @@
           "auto_cleanup": "İniş yapan takip edilen uçuşlar için otomatik temizlemeyi etkinleştir",
           "tracker_name_style": "Harita Takipçisi Adlandırma Stili",
           "username": "Kullanıcı adı (İsteğe bağlı)",
-          "password": "Şifre (İsteğe bağlı)"
+          "password": "Şifre (İsteğe bağlı)",
+          "temperature_unit": "Havalimanı sıcaklık birimi",
+          "distance_unit": "Havalimanı görüş / mesafe birimi",
+          "speed_unit": "Havalimanı rüzgar hızı birimi"
+        },
+        "data_description": {
+          "temperature_unit": "Sıcaklık ve çiy noktası sensörleri için birim.",
+          "distance_unit": "Görüş mesafesi sensörü için birim.",
+          "speed_unit": "Rüzgar hızı sensörü için birim."
         }
       }
     }
   },
   "entity": {
     "sensor": {
-      "in_area": { "name": "Bölgedeki uçuşlar" },
-      "entered": { "name": "Bölgeye giren" },
-      "exited": { "name": "Bölgeden çıkan" },
-      "additional_tracked": { "name": "Ek izlenenler" },
-      "airport_arrivals": { "name": "Havalimanı varışları" },
-      "airport_departures": { "name": "Havalimanı kalkışları" },
-      "airport_arrivals_on_time": { "name": "Zamanında varışlar" },
-      "airport_arrivals_delayed": { "name": "Gecikmeli varışlar" },
-      "airport_arrivals_delay_average": { "name": "Varış ortalama gecikme" },
-      "airport_arrivals_delay_index": { "name": "Varış gecikme indeksi" },
-      "airport_arrivals_canceled": { "name": "İptal edilen varışlar" },
-      "airport_departures_on_time": { "name": "Zamanında kalkışlar" },
-      "airport_departures_delayed": { "name": "Gecikmeli kalkışlar" },
-      "airport_departures_delay_average": { "name": "Kalkış ortalama gecikme" },
-      "airport_departures_delay_index": { "name": "Kalkış gecikme indeksi" },
-      "airport_departures_canceled": { "name": "İptal edilen kalkışlar" }
+      "in_area": {
+        "name": "Bölgedeki uçuşlar"
+      },
+      "entered": {
+        "name": "Bölgeye giren"
+      },
+      "exited": {
+        "name": "Bölgeden çıkan"
+      },
+      "additional_tracked": {
+        "name": "Ek izlenenler"
+      },
+      "airport_arrivals": {
+        "name": "Havalimanı varışları"
+      },
+      "airport_departures": {
+        "name": "Havalimanı kalkışları"
+      },
+      "airport_arrivals_on_time": {
+        "name": "Zamanında varışlar"
+      },
+      "airport_arrivals_delayed": {
+        "name": "Gecikmeli varışlar"
+      },
+      "airport_arrivals_delay_average": {
+        "name": "Varış ortalama gecikme"
+      },
+      "airport_arrivals_delay_index": {
+        "name": "Varış gecikme indeksi"
+      },
+      "airport_arrivals_canceled": {
+        "name": "İptal edilen varışlar"
+      },
+      "airport_departures_on_time": {
+        "name": "Zamanında kalkışlar"
+      },
+      "airport_departures_delayed": {
+        "name": "Gecikmeli kalkışlar"
+      },
+      "airport_departures_delay_average": {
+        "name": "Kalkış ortalama gecikme"
+      },
+      "airport_departures_delay_index": {
+        "name": "Kalkış gecikme indeksi"
+      },
+      "airport_departures_canceled": {
+        "name": "İptal edilen kalkışlar"
+      },
+      "airport_wind_direction": {
+        "name": "Havalimanı rüzgar yönü"
+      },
+      "airport_wind_direction_text": {
+        "name": "Havalimanı rüzgar yönü (metin)"
+      },
+      "airport_wind_speed": {
+        "name": "Havalimanı rüzgar hızı"
+      },
+      "airport_temperature": {
+        "name": "Havalimanı sıcaklığı"
+      },
+      "airport_humidity": {
+        "name": "Havalimanı nemi"
+      },
+      "airport_pressure": {
+        "name": "Havalimanı basıncı"
+      },
+      "airport_dewpoint": {
+        "name": "Havalimanı çiy noktası"
+      },
+      "airport_sky_condition": {
+        "name": "Havalimanı gökyüzü durumu"
+      },
+      "airport_visibility": {
+        "name": "Havalimanı görüş mesafesi"
+      }
     },
     "button": {
-      "clear_tracked": { "name": "İzleme listesini temizle" },
-      "tracked_clear": { "name": "Ek izlenenleri temizle" }
+      "clear_tracked": {
+        "name": "İzleme listesini temizle"
+      },
+      "tracked_clear": {
+        "name": "Ek izlenenleri temizle"
+      }
     },
     "switch": {
-      "scanning": { "name": "API veri alımı" },
-      "most_tracked": { "name": "En çok izlenen" }
+      "scanning": {
+        "name": "API veri alımı"
+      },
+      "most_tracked": {
+        "name": "En çok izlenen"
+      }
     },
     "text": {
-      "add_track": { "name": "Takibe ekle" },
-      "remove_track": { "name": "Takipten çıkar" },
-      "airport_track": { "name": "Havalimanı takibi" }
+      "add_track": {
+        "name": "Takibe ekle"
+      },
+      "remove_track": {
+        "name": "Takipten çıkar"
+      },
+      "airport_track": {
+        "name": "Havalimanı takibi"
+      }
     }
   }
 }

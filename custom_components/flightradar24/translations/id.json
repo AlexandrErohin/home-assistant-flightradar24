@@ -32,42 +32,123 @@
           "auto_cleanup": "Aktifkan pembersihan otomatis untuk penerbangan terlacak yang telah mendarat",
           "tracker_name_style": "Gaya Penamaan Pelacak Peta",
           "username": "Nama pengguna (Opsional)",
-          "password": "Kata sandi (Opsional)"
+          "password": "Kata sandi (Opsional)",
+          "temperature_unit": "Satuan suhu bandara",
+          "distance_unit": "Satuan jarak pandang / jarak bandara",
+          "speed_unit": "Satuan kecepatan angin bandara"
+        },
+        "data_description": {
+          "temperature_unit": "Satuan untuk sensor suhu dan titik embun.",
+          "distance_unit": "Satuan untuk sensor jarak pandang.",
+          "speed_unit": "Satuan untuk sensor kecepatan angin."
         }
       }
     }
   },
   "entity": {
     "sensor": {
-      "in_area": { "name": "Penerbangan di area" },
-      "entered": { "name": "Memasuki area" },
-      "exited": { "name": "Meninggalkan area" },
-      "additional_tracked": { "name": "Pelacakan tambahan" },
-      "airport_arrivals": { "name": "Kedatangan bandara" },
-      "airport_departures": { "name": "Keberangkatan bandara" },
-      "airport_arrivals_on_time": { "name": "Kedatangan tepat waktu" },
-      "airport_arrivals_delayed": { "name": "Kedatangan tertunda" },
-      "airport_arrivals_delay_average": { "name": "Rata-rata penundaan kedatangan" },
-      "airport_arrivals_delay_index": { "name": "Indeks penundaan kedatangan" },
-      "airport_arrivals_canceled": { "name": "Kedatangan dibatalkan" },
-      "airport_departures_on_time": { "name": "Keberangkatan tepat waktu" },
-      "airport_departures_delayed": { "name": "Keberangkatan tertunda" },
-      "airport_departures_delay_average": { "name": "Rata-rata penundaan keberangkatan" },
-      "airport_departures_delay_index": { "name": "Indeks penundaan keberangkatan" },
-      "airport_departures_canceled": { "name": "Keberangkatan dibatalkan" }
+      "in_area": {
+        "name": "Penerbangan di area"
+      },
+      "entered": {
+        "name": "Memasuki area"
+      },
+      "exited": {
+        "name": "Meninggalkan area"
+      },
+      "additional_tracked": {
+        "name": "Pelacakan tambahan"
+      },
+      "airport_arrivals": {
+        "name": "Kedatangan bandara"
+      },
+      "airport_departures": {
+        "name": "Keberangkatan bandara"
+      },
+      "airport_arrivals_on_time": {
+        "name": "Kedatangan tepat waktu"
+      },
+      "airport_arrivals_delayed": {
+        "name": "Kedatangan tertunda"
+      },
+      "airport_arrivals_delay_average": {
+        "name": "Rata-rata penundaan kedatangan"
+      },
+      "airport_arrivals_delay_index": {
+        "name": "Indeks penundaan kedatangan"
+      },
+      "airport_arrivals_canceled": {
+        "name": "Kedatangan dibatalkan"
+      },
+      "airport_departures_on_time": {
+        "name": "Keberangkatan tepat waktu"
+      },
+      "airport_departures_delayed": {
+        "name": "Keberangkatan tertunda"
+      },
+      "airport_departures_delay_average": {
+        "name": "Rata-rata penundaan keberangkatan"
+      },
+      "airport_departures_delay_index": {
+        "name": "Indeks penundaan keberangkatan"
+      },
+      "airport_departures_canceled": {
+        "name": "Keberangkatan dibatalkan"
+      },
+      "airport_wind_direction": {
+        "name": "Arah angin bandara"
+      },
+      "airport_wind_direction_text": {
+        "name": "Arah angin bandara (teks)"
+      },
+      "airport_wind_speed": {
+        "name": "Kecepatan angin bandara"
+      },
+      "airport_temperature": {
+        "name": "Suhu bandara"
+      },
+      "airport_humidity": {
+        "name": "Kelembapan bandara"
+      },
+      "airport_pressure": {
+        "name": "Tekanan bandara"
+      },
+      "airport_dewpoint": {
+        "name": "Titik embun bandara"
+      },
+      "airport_sky_condition": {
+        "name": "Kondisi langit bandara"
+      },
+      "airport_visibility": {
+        "name": "Jarak pandang bandara"
+      }
     },
     "button": {
-      "clear_tracked": { "name": "Hapus daftar pelacakan" },
-      "tracked_clear": { "name": "Hapus pelacakan tambahan" }
+      "clear_tracked": {
+        "name": "Hapus daftar pelacakan"
+      },
+      "tracked_clear": {
+        "name": "Hapus pelacakan tambahan"
+      }
     },
     "switch": {
-      "scanning": { "name": "Pengambilan data API" },
-      "most_tracked": { "name": "Paling banyak dilacak" }
+      "scanning": {
+        "name": "Pengambilan data API"
+      },
+      "most_tracked": {
+        "name": "Paling banyak dilacak"
+      }
     },
     "text": {
-      "add_track": { "name": "Tambah ke pelacakan" },
-      "remove_track": { "name": "Hapus dari pelacakan" },
-      "airport_track": { "name": "Pelacakan bandara" }
+      "add_track": {
+        "name": "Tambah ke pelacakan"
+      },
+      "remove_track": {
+        "name": "Hapus dari pelacakan"
+      },
+      "airport_track": {
+        "name": "Pelacakan bandara"
+      }
     }
   }
 }

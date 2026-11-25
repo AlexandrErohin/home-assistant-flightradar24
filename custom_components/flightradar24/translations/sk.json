@@ -32,42 +32,123 @@
           "auto_cleanup": "Povoliť automatické čistenie sledovaných pristátých letov",
           "tracker_name_style": "Štýl pomenovania sledovania na mape",
           "username": "Používateľské meno (voliteľné)",
-          "password": "Heslo (voliteľné)"
+          "password": "Heslo (voliteľné)",
+          "temperature_unit": "Jednotka teploty letiska",
+          "distance_unit": "Jednotka dohľadnosti / vzdialenosti letiska",
+          "speed_unit": "Jednotka rýchlosti vetra letiska"
+        },
+        "data_description": {
+          "temperature_unit": "Jednotka pre senzory teploty a rosného bodu.",
+          "distance_unit": "Jednotka pre senzor dohľadnosti.",
+          "speed_unit": "Jednotka pre senzor rýchlosti vetra."
         }
       }
     }
   },
   "entity": {
     "sensor": {
-      "in_area": { "name": "Lety v oblasti" },
-      "entered": { "name": "Vstúpili do oblasti" },
-      "exited": { "name": "Opustili oblasť" },
-      "additional_tracked": { "name": "Ďalšie sledované" },
-      "airport_arrivals": { "name": "Prílety na letisko" },
-      "airport_departures": { "name": "Odlety z letiska" },
-      "airport_arrivals_on_time": { "name": "Prílety načas" },
-      "airport_arrivals_delayed": { "name": "Omeškané prílety" },
-      "airport_arrivals_delay_average": { "name": "Priemerné meškanie príletov" },
-      "airport_arrivals_delay_index": { "name": "Index meškania príletov" },
-      "airport_arrivals_canceled": { "name": "Zrušené prílety" },
-      "airport_departures_on_time": { "name": "Odlety načas" },
-      "airport_departures_delayed": { "name": "Omeškané odlety" },
-      "airport_departures_delay_average": { "name": "Priemerné meškanie odletov" },
-      "airport_departures_delay_index": { "name": "Index meškania odletov" },
-      "airport_departures_canceled": { "name": "Zrušené odlety" }
+      "in_area": {
+        "name": "Lety v oblasti"
+      },
+      "entered": {
+        "name": "Vstúpili do oblasti"
+      },
+      "exited": {
+        "name": "Opustili oblasť"
+      },
+      "additional_tracked": {
+        "name": "Ďalšie sledované"
+      },
+      "airport_arrivals": {
+        "name": "Prílety na letisko"
+      },
+      "airport_departures": {
+        "name": "Odlety z letiska"
+      },
+      "airport_arrivals_on_time": {
+        "name": "Prílety načas"
+      },
+      "airport_arrivals_delayed": {
+        "name": "Omeškané prílety"
+      },
+      "airport_arrivals_delay_average": {
+        "name": "Priemerné meškanie príletov"
+      },
+      "airport_arrivals_delay_index": {
+        "name": "Index meškania príletov"
+      },
+      "airport_arrivals_canceled": {
+        "name": "Zrušené prílety"
+      },
+      "airport_departures_on_time": {
+        "name": "Odlety načas"
+      },
+      "airport_departures_delayed": {
+        "name": "Omeškané odlety"
+      },
+      "airport_departures_delay_average": {
+        "name": "Priemerné meškanie odletov"
+      },
+      "airport_departures_delay_index": {
+        "name": "Index meškania odletov"
+      },
+      "airport_departures_canceled": {
+        "name": "Zrušené odlety"
+      },
+      "airport_wind_direction": {
+        "name": "Smer vetra na letisku"
+      },
+      "airport_wind_direction_text": {
+        "name": "Smer vetra na letisku (text)"
+      },
+      "airport_wind_speed": {
+        "name": "Rýchlosť vetra na letisku"
+      },
+      "airport_temperature": {
+        "name": "Teplota na letisku"
+      },
+      "airport_humidity": {
+        "name": "Vlhkosť na letisku"
+      },
+      "airport_pressure": {
+        "name": "Tlak na letisku"
+      },
+      "airport_dewpoint": {
+        "name": "Rosný bod na letisku"
+      },
+      "airport_sky_condition": {
+        "name": "Oblačnosť na letisku"
+      },
+      "airport_visibility": {
+        "name": "Dohľadnosť na letisku"
+      }
     },
     "button": {
-      "clear_tracked": { "name": "Vymazať zoznam sledovania" },
-      "tracked_clear": { "name": "Vymazať ďalšie sledované" }
+      "clear_tracked": {
+        "name": "Vymazať zoznam sledovania"
+      },
+      "tracked_clear": {
+        "name": "Vymazať ďalšie sledované"
+      }
     },
     "switch": {
-      "scanning": { "name": "Získavanie údajov API" },
-      "most_tracked": { "name": "Najviac sledované" }
+      "scanning": {
+        "name": "Získavanie údajov API"
+      },
+      "most_tracked": {
+        "name": "Najviac sledované"
+      }
     },
     "text": {
-      "add_track": { "name": "Pridať k sledovaniu" },
-      "remove_track": { "name": "Odstrániť zo sledovania" },
-      "airport_track": { "name": "Sledovanie letiska" }
+      "add_track": {
+        "name": "Pridať k sledovaniu"
+      },
+      "remove_track": {
+        "name": "Odstrániť zo sledovania"
+      },
+      "airport_track": {
+        "name": "Sledovanie letiska"
+      }
     }
   }
 }

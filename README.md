@@ -164,6 +164,9 @@ You can configure:
 | FR24 credentials | Optional premium login |
 | Auto cleanup | Remove landed tracked flights |
 | Naming style | Customize map tracker names |
+| Temperature unit | Airport temperature / dewpoint sensors (`°C` or `°F`) |
+| Distance unit | Airport visibility sensor (`km`, `mi`, `nmi`, or `m`) |
+| Speed unit | Airport wind speed sensor (`km/h`, `kts`, or `mph`) |
 
 ---
 
@@ -204,10 +207,21 @@ You can configure:
 | `Airport departures delay average` | Average departures delay for the selected airport today |
 | `Airport departures delay index` | Disruption departures index for the selected airport today |
 | `Airport departures canceled` | Amount of canceled departures for the selected airport today |
+| `Airport wind direction` | Wind direction in degrees (`-1` when FR24 reports Variable) |
+| `Airport wind direction text` | Wind direction as text (e.g. `Variable`, `North`) |
+| `Airport wind speed` | Wind speed (unit from configuration) |
+| `Airport temperature` | Air temperature (unit from configuration) |
+| `Airport humidity` | Relative humidity (%) |
+| `Airport pressure` | Atmospheric pressure (hPa); `pressure_inHg` attribute when available |
+| `Airport dewpoint` | Dewpoint (unit from configuration) |
+| `Airport sky condition` | Sky condition text (e.g. `Overcast`) |
+| `Airport visibility` | Visibility (unit from configuration) |
 
 Sensors (Current in area, Entered area, Exited area, Additional tracked) shows how many flights in the given area, additional tracked, just have entered or exited it. All these sensors have attribute `flights` with list of [flight object](#flight) contained a full information by every relevant flight for the sensor
 
 Sensors Airport arrivals and Airport departures have attribute `flights` with list of the next 50 [airport flights](#airport-flight)
+
+Airport weather sensors come from the same FR24 airport details response (no extra API calls). They include `metar` and `observation_time` attributes when FR24 publishes them. Units for temperature, visibility, and wind speed are set under **Configure** on the integration.
 
 ### Switches
 | Other tracking | Description |

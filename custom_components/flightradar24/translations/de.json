@@ -32,42 +32,123 @@
           "auto_cleanup": "Automatische Bereinigung gelandeter verfolgter Flüge aktivieren",
           "tracker_name_style": "Benennungsstil für Karten-Tracker",
           "username": "Benutzername (Optional)",
-          "password": "Passwort (Optional)"
+          "password": "Passwort (Optional)",
+          "temperature_unit": "Temperatureinheit des Flughafens",
+          "distance_unit": "Sichtweiten-/Entfernungseinheit des Flughafens",
+          "speed_unit": "Windgeschwindigkeitseinheit des Flughafens"
+        },
+        "data_description": {
+          "temperature_unit": "Einheit für Temperatur- und Taupunktsensoren.",
+          "distance_unit": "Einheit für den Sichtweitensensor.",
+          "speed_unit": "Einheit für den Windgeschwindigkeitssensor."
         }
       }
     }
   },
   "entity": {
     "sensor": {
-      "in_area": { "name": "Flüge im Bereich" },
-      "entered": { "name": "Bereich betreten" },
-      "exited": { "name": "Bereich verlassen" },
-      "additional_tracked": { "name": "Zusätzlich verfolgt" },
-      "airport_arrivals": { "name": "Flughafen Ankünfte" },
-      "airport_departures": { "name": "Flughafen Abflüge" },
-      "airport_arrivals_on_time": { "name": "Ankünfte pünktlich" },
-      "airport_arrivals_delayed": { "name": "Ankünfte verspätet" },
-      "airport_arrivals_delay_average": { "name": "Durchschnittliche Ankunftsverspätung" },
-      "airport_arrivals_delay_index": { "name": "Ankunftsverspätungsindex" },
-      "airport_arrivals_canceled": { "name": "Ankünfte storniert" },
-      "airport_departures_on_time": { "name": "Abflüge pünktlich" },
-      "airport_departures_delayed": { "name": "Abflüge verspätet" },
-      "airport_departures_delay_average": { "name": "Durchschnittliche Abflugverspätung" },
-      "airport_departures_delay_index": { "name": "Abflugverspätungsindex" },
-      "airport_departures_canceled": { "name": "Abflüge storniert" }
+      "in_area": {
+        "name": "Flüge im Bereich"
+      },
+      "entered": {
+        "name": "Bereich betreten"
+      },
+      "exited": {
+        "name": "Bereich verlassen"
+      },
+      "additional_tracked": {
+        "name": "Zusätzlich verfolgt"
+      },
+      "airport_arrivals": {
+        "name": "Flughafen Ankünfte"
+      },
+      "airport_departures": {
+        "name": "Flughafen Abflüge"
+      },
+      "airport_arrivals_on_time": {
+        "name": "Ankünfte pünktlich"
+      },
+      "airport_arrivals_delayed": {
+        "name": "Ankünfte verspätet"
+      },
+      "airport_arrivals_delay_average": {
+        "name": "Durchschnittliche Ankunftsverspätung"
+      },
+      "airport_arrivals_delay_index": {
+        "name": "Ankunftsverspätungsindex"
+      },
+      "airport_arrivals_canceled": {
+        "name": "Ankünfte storniert"
+      },
+      "airport_departures_on_time": {
+        "name": "Abflüge pünktlich"
+      },
+      "airport_departures_delayed": {
+        "name": "Abflüge verspätet"
+      },
+      "airport_departures_delay_average": {
+        "name": "Durchschnittliche Abflugverspätung"
+      },
+      "airport_departures_delay_index": {
+        "name": "Abflugverspätungsindex"
+      },
+      "airport_departures_canceled": {
+        "name": "Abflüge storniert"
+      },
+      "airport_wind_direction": {
+        "name": "Windrichtung am Flughafen"
+      },
+      "airport_wind_direction_text": {
+        "name": "Windrichtung am Flughafen (Text)"
+      },
+      "airport_wind_speed": {
+        "name": "Windgeschwindigkeit am Flughafen"
+      },
+      "airport_temperature": {
+        "name": "Temperatur am Flughafen"
+      },
+      "airport_humidity": {
+        "name": "Luftfeuchtigkeit am Flughafen"
+      },
+      "airport_pressure": {
+        "name": "Luftdruck am Flughafen"
+      },
+      "airport_dewpoint": {
+        "name": "Taupunkt am Flughafen"
+      },
+      "airport_sky_condition": {
+        "name": "Bewölkung am Flughafen"
+      },
+      "airport_visibility": {
+        "name": "Sichtweite am Flughafen"
+      }
     },
     "button": {
-      "clear_tracked": { "name": "Verfolgungsliste löschen" },
-      "tracked_clear": { "name": "Zusätzlich verfolgte löschen" }
+      "clear_tracked": {
+        "name": "Verfolgungsliste löschen"
+      },
+      "tracked_clear": {
+        "name": "Zusätzlich verfolgte löschen"
+      }
     },
     "switch": {
-      "scanning": { "name": "API-Datenabruf" },
-      "most_tracked": { "name": "Meistverfolgt" }
+      "scanning": {
+        "name": "API-Datenabruf"
+      },
+      "most_tracked": {
+        "name": "Meistverfolgt"
+      }
     },
     "text": {
-      "add_track": { "name": "Zur Verfolgung hinzufügen" },
-      "remove_track": { "name": "Von Verfolgung entfernen" },
-      "airport_track": { "name": "Flughafen-Verfolgung" }
+      "add_track": {
+        "name": "Zur Verfolgung hinzufügen"
+      },
+      "remove_track": {
+        "name": "Von Verfolgung entfernen"
+      },
+      "airport_track": {
+        "name": "Flughafen-Verfolgung"
+      }
     }
   }
 }

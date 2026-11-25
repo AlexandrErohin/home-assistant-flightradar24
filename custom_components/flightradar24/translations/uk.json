@@ -32,42 +32,123 @@
           "auto_cleanup": "Увімкнути автоматичне очищення відстежуваних приземлених рейсів",
           "tracker_name_style": "Стиль іменування трекера на карті",
           "username": "Ім'я користувача (необов'язково)",
-          "password": "Пароль (необов'язково)"
+          "password": "Пароль (необов'язково)",
+          "temperature_unit": "Одиниці температури аеропорту",
+          "distance_unit": "Одиниці видимості / відстані аеропорту",
+          "speed_unit": "Одиниці швидкості вітру аеропорту"
+        },
+        "data_description": {
+          "temperature_unit": "Одиниці для сенсорів температури та точки роси аеропорту.",
+          "distance_unit": "Одиниці для сенсора видимості аеропорту.",
+          "speed_unit": "Одиниці для сенсора швидкості вітру аеропорту."
         }
       }
     }
   },
   "entity": {
     "sensor": {
-      "in_area": { "name": "Рейси в зоні" },
-      "entered": { "name": "Увійшли в зону" },
-      "exited": { "name": "Вийшли з зони" },
-      "additional_tracked": { "name": "Додатково відстежуються" },
-      "airport_arrivals": { "name": "Прибуття в аеропорт" },
-      "airport_departures": { "name": "Вильоти з аеропорту" },
-      "airport_arrivals_on_time": { "name": "Прибуття за розкладом" },
-      "airport_arrivals_delayed": { "name": "Затримка прибуття" },
-      "airport_arrivals_delay_average": { "name": "Середня затримка прибуття" },
-      "airport_arrivals_delay_index": { "name": "Індекс затримки прибуття" },
-      "airport_arrivals_canceled": { "name": "Скасовані прибуття" },
-      "airport_departures_on_time": { "name": "Вильоти за розкладом" },
-      "airport_departures_delayed": { "name": "Затримка вильоту" },
-      "airport_departures_delay_average": { "name": "Середня затримка вильоту" },
-      "airport_departures_delay_index": { "name": "Індекс затримки вильоту" },
-      "airport_departures_canceled": { "name": "Скасовані вильоти" }
+      "in_area": {
+        "name": "Рейси в зоні"
+      },
+      "entered": {
+        "name": "Увійшли в зону"
+      },
+      "exited": {
+        "name": "Вийшли з зони"
+      },
+      "additional_tracked": {
+        "name": "Додатково відстежуються"
+      },
+      "airport_arrivals": {
+        "name": "Прибуття в аеропорт"
+      },
+      "airport_departures": {
+        "name": "Вильоти з аеропорту"
+      },
+      "airport_arrivals_on_time": {
+        "name": "Прибуття за розкладом"
+      },
+      "airport_arrivals_delayed": {
+        "name": "Затримка прибуття"
+      },
+      "airport_arrivals_delay_average": {
+        "name": "Середня затримка прибуття"
+      },
+      "airport_arrivals_delay_index": {
+        "name": "Індекс затримки прибуття"
+      },
+      "airport_arrivals_canceled": {
+        "name": "Скасовані прибуття"
+      },
+      "airport_departures_on_time": {
+        "name": "Вильоти за розкладом"
+      },
+      "airport_departures_delayed": {
+        "name": "Затримка вильоту"
+      },
+      "airport_departures_delay_average": {
+        "name": "Середня затримка вильоту"
+      },
+      "airport_departures_delay_index": {
+        "name": "Індекс затримки вильоту"
+      },
+      "airport_departures_canceled": {
+        "name": "Скасовані вильоти"
+      },
+      "airport_wind_direction": {
+        "name": "Напрям вітру в аеропорту"
+      },
+      "airport_wind_direction_text": {
+        "name": "Напрям вітру в аеропорту (текст)"
+      },
+      "airport_wind_speed": {
+        "name": "Швидкість вітру в аеропорту"
+      },
+      "airport_temperature": {
+        "name": "Температура в аеропорту"
+      },
+      "airport_humidity": {
+        "name": "Вологість в аеропорту"
+      },
+      "airport_pressure": {
+        "name": "Тиск в аеропорту"
+      },
+      "airport_dewpoint": {
+        "name": "Точка роси в аеропорту"
+      },
+      "airport_sky_condition": {
+        "name": "Хмарність в аеропорту"
+      },
+      "airport_visibility": {
+        "name": "Видимість в аеропорту"
+      }
     },
     "button": {
-      "clear_tracked": { "name": "Очистити список відстеження" },
-      "tracked_clear": { "name": "Очистити додатково відстежувані" }
+      "clear_tracked": {
+        "name": "Очистити список відстеження"
+      },
+      "tracked_clear": {
+        "name": "Очистити додатково відстежувані"
+      }
     },
     "switch": {
-      "scanning": { "name": "Отримання даних API" },
-      "most_tracked": { "name": "Найбільше відстежуються" }
+      "scanning": {
+        "name": "Отримання даних API"
+      },
+      "most_tracked": {
+        "name": "Найбільше відстежуються"
+      }
     },
     "text": {
-      "add_track": { "name": "Додати до відстеження" },
-      "remove_track": { "name": "Видалити з відстеження" },
-      "airport_track": { "name": "Відстеження аеропорту" }
+      "add_track": {
+        "name": "Додати до відстеження"
+      },
+      "remove_track": {
+        "name": "Видалити з відстеження"
+      },
+      "airport_track": {
+        "name": "Відстеження аеропорту"
+      }
     }
   }
 }

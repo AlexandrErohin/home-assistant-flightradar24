@@ -32,42 +32,123 @@
           "auto_cleanup": "Aktiver automatisk opprydding av sporede landede flyvninger",
           "tracker_name_style": "Navngivningsstil for kartsporing",
           "username": "Brukernavn (Valgfritt)",
-          "password": "Passord (Valgfritt)"
+          "password": "Passord (Valgfritt)",
+          "temperature_unit": "Temperaturenhet for flyplassen",
+          "distance_unit": "Sikt-/avstandsenhet for flyplassen",
+          "speed_unit": "Vindhastighetsenhet for flyplassen"
+        },
+        "data_description": {
+          "temperature_unit": "Enhet for temperatur- og duggpunktsensorer.",
+          "distance_unit": "Enhet for siktsensoren.",
+          "speed_unit": "Enhet for vindhastighetssensoren."
         }
       }
     }
   },
   "entity": {
     "sensor": {
-      "in_area": { "name": "Fly i området" },
-      "entered": { "name": "Område inntrådt" },
-      "exited": { "name": "Område forlatt" },
-      "additional_tracked": { "name": "Ekstra sporet" },
-      "airport_arrivals": { "name": "Flyplassankomster" },
-      "airport_departures": { "name": "Flyplassavganger" },
-      "airport_arrivals_on_time": { "name": "Ankomster i tide" },
-      "airport_arrivals_delayed": { "name": "Forsinkede ankomster" },
-      "airport_arrivals_delay_average": { "name": "Gjennomsnittlig ankomstforsinkelse" },
-      "airport_arrivals_delay_index": { "name": "Ankomstforsinkelsesindeks" },
-      "airport_arrivals_canceled": { "name": "Kansellerte ankomster" },
-      "airport_departures_on_time": { "name": "Avganger i tide" },
-      "airport_departures_delayed": { "name": "Forsinkede avganger" },
-      "airport_departures_delay_average": { "name": "Gjennomsnittlig avgangsforsinkelse" },
-      "airport_departures_delay_index": { "name": "Avgangsforsinkelsesindeks" },
-      "airport_departures_canceled": { "name": "Kansellerte avganger" }
+      "in_area": {
+        "name": "Fly i området"
+      },
+      "entered": {
+        "name": "Område inntrådt"
+      },
+      "exited": {
+        "name": "Område forlatt"
+      },
+      "additional_tracked": {
+        "name": "Ekstra sporet"
+      },
+      "airport_arrivals": {
+        "name": "Flyplassankomster"
+      },
+      "airport_departures": {
+        "name": "Flyplassavganger"
+      },
+      "airport_arrivals_on_time": {
+        "name": "Ankomster i tide"
+      },
+      "airport_arrivals_delayed": {
+        "name": "Forsinkede ankomster"
+      },
+      "airport_arrivals_delay_average": {
+        "name": "Gjennomsnittlig ankomstforsinkelse"
+      },
+      "airport_arrivals_delay_index": {
+        "name": "Ankomstforsinkelsesindeks"
+      },
+      "airport_arrivals_canceled": {
+        "name": "Kansellerte ankomster"
+      },
+      "airport_departures_on_time": {
+        "name": "Avganger i tide"
+      },
+      "airport_departures_delayed": {
+        "name": "Forsinkede avganger"
+      },
+      "airport_departures_delay_average": {
+        "name": "Gjennomsnittlig avgangsforsinkelse"
+      },
+      "airport_departures_delay_index": {
+        "name": "Avgangsforsinkelsesindeks"
+      },
+      "airport_departures_canceled": {
+        "name": "Kansellerte avganger"
+      },
+      "airport_wind_direction": {
+        "name": "Vindretning på flyplassen"
+      },
+      "airport_wind_direction_text": {
+        "name": "Vindretning på flyplassen (tekst)"
+      },
+      "airport_wind_speed": {
+        "name": "Vindhastighet på flyplassen"
+      },
+      "airport_temperature": {
+        "name": "Temperatur på flyplassen"
+      },
+      "airport_humidity": {
+        "name": "Luftfuktighet på flyplassen"
+      },
+      "airport_pressure": {
+        "name": "Lufttrykk på flyplassen"
+      },
+      "airport_dewpoint": {
+        "name": "Duggpunkt på flyplassen"
+      },
+      "airport_sky_condition": {
+        "name": "Himmeltilstand på flyplassen"
+      },
+      "airport_visibility": {
+        "name": "Sikt på flyplassen"
+      }
     },
     "button": {
-      "clear_tracked": { "name": "Tøm sporingsliste" },
-      "tracked_clear": { "name": "Tøm ekstra sporing" }
+      "clear_tracked": {
+        "name": "Tøm sporingsliste"
+      },
+      "tracked_clear": {
+        "name": "Tøm ekstra sporing"
+      }
     },
     "switch": {
-      "scanning": { "name": "API-datainnhenting" },
-      "most_tracked": { "name": "Mest sporet" }
+      "scanning": {
+        "name": "API-datainnhenting"
+      },
+      "most_tracked": {
+        "name": "Mest sporet"
+      }
     },
     "text": {
-      "add_track": { "name": "Legg til sporing" },
-      "remove_track": { "name": "Fjern fra sporing" },
-      "airport_track": { "name": "Flyplass-sporing" }
+      "add_track": {
+        "name": "Legg til sporing"
+      },
+      "remove_track": {
+        "name": "Fjern fra sporing"
+      },
+      "airport_track": {
+        "name": "Flyplass-sporing"
+      }
     }
   }
 }

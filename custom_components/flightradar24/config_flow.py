@@ -26,6 +26,21 @@ from .const import (
     TRACKER_NAME_CALLSIGN,
     TRACKER_NAME_CALLSIGN_ROUTE,
     TRACKER_NAME_REG_ROUTE,
+    CONF_TEMPERATURE_UNIT,
+    CONF_TEMPERATURE_UNIT_DEFAULT,
+    TEMP_UNIT_C,
+    TEMP_UNIT_F,
+    CONF_DISTANCE_UNIT,
+    CONF_DISTANCE_UNIT_DEFAULT,
+    DISTANCE_UNIT_KM,
+    DISTANCE_UNIT_MI,
+    DISTANCE_UNIT_NMI,
+    DISTANCE_UNIT_M,
+    CONF_SPEED_UNIT,
+    CONF_SPEED_UNIT_DEFAULT,
+    SPEED_UNIT_KMH,
+    SPEED_UNIT_KTS,
+    SPEED_UNIT_MPH,
     HTTP_TOO_MANY_REQUESTS,
 )
 from FlightRadarAPI import FlightRadar24API
@@ -149,6 +164,36 @@ class FlightRadarOptionsFlow(OptionsFlowWithConfigEntry):
                     TRACKER_NAME_REG_ROUTE: (
                         "Registration + Route (e.g., PH-BXE (CDG - AMS))"
                     ),
+                }
+            ),
+            vol.Optional(
+                CONF_TEMPERATURE_UNIT,
+                default=data.get(CONF_TEMPERATURE_UNIT, CONF_TEMPERATURE_UNIT_DEFAULT),
+            ): vol.In(
+                {
+                    TEMP_UNIT_C: "Celsius (°C)",
+                    TEMP_UNIT_F: "Fahrenheit (°F)",
+                }
+            ),
+            vol.Optional(
+                CONF_DISTANCE_UNIT,
+                default=data.get(CONF_DISTANCE_UNIT, CONF_DISTANCE_UNIT_DEFAULT),
+            ): vol.In(
+                {
+                    DISTANCE_UNIT_KM: "Kilometers (km)",
+                    DISTANCE_UNIT_MI: "Miles (mi)",
+                    DISTANCE_UNIT_NMI: "Nautical miles (nmi)",
+                    DISTANCE_UNIT_M: "Meters (m)",
+                }
+            ),
+            vol.Optional(
+                CONF_SPEED_UNIT,
+                default=data.get(CONF_SPEED_UNIT, CONF_SPEED_UNIT_DEFAULT),
+            ): vol.In(
+                {
+                    SPEED_UNIT_KMH: "Kilometers per hour (km/h)",
+                    SPEED_UNIT_KTS: "Knots (kts)",
+                    SPEED_UNIT_MPH: "Miles per hour (mph)",
                 }
             ),
             vol.Optional(CONF_USERNAME, description={"suggested_value": data.get(CONF_USERNAME, '')}): cv.string,

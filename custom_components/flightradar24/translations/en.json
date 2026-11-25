@@ -35,13 +35,19 @@
           "enable_tracker": "Enable device tracker",
           "auto_cleanup": "Enable auto-cleanup of landed tracked flights",
           "tracker_name_style": "Map Tracker Naming Style",
+          "temperature_unit": "Airport temperature unit",
+          "distance_unit": "Airport visibility / distance unit",
+          "speed_unit": "Airport wind speed unit",
           "username": "Username (Optional)",
           "password": "Password (Optional)"
         },
         "data_description": {
           "radius": "Radius of the monitored area in meters, not kilometers. For example, enter 25000 for a 25 km radius.",
           "scan_interval": "How often Flightradar24 is polled. Short intervals make it more likely that your requests get throttled.",
-          "min_altitude": "Aircraft below this altitude are ignored. Raising it reduces the number of requests made to Flightradar24."
+          "min_altitude": "Aircraft below this altitude are ignored. Raising it reduces the number of requests made to Flightradar24.",
+          "temperature_unit": "Unit used by airport temperature and dewpoint sensors.",
+          "distance_unit": "Unit used by the airport visibility sensor.",
+          "speed_unit": "Unit used by the airport wind speed sensor."
         }
       }
     }
@@ -63,7 +69,16 @@
       "airport_departures_delayed": { "name": "Departures delayed" },
       "airport_departures_delay_average": { "name": "Departures delay average" },
       "airport_departures_delay_index": { "name": "Departures delay index" },
-      "airport_departures_canceled": { "name": "Departures canceled" }
+      "airport_departures_canceled": { "name": "Departures canceled" },
+      "airport_wind_direction": { "name": "Airport wind direction" },
+      "airport_wind_direction_text": { "name": "Airport wind direction text" },
+      "airport_wind_speed": { "name": "Airport wind speed" },
+      "airport_temperature": { "name": "Airport temperature" },
+      "airport_humidity": { "name": "Airport humidity" },
+      "airport_pressure": { "name": "Airport pressure" },
+      "airport_dewpoint": { "name": "Airport dewpoint" },
+      "airport_sky_condition": { "name": "Airport sky condition" },
+      "airport_visibility": { "name": "Airport visibility" }
     },
     "button": {
       "clear_tracked": { "name": "Clear tracked" },

@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from enum import Enum
 from .client import FlightRadarClient
 from .helper import to_int, to_float, get_value
@@ -22,13 +23,43 @@ class AirportStats:
     departures_canceled: int
 
 
+@dataclass
+class AirportWeather:
+    """Canonical METAR-derived weather from FR24 airport pluginData."""
+
+    wind_direction_degree: float | None = None
+    wind_direction_text: str | None = None
+    wind_speed_kmh: float | None = None
+    wind_speed_kts: float | None = None
+    wind_speed_mph: float | None = None
+    temp_celsius: float | None = None
+    temp_fahrenheit: float | None = None
+    dewpoint_celsius: float | None = None
+    dewpoint_fahrenheit: float | None = None
+    humidity: float | None = None
+    pressure_hpa: float | None = None
+    pressure_hg: float | None = None
+    sky_condition: str | None = None
+    visibility_km: float | None = None
+    visibility_mi: float | None = None
+    visibility_nmi: float | None = None
+    metar: str | None = None
+    time: int | None = None
+
+
+# FR24 sometimes puts a sentinel like 99999000 in visibility.km while mi/nmi
+# stay realistic (e.g. 62 mi). Treat huge km values as broken.
+_VISIBILITY_KM_MAX = 1000.0
+
+
 class AirportProcessor:
-    __slots__ = ('_client', '_code', '_stats', '_arrivals', '_departures')
+    __slots__ = ('_client', '_code', '_stats', '_weather', '_arrivals', '_departures')
 
     def __init__(self, client: FlightRadarClient) -> None:
         self._client = client
         self._code: str | None = None
         self._stats: AirportStats | None = None
+        self._weather: AirportWeather | None = None
         self._arrivals: list[dict[str, Any]] | None = None
         self._departures: list[dict[str, Any]] | None = None
 
@@ -42,6 +73,10 @@ class AirportProcessor:
     @property
     def stats(self) -> AirportStats | None:
         return self._stats
+
+    @property
+    def weather(self) -> AirportWeather | None:
+        return self._weather
 
     @property
     def arrivals(self) -> list[dict[str, Any]]:
@@ -63,11 +98,13 @@ class AirportProcessor:
     def remove_track(self) -> None:
         self._code = None
         self._stats = None
+        self._weather = None
         self._arrivals = None
         self._departures = None
 
     def clear_live_data(self) -> None:
         self._stats = None
+        self._weather = None
         self._arrivals = None
         self._departures = None
 
@@ -90,8 +127,46 @@ class AirportProcessor:
         self._stats.departures_delay_average = to_int(get_value(stats, ['delayAvg']))
         self._stats.departures_delay_index = to_float(get_value(stats, ['delayIndex']))
 
+        self._weather = self._parse_weather(get_value(data, ['weather']))
+
         self._update_schedule(ScheduleType.ARRIVAL, get_value(data, ['schedule', 'arrivals', 'data']))
         self._update_schedule(ScheduleType.DEPARTURE, get_value(data, ['schedule', 'departures', 'data']))
+
+    @staticmethod
+    def _parse_weather(weather: dict | None) -> AirportWeather | None:
+        if not weather:
+            return None
+
+        visibility_km = to_float(get_value(weather, ['sky', 'visibility', 'km']))
+        visibility_mi = to_float(get_value(weather, ['sky', 'visibility', 'mi']))
+        visibility_nmi = to_float(get_value(weather, ['sky', 'visibility', 'nmi']))
+        if (
+            visibility_km is not None
+            and visibility_km > _VISIBILITY_KM_MAX
+            and visibility_mi is not None
+        ):
+            visibility_km = round(visibility_mi * 1.609344, 3)
+
+        return AirportWeather(
+            wind_direction_degree=to_float(get_value(weather, ['wind', 'direction', 'degree'])),
+            wind_direction_text=get_value(weather, ['wind', 'direction', 'text']),
+            wind_speed_kmh=to_float(get_value(weather, ['wind', 'speed', 'kmh'])),
+            wind_speed_kts=to_float(get_value(weather, ['wind', 'speed', 'kts'])),
+            wind_speed_mph=to_float(get_value(weather, ['wind', 'speed', 'mph'])),
+            temp_celsius=to_float(get_value(weather, ['temp', 'celsius'])),
+            temp_fahrenheit=to_float(get_value(weather, ['temp', 'fahrenheit'])),
+            dewpoint_celsius=to_float(get_value(weather, ['dewpoint', 'celsius'])),
+            dewpoint_fahrenheit=to_float(get_value(weather, ['dewpoint', 'fahrenheit'])),
+            humidity=to_float(get_value(weather, ['humidity'])),
+            pressure_hpa=to_float(get_value(weather, ['pressure', 'hpa'])),
+            pressure_hg=to_float(get_value(weather, ['pressure', 'hg'])),
+            sky_condition=get_value(weather, ['sky', 'condition', 'text']),
+            visibility_km=visibility_km,
+            visibility_mi=visibility_mi,
+            visibility_nmi=visibility_nmi,
+            metar=get_value(weather, ['metar']),
+            time=to_int(get_value(weather, ['time'])),
+        )
 
     def _update_schedule(self, schedule: ScheduleType, data: list) -> None:
         flights = []

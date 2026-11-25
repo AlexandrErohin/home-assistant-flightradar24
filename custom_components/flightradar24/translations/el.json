@@ -32,42 +32,123 @@
           "auto_cleanup": "Ενεργοποίηση αυτόματου καθαρισμού παρακολουθούμενων προσγειωμένων πτήσεων",
           "tracker_name_style": "Στυλ ονομασίας παρακολούθησης χάρτη",
           "username": "Όνομα χρήστη (Προαιρετικό)",
-          "password": "Κωδικός πρόσβασης (Προαιρετικό)"
+          "password": "Κωδικός πρόσβασης (Προαιρετικό)",
+          "temperature_unit": "Μονάδα θερμοκρασίας αεροδρομίου",
+          "distance_unit": "Μονάδα ορατότητας / απόστασης αεροδρομίου",
+          "speed_unit": "Μονάδα ταχύτητας ανέμου αεροδρομίου"
+        },
+        "data_description": {
+          "temperature_unit": "Μονάδα για τους αισθητήρες θερμοκρασίας και σημείου δρόσου.",
+          "distance_unit": "Μονάδα για τον αισθητήρα ορατότητας.",
+          "speed_unit": "Μονάδα για τον αισθητήρα ταχύτητας ανέμου."
         }
       }
     }
   },
   "entity": {
     "sensor": {
-      "in_area": { "name": "Πτήσεις στην περιοχή" },
-      "entered": { "name": "Εισήλθαν στην περιοχή" },
-      "exited": { "name": "Εξήλθαν από την περιοχή" },
-      "additional_tracked": { "name": "Επιπλέον παρακολούθηση" },
-      "airport_arrivals": { "name": "Αφίξεις αεροδρομίου" },
-      "airport_departures": { "name": "Αναχωρήσεις αεροδρομίου" },
-      "airport_arrivals_on_time": { "name": "Αφίξεις στην ώρα τους" },
-      "airport_arrivals_delayed": { "name": "Καθυστερημένες αφίξεις" },
-      "airport_arrivals_delay_average": { "name": "Μέσος όρος καθυστέρησης αφίξεων" },
-      "airport_arrivals_delay_index": { "name": "Δείκτης καθυστέρησης αφίξεων" },
-      "airport_arrivals_canceled": { "name": "Ακυρωμένες αφίξεις" },
-      "airport_departures_on_time": { "name": "Αναχωρήσεις στην ώρα τους" },
-      "airport_departures_delayed": { "name": "Καθυστερημένες αναχωρήσεις" },
-      "airport_departures_delay_average": { "name": "Μέσος όρος καθυστέρησης αναχωρήσεων" },
-      "airport_departures_delay_index": { "name": "Δείκτης καθυστέρησης αναχωρήσεων" },
-      "airport_departures_canceled": { "name": "Ακυρωμένες αναχωρήσεις" }
+      "in_area": {
+        "name": "Πτήσεις στην περιοχή"
+      },
+      "entered": {
+        "name": "Εισήλθαν στην περιοχή"
+      },
+      "exited": {
+        "name": "Εξήλθαν από την περιοχή"
+      },
+      "additional_tracked": {
+        "name": "Επιπλέον παρακολούθηση"
+      },
+      "airport_arrivals": {
+        "name": "Αφίξεις αεροδρομίου"
+      },
+      "airport_departures": {
+        "name": "Αναχωρήσεις αεροδρομίου"
+      },
+      "airport_arrivals_on_time": {
+        "name": "Αφίξεις στην ώρα τους"
+      },
+      "airport_arrivals_delayed": {
+        "name": "Καθυστερημένες αφίξεις"
+      },
+      "airport_arrivals_delay_average": {
+        "name": "Μέσος όρος καθυστέρησης αφίξεων"
+      },
+      "airport_arrivals_delay_index": {
+        "name": "Δείκτης καθυστέρησης αφίξεων"
+      },
+      "airport_arrivals_canceled": {
+        "name": "Ακυρωμένες αφίξεις"
+      },
+      "airport_departures_on_time": {
+        "name": "Αναχωρήσεις στην ώρα τους"
+      },
+      "airport_departures_delayed": {
+        "name": "Καθυστερημένες αναχωρήσεις"
+      },
+      "airport_departures_delay_average": {
+        "name": "Μέσος όρος καθυστέρησης αναχωρήσεων"
+      },
+      "airport_departures_delay_index": {
+        "name": "Δείκτης καθυστέρησης αναχωρήσεων"
+      },
+      "airport_departures_canceled": {
+        "name": "Ακυρωμένες αναχωρήσεις"
+      },
+      "airport_wind_direction": {
+        "name": "Κατεύθυνση ανέμου αεροδρομίου"
+      },
+      "airport_wind_direction_text": {
+        "name": "Κατεύθυνση ανέμου αεροδρομίου (κείμενο)"
+      },
+      "airport_wind_speed": {
+        "name": "Ταχύτητα ανέμου αεροδρομίου"
+      },
+      "airport_temperature": {
+        "name": "Θερμοκρασία αεροδρομίου"
+      },
+      "airport_humidity": {
+        "name": "Υγρασία αεροδρομίου"
+      },
+      "airport_pressure": {
+        "name": "Πίεση αεροδρομίου"
+      },
+      "airport_dewpoint": {
+        "name": "Σημείο δρόσου αεροδρομίου"
+      },
+      "airport_sky_condition": {
+        "name": "Κατάσταση ουρανού αεροδρομίου"
+      },
+      "airport_visibility": {
+        "name": "Ορατότητα αεροδρομίου"
+      }
     },
     "button": {
-      "clear_tracked": { "name": "Εκκαθάριση λίστας παρακολούθησης" },
-      "tracked_clear": { "name": "Εκκαθάριση επιπλέον παρακολούθησης" }
+      "clear_tracked": {
+        "name": "Εκκαθάριση λίστας παρακολούθησης"
+      },
+      "tracked_clear": {
+        "name": "Εκκαθάριση επιπλέον παρακολούθησης"
+      }
     },
     "switch": {
-      "scanning": { "name": "Λήψη δεδομένων API" },
-      "most_tracked": { "name": "Μεγαλύτερη παρακολούθηση" }
+      "scanning": {
+        "name": "Λήψη δεδομένων API"
+      },
+      "most_tracked": {
+        "name": "Μεγαλύτερη παρακολούθηση"
+      }
     },
     "text": {
-      "add_track": { "name": "Προσθήκη στην παρακολούθηση" },
-      "remove_track": { "name": "Αφαίρεση από την παρακολούθηση" },
-      "airport_track": { "name": "Παρακολούθηση αεροδρομίου" }
+      "add_track": {
+        "name": "Προσθήκη στην παρακολούθηση"
+      },
+      "remove_track": {
+        "name": "Αφαίρεση από την παρακολούθηση"
+      },
+      "airport_track": {
+        "name": "Παρακολούθηση αεροδρομίου"
+      }
     }
   }
 }

@@ -32,42 +32,123 @@
           "auto_cleanup": "Активиране на автоматично почистване на проследените кацнали полети",
           "tracker_name_style": "Стил на именуване на проследяващия картата",
           "username": "Потребителско име (По желание)",
-          "password": "Парола (По желание)"
+          "password": "Парола (По желание)",
+          "temperature_unit": "Единица за температура на летището",
+          "distance_unit": "Единица за видимост / разстояние на летището",
+          "speed_unit": "Единица за скорост на вятъра на летището"
+        },
+        "data_description": {
+          "temperature_unit": "Единица за сензорите за температура и точка на оросяване.",
+          "distance_unit": "Единица за сензора за видимост.",
+          "speed_unit": "Единица за сензора за скорост на вятъра."
         }
       }
     }
   },
   "entity": {
     "sensor": {
-      "in_area": { "name": "Полети в зоната" },
-      "entered": { "name": "Влезли в зоната" },
-      "exited": { "name": "Напуснали зоната" },
-      "additional_tracked": { "name": "Допълнително проследявани" },
-      "airport_arrivals": { "name": "Пристигащи на летището" },
-      "airport_departures": { "name": "Заминаващи от летището" },
-      "airport_arrivals_on_time": { "name": "Пристигащи навреме" },
-      "airport_arrivals_delayed": { "name": "Закъснели пристигащи" },
-      "airport_arrivals_delay_average": { "name": "Средно закъснение пристигащи" },
-      "airport_arrivals_delay_index": { "name": "Индекс на закъснение пристигащи" },
-      "airport_arrivals_canceled": { "name": "Отменени пристигащи" },
-      "airport_departures_on_time": { "name": "Заминаващи навреме" },
-      "airport_departures_delayed": { "name": "Закъснели заминаващи" },
-      "airport_departures_delay_average": { "name": "Средно закъснение заминаващи" },
-      "airport_departures_delay_index": { "name": "Индекс на закъснение заминаващи" },
-      "airport_departures_canceled": { "name": "Отменени заминаващи" }
+      "in_area": {
+        "name": "Полети в зоната"
+      },
+      "entered": {
+        "name": "Влезли в зоната"
+      },
+      "exited": {
+        "name": "Напуснали зоната"
+      },
+      "additional_tracked": {
+        "name": "Допълнително проследявани"
+      },
+      "airport_arrivals": {
+        "name": "Пристигащи на летището"
+      },
+      "airport_departures": {
+        "name": "Заминаващи от летището"
+      },
+      "airport_arrivals_on_time": {
+        "name": "Пристигащи навреме"
+      },
+      "airport_arrivals_delayed": {
+        "name": "Закъснели пристигащи"
+      },
+      "airport_arrivals_delay_average": {
+        "name": "Средно закъснение пристигащи"
+      },
+      "airport_arrivals_delay_index": {
+        "name": "Индекс на закъснение пристигащи"
+      },
+      "airport_arrivals_canceled": {
+        "name": "Отменени пристигащи"
+      },
+      "airport_departures_on_time": {
+        "name": "Заминаващи навреме"
+      },
+      "airport_departures_delayed": {
+        "name": "Закъснели заминаващи"
+      },
+      "airport_departures_delay_average": {
+        "name": "Средно закъснение заминаващи"
+      },
+      "airport_departures_delay_index": {
+        "name": "Индекс на закъснение заминаващи"
+      },
+      "airport_departures_canceled": {
+        "name": "Отменени заминаващи"
+      },
+      "airport_wind_direction": {
+        "name": "Посока на вятъра на летището"
+      },
+      "airport_wind_direction_text": {
+        "name": "Посока на вятъра на летището (текст)"
+      },
+      "airport_wind_speed": {
+        "name": "Скорост на вятъра на летището"
+      },
+      "airport_temperature": {
+        "name": "Температура на летището"
+      },
+      "airport_humidity": {
+        "name": "Влажност на летището"
+      },
+      "airport_pressure": {
+        "name": "Налягане на летището"
+      },
+      "airport_dewpoint": {
+        "name": "Точка на оросяване на летището"
+      },
+      "airport_sky_condition": {
+        "name": "Облачност на летището"
+      },
+      "airport_visibility": {
+        "name": "Видимост на летището"
+      }
     },
     "button": {
-      "clear_tracked": { "name": "Изчистване на списъка" },
-      "tracked_clear": { "name": "Изчистване на допълнително проследявани" }
+      "clear_tracked": {
+        "name": "Изчистване на списъка"
+      },
+      "tracked_clear": {
+        "name": "Изчистване на допълнително проследявани"
+      }
     },
     "switch": {
-      "scanning": { "name": "Извличане на данни от API" },
-      "most_tracked": { "name": "Най-проследявани" }
+      "scanning": {
+        "name": "Извличане на данни от API"
+      },
+      "most_tracked": {
+        "name": "Най-проследявани"
+      }
     },
     "text": {
-      "add_track": { "name": "Добавяне за проследяване" },
-      "remove_track": { "name": "Премахване от проследяване" },
-      "airport_track": { "name": "Проследяване на летище" }
+      "add_track": {
+        "name": "Добавяне за проследяване"
+      },
+      "remove_track": {
+        "name": "Премахване от проследяване"
+      },
+      "airport_track": {
+        "name": "Проследяване на летище"
+      }
     }
   }
 }

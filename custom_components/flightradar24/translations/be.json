@@ -32,42 +32,123 @@
           "auto_cleanup": "Уключыць аўтаматычную ачыстку адсочваемых рэйсаў, якія прызямліліся",
           "tracker_name_style": "Стыль наймення трэкера карты",
           "username": "Імя карыстальніка (Неабавязкова)",
-          "password": "Пароль (Неабавязкова)"
+          "password": "Пароль (Неабавязкова)",
+          "temperature_unit": "Адзінкі тэмпературы аэрапорта",
+          "distance_unit": "Адзінкі бачнасці / адлегласці аэрапорта",
+          "speed_unit": "Адзінкі хуткасці ветру аэрапорта"
+        },
+        "data_description": {
+          "temperature_unit": "Адзінкі для датчыкаў тэмпературы і кропкі расы аэрапорта.",
+          "distance_unit": "Адзінкі для датчыка бачнасці аэрапорта.",
+          "speed_unit": "Адзінкі для датчыка хуткасці ветру аэрапорта."
         }
       }
     }
   },
   "entity": {
     "sensor": {
-      "in_area": { "name": "Рэйсы ў зоне" },
-      "entered": { "name": "Увайшлі ў зону" },
-      "exited": { "name": "Пакінулі зону" },
-      "additional_tracked": { "name": "Дадаткова адсочваемыя" },
-      "airport_arrivals": { "name": "Прыбыццё ў аэрапорт" },
-      "airport_departures": { "name": "Вылет з аэрапорта" },
-      "airport_arrivals_on_time": { "name": "Прыбыццё па раскладзе" },
-      "airport_arrivals_delayed": { "name": "Прыбыццё з затрымкай" },
-      "airport_arrivals_delay_average": { "name": "Сярэдняя затрымка прыбыцця" },
-      "airport_arrivals_delay_index": { "name": "Індэкс затрымкі прыбыцця" },
-      "airport_arrivals_canceled": { "name": "Адмененыя прыбыцці" },
-      "airport_departures_on_time": { "name": "Вылет па раскладзе" },
-      "airport_departures_delayed": { "name": "Вылет з затрымкай" },
-      "airport_departures_delay_average": { "name": "Сярэдняя затрымка вылету" },
-      "airport_departures_delay_index": { "name": "Індэкс затрымкі вылету" },
-      "airport_departures_canceled": { "name": "Адмененыя вылеты" }
+      "in_area": {
+        "name": "Рэйсы ў зоне"
+      },
+      "entered": {
+        "name": "Увайшлі ў зону"
+      },
+      "exited": {
+        "name": "Пакінулі зону"
+      },
+      "additional_tracked": {
+        "name": "Дадаткова адсочваемыя"
+      },
+      "airport_arrivals": {
+        "name": "Прыбыццё ў аэрапорт"
+      },
+      "airport_departures": {
+        "name": "Вылет з аэрапорта"
+      },
+      "airport_arrivals_on_time": {
+        "name": "Прыбыццё па раскладзе"
+      },
+      "airport_arrivals_delayed": {
+        "name": "Прыбыццё з затрымкай"
+      },
+      "airport_arrivals_delay_average": {
+        "name": "Сярэдняя затрымка прыбыцця"
+      },
+      "airport_arrivals_delay_index": {
+        "name": "Індэкс затрымкі прыбыцця"
+      },
+      "airport_arrivals_canceled": {
+        "name": "Адмененыя прыбыцці"
+      },
+      "airport_departures_on_time": {
+        "name": "Вылет па раскладзе"
+      },
+      "airport_departures_delayed": {
+        "name": "Вылет з затрымкай"
+      },
+      "airport_departures_delay_average": {
+        "name": "Сярэдняя затрымка вылету"
+      },
+      "airport_departures_delay_index": {
+        "name": "Індэкс затрымкі вылету"
+      },
+      "airport_departures_canceled": {
+        "name": "Адмененыя вылеты"
+      },
+      "airport_wind_direction": {
+        "name": "Кірунак ветру ў аэрапорце"
+      },
+      "airport_wind_direction_text": {
+        "name": "Кірунак ветру ў аэрапорце (тэкст)"
+      },
+      "airport_wind_speed": {
+        "name": "Хуткасць ветру ў аэрапорце"
+      },
+      "airport_temperature": {
+        "name": "Тэмпература ў аэрапорце"
+      },
+      "airport_humidity": {
+        "name": "Вільготнасць у аэрапорце"
+      },
+      "airport_pressure": {
+        "name": "Ціск у аэрапорце"
+      },
+      "airport_dewpoint": {
+        "name": "Кропка расы ў аэрапорце"
+      },
+      "airport_sky_condition": {
+        "name": "Воблачнасць у аэрапорце"
+      },
+      "airport_visibility": {
+        "name": "Бачнасць у аэрапорце"
+      }
     },
     "button": {
-      "clear_tracked": { "name": "Ачысціць спіс адсочвання" },
-      "tracked_clear": { "name": "Ачысціць дадаткова адсочваемыя" }
+      "clear_tracked": {
+        "name": "Ачысціць спіс адсочвання"
+      },
+      "tracked_clear": {
+        "name": "Ачысціць дадаткова адсочваемыя"
+      }
     },
     "switch": {
-      "scanning": { "name": "Атрыманне даных API" },
-      "most_tracked": { "name": "Самыя адсочваемыя" }
+      "scanning": {
+        "name": "Атрыманне даных API"
+      },
+      "most_tracked": {
+        "name": "Самыя адсочваемыя"
+      }
     },
     "text": {
-      "add_track": { "name": "Дадаць у адсочванне" },
-      "remove_track": { "name": "Выдаліць з адсочвання" },
-      "airport_track": { "name": "Адсочванне аэрапорта" }
+      "add_track": {
+        "name": "Дадаць у адсочванне"
+      },
+      "remove_track": {
+        "name": "Выдаліць з адсочвання"
+      },
+      "airport_track": {
+        "name": "Адсочванне аэрапорта"
+      }
     }
   }
 }

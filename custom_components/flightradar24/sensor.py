@@ -3,14 +3,40 @@ from collections.abc import Callable
 from typing import Any
 from homeassistant.components.sensor import (
     ENTITY_ID_FORMAT,
+    SensorDeviceClass,
     SensorStateClass,
     SensorEntity,
     RestoreSensor,
     SensorEntityDescription,
 )
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import (
+    DEGREE,
+    PERCENTAGE,
+    UnitOfLength,
+    UnitOfPressure,
+    UnitOfSpeed,
+    UnitOfTemperature,
+)
 from homeassistant.core import HomeAssistant, callback
-from .const import DOMAIN
+from .const import (
+    DOMAIN,
+    CONF_TEMPERATURE_UNIT,
+    CONF_TEMPERATURE_UNIT_DEFAULT,
+    TEMP_UNIT_C,
+    TEMP_UNIT_F,
+    CONF_DISTANCE_UNIT,
+    CONF_DISTANCE_UNIT_DEFAULT,
+    DISTANCE_UNIT_KM,
+    DISTANCE_UNIT_MI,
+    DISTANCE_UNIT_NMI,
+    DISTANCE_UNIT_M,
+    CONF_SPEED_UNIT,
+    CONF_SPEED_UNIT_DEFAULT,
+    SPEED_UNIT_KMH,
+    SPEED_UNIT_KTS,
+    SPEED_UNIT_MPH,
+)
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from .coordinator import FlightRadar24Coordinator
@@ -26,6 +52,95 @@ class FlightRadar24SensorRequiredKeysMixin:
 @dataclass
 class FlightRadar24SensorEntityDescription(SensorEntityDescription, FlightRadar24SensorRequiredKeysMixin):
     """A class that describes sensor entities."""
+
+    # When set, native_unit_of_measurement follows the integration unit options.
+    unit_kind: str | None = None
+
+
+def _entry_data(coord: FlightRadar24Coordinator) -> dict[str, Any]:
+    entry = coord.config_entry
+    return entry.data if entry else {}
+
+
+def _temperature_unit(coord: FlightRadar24Coordinator) -> str:
+    unit = _entry_data(coord).get(CONF_TEMPERATURE_UNIT, CONF_TEMPERATURE_UNIT_DEFAULT)
+    return TEMP_UNIT_F if unit == TEMP_UNIT_F else TEMP_UNIT_C
+
+
+def _distance_unit(coord: FlightRadar24Coordinator) -> str:
+    unit = _entry_data(coord).get(CONF_DISTANCE_UNIT, CONF_DISTANCE_UNIT_DEFAULT)
+    if unit in (DISTANCE_UNIT_KM, DISTANCE_UNIT_MI, DISTANCE_UNIT_NMI, DISTANCE_UNIT_M):
+        return unit
+    return CONF_DISTANCE_UNIT_DEFAULT
+
+
+def _speed_unit(coord: FlightRadar24Coordinator) -> str:
+    unit = _entry_data(coord).get(CONF_SPEED_UNIT, CONF_SPEED_UNIT_DEFAULT)
+    if unit in (SPEED_UNIT_KMH, SPEED_UNIT_KTS, SPEED_UNIT_MPH):
+        return unit
+    return CONF_SPEED_UNIT_DEFAULT
+
+
+def _weather(coord: FlightRadar24Coordinator):
+    return coord.airport.weather
+
+
+def _weather_attrs(coord: FlightRadar24Coordinator) -> dict[str, Any] | None:
+    weather = _weather(coord)
+    if not weather:
+        return None
+    attrs: dict[str, Any] = {}
+    if weather.metar:
+        attrs["metar"] = weather.metar
+    if weather.time is not None:
+        attrs["observation_time"] = weather.time
+    return attrs or None
+
+
+def _weather_temperature(coord: FlightRadar24Coordinator) -> float | None:
+    weather = _weather(coord)
+    if not weather:
+        return None
+    if _temperature_unit(coord) == TEMP_UNIT_F:
+        return weather.temp_fahrenheit
+    return weather.temp_celsius
+
+
+def _weather_dewpoint(coord: FlightRadar24Coordinator) -> float | None:
+    weather = _weather(coord)
+    if not weather:
+        return None
+    if _temperature_unit(coord) == TEMP_UNIT_F:
+        return weather.dewpoint_fahrenheit
+    return weather.dewpoint_celsius
+
+
+def _weather_wind_speed(coord: FlightRadar24Coordinator) -> float | None:
+    weather = _weather(coord)
+    if not weather:
+        return None
+    unit = _speed_unit(coord)
+    if unit == SPEED_UNIT_KTS:
+        return weather.wind_speed_kts
+    if unit == SPEED_UNIT_MPH:
+        return weather.wind_speed_mph
+    return weather.wind_speed_kmh
+
+
+def _weather_visibility(coord: FlightRadar24Coordinator) -> float | None:
+    weather = _weather(coord)
+    if not weather:
+        return None
+    unit = _distance_unit(coord)
+    if unit == DISTANCE_UNIT_MI:
+        return weather.visibility_mi
+    if unit == DISTANCE_UNIT_NMI:
+        return weather.visibility_nmi
+    if unit == DISTANCE_UNIT_M:
+        if weather.visibility_km is None:
+            return None
+        return round(weather.visibility_km * 1000, 1)
+    return weather.visibility_km
 
 
 SENSOR_TYPES: tuple[FlightRadar24SensorEntityDescription, ...] = (
@@ -162,6 +277,115 @@ SENSOR_TYPES: tuple[FlightRadar24SensorEntityDescription, ...] = (
             else None
         ),
     ),
+    FlightRadar24SensorEntityDescription(
+        key="airport_wind_direction",
+        translation_key="airport_wind_direction",
+        icon="mdi:compass",
+        state_class=SensorStateClass.MEASUREMENT,
+        native_unit_of_measurement=DEGREE,
+        suggested_display_precision=0,
+        value=lambda coord: (
+            _weather(coord).wind_direction_degree if _weather(coord) else None
+        ),
+        attributes=_weather_attrs,
+    ),
+    FlightRadar24SensorEntityDescription(
+        key="airport_wind_direction_text",
+        translation_key="airport_wind_direction_text",
+        icon="mdi:compass-outline",
+        value=lambda coord: (
+            _weather(coord).wind_direction_text if _weather(coord) else None
+        ),
+        attributes=_weather_attrs,
+    ),
+    FlightRadar24SensorEntityDescription(
+        key="airport_wind_speed",
+        translation_key="airport_wind_speed",
+        icon="mdi:weather-windy",
+        device_class=SensorDeviceClass.WIND_SPEED,
+        state_class=SensorStateClass.MEASUREMENT,
+        suggested_display_precision=0,
+        unit_kind="speed",
+        value=_weather_wind_speed,
+        attributes=_weather_attrs,
+    ),
+    FlightRadar24SensorEntityDescription(
+        key="airport_temperature",
+        translation_key="airport_temperature",
+        icon="mdi:thermometer",
+        device_class=SensorDeviceClass.TEMPERATURE,
+        state_class=SensorStateClass.MEASUREMENT,
+        suggested_display_precision=0,
+        unit_kind="temperature",
+        value=_weather_temperature,
+        attributes=_weather_attrs,
+    ),
+    FlightRadar24SensorEntityDescription(
+        key="airport_humidity",
+        translation_key="airport_humidity",
+        icon="mdi:water-percent",
+        device_class=SensorDeviceClass.HUMIDITY,
+        state_class=SensorStateClass.MEASUREMENT,
+        native_unit_of_measurement=PERCENTAGE,
+        suggested_display_precision=0,
+        value=lambda coord: (_weather(coord).humidity if _weather(coord) else None),
+        attributes=_weather_attrs,
+    ),
+    FlightRadar24SensorEntityDescription(
+        key="airport_pressure",
+        translation_key="airport_pressure",
+        icon="mdi:gauge",
+        device_class=SensorDeviceClass.PRESSURE,
+        state_class=SensorStateClass.MEASUREMENT,
+        native_unit_of_measurement=UnitOfPressure.HPA,
+        suggested_display_precision=0,
+        value=lambda coord: (
+            _weather(coord).pressure_hpa if _weather(coord) else None
+        ),
+        attributes=lambda coord: (
+            {
+                **(_weather_attrs(coord) or {}),
+                **(
+                    {"pressure_inHg": _weather(coord).pressure_hg}
+                    if _weather(coord) and _weather(coord).pressure_hg is not None
+                    else {}
+                ),
+            }
+            if _weather(coord)
+            else None
+        ),
+    ),
+    FlightRadar24SensorEntityDescription(
+        key="airport_dewpoint",
+        translation_key="airport_dewpoint",
+        icon="mdi:thermometer-water",
+        device_class=SensorDeviceClass.TEMPERATURE,
+        state_class=SensorStateClass.MEASUREMENT,
+        suggested_display_precision=0,
+        unit_kind="temperature",
+        value=_weather_dewpoint,
+        attributes=_weather_attrs,
+    ),
+    FlightRadar24SensorEntityDescription(
+        key="airport_sky_condition",
+        translation_key="airport_sky_condition",
+        icon="mdi:weather-partly-cloudy",
+        value=lambda coord: (
+            _weather(coord).sky_condition if _weather(coord) else None
+        ),
+        attributes=_weather_attrs,
+    ),
+    FlightRadar24SensorEntityDescription(
+        key="airport_visibility",
+        translation_key="airport_visibility",
+        icon="mdi:eye",
+        device_class=SensorDeviceClass.DISTANCE,
+        state_class=SensorStateClass.MEASUREMENT,
+        suggested_display_precision=1,
+        unit_kind="distance",
+        value=_weather_visibility,
+        attributes=_weather_attrs,
+    ),
 )
 
 RESTORE_SENSOR_TYPES: tuple[FlightRadar24SensorEntityDescription, ...] = (
@@ -219,7 +443,7 @@ class FlightRadar24Sensor(CoordinatorEntity[FlightRadar24Coordinator], SensorEnt
     entity_description: FlightRadar24SensorEntityDescription
 
     # TELL THE RECORDER TO IGNORE THE MASSIVE FLIGHTS ARRAY
-    _unrecorded_attributes = frozenset({"flights"})
+    _unrecorded_attributes = frozenset({"flights", "metar", "observation_time", "pressure_inHg"})
 
     def __init__(
             self,
@@ -239,6 +463,34 @@ class FlightRadar24Sensor(CoordinatorEntity[FlightRadar24Coordinator], SensorEnt
         attributes = self._current_extra_attributes()
         if attributes is not None:
             self._attr_extra_state_attributes = attributes
+
+    @property
+    def native_unit_of_measurement(self) -> str | None:
+        """Return the unit, including config-driven airport weather units."""
+        kind = self.entity_description.unit_kind
+        if kind == "temperature":
+            return (
+                UnitOfTemperature.FAHRENHEIT
+                if _temperature_unit(self.coordinator) == TEMP_UNIT_F
+                else UnitOfTemperature.CELSIUS
+            )
+        if kind == "speed":
+            unit = _speed_unit(self.coordinator)
+            if unit == SPEED_UNIT_KTS:
+                return UnitOfSpeed.KNOTS
+            if unit == SPEED_UNIT_MPH:
+                return UnitOfSpeed.MILES_PER_HOUR
+            return UnitOfSpeed.KILOMETERS_PER_HOUR
+        if kind == "distance":
+            unit = _distance_unit(self.coordinator)
+            if unit == DISTANCE_UNIT_MI:
+                return UnitOfLength.MILES
+            if unit == DISTANCE_UNIT_NMI:
+                return UnitOfLength.NAUTICAL_MILES
+            if unit == DISTANCE_UNIT_M:
+                return UnitOfLength.METERS
+            return UnitOfLength.KILOMETERS
+        return self.entity_description.native_unit_of_measurement
 
     def _current_extra_attributes(self) -> dict[str, Any] | None:
         """Build the attributes dict for this update, or None if the sensor has none."""

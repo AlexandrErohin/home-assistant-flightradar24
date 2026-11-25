@@ -32,42 +32,123 @@
           "auto_cleanup": "Abilita la pulizia automatica dei voli tracciati atterrati",
           "tracker_name_style": "Stile di denominazione del tracker sulla mappa",
           "username": "Nome utente (Opzionale)",
-          "password": "Password (Opzionale)"
+          "password": "Password (Opzionale)",
+          "temperature_unit": "Unità di temperatura dell'aeroporto",
+          "distance_unit": "Unità di visibilità / distanza dell'aeroporto",
+          "speed_unit": "Unità di velocità del vento dell'aeroporto"
+        },
+        "data_description": {
+          "temperature_unit": "Unità per i sensori di temperatura e punto di rugiada.",
+          "distance_unit": "Unità per il sensore di visibilità.",
+          "speed_unit": "Unità per il sensore di velocità del vento."
         }
       }
     }
   },
   "entity": {
     "sensor": {
-      "in_area": { "name": "Voli nell'area" },
-      "entered": { "name": "Area entrata" },
-      "exited": { "name": "Area uscita" },
-      "additional_tracked": { "name": "Seguiti extra" },
-      "airport_arrivals": { "name": "Arrivi in aeroporto" },
-      "airport_departures": { "name": "Partenze dall'aeroporto" },
-      "airport_arrivals_on_time": { "name": "Arrivi in orario" },
-      "airport_arrivals_delayed": { "name": "Arrivi in ritardo" },
-      "airport_arrivals_delay_average": { "name": "Ritardo medio arrivi" },
-      "airport_arrivals_delay_index": { "name": "Indice di ritardo arrivi" },
-      "airport_arrivals_canceled": { "name": "Arrivi cancellati" },
-      "airport_departures_on_time": { "name": "Partenze in orario" },
-      "airport_departures_delayed": { "name": "Partenze in ritardo" },
-      "airport_departures_delay_average": { "name": "Ritardo medio partenze" },
-      "airport_departures_delay_index": { "name": "Indice di ritardo partenze" },
-      "airport_departures_canceled": { "name": "Partenze cancellate" }
+      "in_area": {
+        "name": "Voli nell'area"
+      },
+      "entered": {
+        "name": "Area entrata"
+      },
+      "exited": {
+        "name": "Area uscita"
+      },
+      "additional_tracked": {
+        "name": "Seguiti extra"
+      },
+      "airport_arrivals": {
+        "name": "Arrivi in aeroporto"
+      },
+      "airport_departures": {
+        "name": "Partenze dall'aeroporto"
+      },
+      "airport_arrivals_on_time": {
+        "name": "Arrivi in orario"
+      },
+      "airport_arrivals_delayed": {
+        "name": "Arrivi in ritardo"
+      },
+      "airport_arrivals_delay_average": {
+        "name": "Ritardo medio arrivi"
+      },
+      "airport_arrivals_delay_index": {
+        "name": "Indice di ritardo arrivi"
+      },
+      "airport_arrivals_canceled": {
+        "name": "Arrivi cancellati"
+      },
+      "airport_departures_on_time": {
+        "name": "Partenze in orario"
+      },
+      "airport_departures_delayed": {
+        "name": "Partenze in ritardo"
+      },
+      "airport_departures_delay_average": {
+        "name": "Ritardo medio partenze"
+      },
+      "airport_departures_delay_index": {
+        "name": "Indice di ritardo partenze"
+      },
+      "airport_departures_canceled": {
+        "name": "Partenze cancellate"
+      },
+      "airport_wind_direction": {
+        "name": "Direzione del vento dell'aeroporto"
+      },
+      "airport_wind_direction_text": {
+        "name": "Direzione del vento dell'aeroporto (testo)"
+      },
+      "airport_wind_speed": {
+        "name": "Velocità del vento dell'aeroporto"
+      },
+      "airport_temperature": {
+        "name": "Temperatura dell'aeroporto"
+      },
+      "airport_humidity": {
+        "name": "Umidità dell'aeroporto"
+      },
+      "airport_pressure": {
+        "name": "Pressione dell'aeroporto"
+      },
+      "airport_dewpoint": {
+        "name": "Punto di rugiada dell'aeroporto"
+      },
+      "airport_sky_condition": {
+        "name": "Condizioni del cielo dell'aeroporto"
+      },
+      "airport_visibility": {
+        "name": "Visibilità dell'aeroporto"
+      }
     },
     "button": {
-      "clear_tracked": { "name": "Cancella lista monitoraggio" },
-      "tracked_clear": { "name": "Cancella seguiti extra" }
+      "clear_tracked": {
+        "name": "Cancella lista monitoraggio"
+      },
+      "tracked_clear": {
+        "name": "Cancella seguiti extra"
+      }
     },
     "switch": {
-      "scanning": { "name": "Recupero dati API" },
-      "most_tracked": { "name": "I più seguiti" }
+      "scanning": {
+        "name": "Recupero dati API"
+      },
+      "most_tracked": {
+        "name": "I più seguiti"
+      }
     },
     "text": {
-      "add_track": { "name": "Aggiungi al monitoraggio" },
-      "remove_track": { "name": "Rimuovi dal monitoraggio" },
-      "airport_track": { "name": "Monitoraggio aeroporto" }
+      "add_track": {
+        "name": "Aggiungi al monitoraggio"
+      },
+      "remove_track": {
+        "name": "Rimuovi dal monitoraggio"
+      },
+      "airport_track": {
+        "name": "Monitoraggio aeroporto"
+      }
     }
   }
 }
