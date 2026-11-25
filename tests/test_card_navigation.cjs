@@ -572,8 +572,10 @@ test('list and map icons use helicopter art when aircraft_category is Helicopter
   assert.ok(planeIcon.html.includes('M21 16v-2l-8-5'));
   assert.ok(heliIcon.html.includes('M3,3H17V5H3V3'));
   assert.ok(planeIcon.html.includes('rotate(45deg)'));
-  assert.ok(heliIcon.html.includes('rotate(-45deg)'));
-  assert.equal(f.card._markerIconKey(heli), '1:45');
+  // Helicopters stay upright — side-view art must not follow heading.
+  assert.ok(heliIcon.html.includes('rotate(0deg)'));
+  assert.equal(f.card._markerIconKey(heli), '1');
+  assert.equal(f.card._markerIconKey({ ...heli, heading: 180 }), '1');
   f.card._popupHtml = f.card.constructor.prototype._popupHtml;
   const parsed = { north: 10.1, south: 9.9, west: 19.9, east: 20.1, lat: 10, lon: 20 };
   await f.card._syncMap(parsed, [{
@@ -585,7 +587,7 @@ test('list and map icons use helicopter art when aircraft_category is Helicopter
   await f.card._syncMap(parsed, [{
     id: 'h1', latitude: 10, longitude: 20, heading: 10, aircraft_category: 'Helicopter',
   }]);
-  assert.equal(marker._frIconKey, '1:10');
+  assert.equal(marker._frIconKey, '1');
   assert.equal(f.card._markerById.get('h1'), marker);
 });
 
