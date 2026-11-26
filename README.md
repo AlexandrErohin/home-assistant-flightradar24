@@ -59,15 +59,15 @@ It allows you:
   </tr>
   <tr>
     <td width="50%" valign="top">
-      <img src="https://raw.githubusercontent.com/AlexandrErohin/home-assistant-flightradar24/master/docs/media/lovelace.png" alt="Flightradar24 lovelace card" width="100%">
+      <img src="https://raw.githubusercontent.com/AlexandrErohin/home-assistant-flightradar24/master/docs/media/sensors1.jpg" alt="Flightradar24 sensors" width="100%">
     </td>
     <td width="50%" valign="top">
-      <img src="https://raw.githubusercontent.com/AlexandrErohin/home-assistant-flightradar24/master/docs/media/sensors1.jpg" alt="Flightradar24 sensors" width="100%">
+      <img src="https://raw.githubusercontent.com/AlexandrErohin/home-assistant-flightradar24/master/docs/media/sensors2.jpg" alt="Flightradar24 sensors" width="100%">
     </td>
   </tr>
   <tr>
     <td width="50%" valign="top">
-      <img src="https://raw.githubusercontent.com/AlexandrErohin/home-assistant-flightradar24/master/docs/media/sensors2.jpg" alt="Flightradar24 sensors" width="100%">
+      <img src="https://raw.githubusercontent.com/AlexandrErohin/home-assistant-flightradar24/master/docs/media/lovelace.png" alt="Flightradar24 lovelace card" width="100%">
     </td>
     <td width="50%" valign="top">
       <img src="https://raw.githubusercontent.com/AlexandrErohin/home-assistant-flightradar24/master/docs/media/airport_departures.jpg" alt="Airport departures board" width="100%">
