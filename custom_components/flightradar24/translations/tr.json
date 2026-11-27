@@ -8,6 +8,10 @@
           "latitude": "Enlem",
           "longitude": "Boylam",
           "scan_interval": "Saniye cinsinden güncelleme aralığı"
+        },
+        "data_description": {
+          "radius": "İzlenen alanın yarıçapı, kilometre değil metre cinsindendir. Örneğin 25 km yarıçap için 25000 girin.",
+          "scan_interval": "Flightradar24'ün ne sıklıkla sorgulanacağı. Kısa aralıklar isteklerinizin kısıtlanma olasılığını artırır."
         }
       }
     }
@@ -38,6 +42,9 @@
           "speed_unit": "Havalimanı rüzgar hızı birimi"
         },
         "data_description": {
+          "radius": "İzlenen alanın yarıçapı, kilometre değil metre cinsindendir. Örneğin 25 km yarıçap için 25000 girin.",
+          "scan_interval": "Flightradar24'ün ne sıklıkla sorgulanacağı. Kısa aralıklar isteklerinizin kısıtlanma olasılığını artırır.",
+          "min_altitude": "Bu irtifanın altındaki uçaklar yok sayılır. Değeri yükseltmek Flightradar24'e yapılan istek sayısını azaltır.",
           "temperature_unit": "Sıcaklık ve çiy noktası sensörleri için birim.",
           "distance_unit": "Görüş mesafesi sensörü için birim.",
           "speed_unit": "Rüzgar hızı sensörü için birim."
